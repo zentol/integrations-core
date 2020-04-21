@@ -4,6 +4,7 @@
 import os
 import platform
 import subprocess
+import tempfile
 
 import click
 
@@ -57,4 +58,15 @@ def setup(checks, changed):
         for script in scripts:
             script_file = os.path.join(check_scripts_path, cur_platform, script)
             display_action(script_file)
+            script = tempfile.NamedTemporaryFile()
+            if script_file.endswith('.sh'):
+                script.write(COMMON_SCRIPT)
+            with open(script_file) as f:
+                script.write(f.read())
+            print("script_file", script_file)
             subprocess.run([script_file], shell=True, check=True)
+
+
+COMMON_SCRIPT = """
+echo ================== hello world ==========================
+"""
