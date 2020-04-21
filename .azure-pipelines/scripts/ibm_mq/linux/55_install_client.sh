@@ -6,9 +6,10 @@
 
 set -ex
 
+source "$DDEV_COMMON_SCRIPTS/common.sh"
+
 TMP_DIR=/tmp/mq
 MQ_URL=https://ddintegrations.blob.core.windows.net/ibm-mq/mqadv_dev90_linux_x86-64.tar.gz
-MQ_PACKAGES="MQSeriesRuntime-*.rpm MQSeriesServer-*.rpm MQSeriesMsg*.rpm MQSeriesJava*.rpm MQSeriesJRE*.rpm MQSeriesGSKit*.rpm"
 
 if [ -e /opt/mqm/inc/cmqc.h ]; then
   echo "cmqc.h already exists, exiting"
@@ -39,13 +40,7 @@ sudo apt-get install -y --no-install-recommends \
 mkdir -p $TMP_DIR
 pushd $TMP_DIR
 
-  # Retry necessary due to flaky download that might trigger:
-  # curl: (56) OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 110
-  for i in 2 4 8 16 32; do
-    curl --verbose -LO $MQ_URL && break
-    echo "[INFO] Wait $i seconds and retry curl download"
-    sleep $i
-  done
+  with_retry curl --verbose -LO $MQ_URL
 
   tar -zxvf ./*.tar.gz
   pushd MQServer

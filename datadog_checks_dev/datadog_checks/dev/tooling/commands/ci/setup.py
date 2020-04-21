@@ -12,6 +12,12 @@ from ...constants import get_root
 from ...testing import get_tox_envs
 from ..console import CONTEXT_SETTINGS, echo_debug, echo_info
 
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DDEV_COMMON_SCRIPTS = "DDEV_COMMON_SCRIPTS"
+DDEV_CI_SCRIPTS = "DDEV_CI_SCRIPTS"
+
 
 def display_action(script_file):
     display_header = f'Running: {script_file}'
@@ -41,6 +47,7 @@ def setup(checks, changed):
 
     for check, _ in check_envs:
         check_scripts_path = os.path.join(scripts_path, check)
+        print("check_scripts_path", check_scripts_path)
 
         if not os.path.isdir(check_scripts_path):
             echo_debug(f"Skip! No scripts for check `{check}` at: `{check_scripts_path}`")
@@ -58,15 +65,8 @@ def setup(checks, changed):
         for script in scripts:
             script_file = os.path.join(check_scripts_path, cur_platform, script)
             display_action(script_file)
-            script = tempfile.NamedTemporaryFile()
-            if script_file.endswith('.sh'):
-                script.write(COMMON_SCRIPT)
-            with open(script_file) as f:
-                script.write(f.read())
-            print("script_file", script_file)
-            subprocess.run([script_file], shell=True, check=True)
 
-
-COMMON_SCRIPT = """
-echo ================== hello world ==========================
-"""
+            my_env = os.environ.copy()
+            my_env[DDEV_COMMON_SCRIPTS] = os.path.join(HERE, 'scripts')
+            my_env[DDEV_CI_SCRIPTS] = scripts_path
+            subprocess.run([script_file], shell=True, check=True, env=my_env)
