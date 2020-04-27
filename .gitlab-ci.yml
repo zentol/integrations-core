@@ -17,5 +17,5 @@ variables:
 test-gitlab-api:
   image: $TAGGER_IMAGE
   script:
-    - "curl -v --header 'PRIVATE-TOKEN: $CI_JOB_TOKEN' -X GET https://gitlab.ddbuild.io/api/v4/projects/$CI_PROJECT_ID/pipelines?per_page=100"
+    - "curl -v --header \"PRIVATE-TOKEN: $CI_JOB_TOKEN\" -X GET https://gitlab.ddbuild.io/api/v4/projects/$CI_PROJECT_ID/pipelines?per_page=100"
   tags: [ "runner:main", "size:large" ]
