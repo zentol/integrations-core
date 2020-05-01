@@ -16,6 +16,16 @@ metrics:
   - MIB: HOST-RESOURCES-MIB
     symbol: hrSystemMaxProcesses
 
+  - MIB: SNMP-FRAMEWORK-MIB
+    symbols:
+      - OID: 1.3.6.1.6.3.10.2.1.3.0
+        name: snmpEngineTime
+    metric_tags:
+      - column:
+          OID: 1.3.6.1.6.3.10.2.1.1
+          name: snmpEngineID
+        tag: engine_id
+
   #
   # Storage Devices
   #
