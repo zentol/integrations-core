@@ -26,15 +26,15 @@
 </code></pre></div></p> <h3 id="setup">setup<a class="headerlink" href="#setup" title="Permanent link">¶</a></h3> <p>Run CI setup scripts</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev ci setup [OPTIONS] [CHECKS]...
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  --changed  Only target changed checks
 </code></pre></div></p> <h2 id="clean">clean<a class="headerlink" href="#clean" title="Permanent link">¶</a></h2> <p>Remove build and test artifacts for the given CHECK. If CHECK is not specified, the current working directory is used.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev clean [OPTIONS] [CHECK]
-</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -c, --compiled-only  Remove compiled files only (*.pyo, *.pyd, *.whl,
-                       __pycache__, *.pyc).
+</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -c, --compiled-only  Remove compiled files only (__pycache__, *.pyo, *.pyc,
+                       *.pyd, *.whl).
   -a, --all            Disable the detection of a project's dedicated virtual
                        env and/or editable installation. By default, these
                        will not be considered.
   -f, --force          If set and the command is run from the root directory,
-                       allow removing build and test artifacts (.coverage,
-                       .tox, build, .cache, .eggs, *.egg-info, .benchmarks,
-                       .pytest_cache, dist).
+                       allow removing build and test artifacts (dist, .tox,
+                       .coverage, .eggs, build, .pytest_cache, .benchmarks,
+                       *.egg-info, .cache).
   -v, --verbose        Shows removed paths.
 </code></pre></div></p> <h2 id="config">config<a class="headerlink" href="#config" title="Permanent link">¶</a></h2> <p>Manage the config file</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev config [OPTIONS] COMMAND [ARGS]...
 </code></pre></div></p> <h3 id="explore">explore<a class="headerlink" href="#explore" title="Permanent link">¶</a></h3> <p>Open the config location in your file manager.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev config explore [OPTIONS]
@@ -169,7 +169,9 @@ api_key = "***********"
   --exclude TEXT  Comma-separated list of checks to skip
 </code></pre></div></p> <h3 id="show_1">show<a class="headerlink" href="#show_1" title="Permanent link">¶</a></h3> <p>To avoid GitHub's public API rate limits, you need to set <code>github.user</code>/<code>github.token</code> in your config file or use the <code>DD_GITHUB_USER</code>/<code>DD_GITHUB_TOKEN</code> environment variables.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev release show [OPTIONS] COMMAND [ARGS]...
 </code></pre></div></p> <h4 id="changes_1">changes<a class="headerlink" href="#changes_1" title="Permanent link">¶</a></h4> <p>Show all the pending PRs for a given check.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev release show changes [OPTIONS] CHECK
-</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -n, --dry-run
+</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  --tag-pattern TEXT
+  --tag-prefix TEXT
+  -n, --dry-run
 </code></pre></div></p> <h4 id="ready">ready<a class="headerlink" href="#ready" title="Permanent link">¶</a></h4> <p>Show all the checks that can be released.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev release show ready [OPTIONS]
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -q, --quiet
 </code></pre></div></p> <h3 id="tag">tag<a class="headerlink" href="#tag" title="Permanent link">¶</a></h3> <p>Tag the HEAD of the git repo with the current release number for a specific check. The tag is pushed to origin by default.</p> <p>You can tag everything at once by setting the check to <code>all</code>.</p> <p>Notice: specifying a different version than the one in <code>__about__.py</code> is a maintenance task that should be run under very specific circumstances (e.g. re-align an old release performed on the wrong commit).</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev release tag [OPTIONS] CHECK [VERSION]
