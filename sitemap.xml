@@ -99,5 +99,9 @@
      <loc>https://datadoghq.dev/integrations-core/faq/faq/</loc>
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/faq/acknowledgements/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
     </url>
 </urlset>
