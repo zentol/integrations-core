@@ -20,11 +20,19 @@
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
+     <loc>https://datadoghq.dev/integrations-core/base/basics/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
      <loc>https://datadoghq.dev/integrations-core/base/http/</loc>
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://datadoghq.dev/integrations-core/base/databases/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/base/prometheus/</loc>
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
@@ -64,6 +72,10 @@
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
+     <loc>https://datadoghq.dev/integrations-core/guidelines/dashboards/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
      <loc>https://datadoghq.dev/integrations-core/guidelines/conventions/</loc>
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
@@ -85,6 +97,22 @@
      <changefreq>daily</changefreq>
     </url><url>
      <loc>https://datadoghq.dev/integrations-core/meta/status/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/jmx/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/architecture/snmp/</loc>
+     <lastmod>2020-05-10</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/architecture/vsphere/</loc>
      <lastmod>2020-05-10</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
