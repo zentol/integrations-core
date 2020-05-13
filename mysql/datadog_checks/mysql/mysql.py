@@ -5,6 +5,9 @@
 from __future__ import division
 
 import re
+import json
+import socket
+import decimal
 import traceback
 from collections import defaultdict, namedtuple
 from contextlib import closing, contextmanager
@@ -279,6 +282,13 @@ BUILDS = ('log', 'standard', 'debug', 'valgrind', 'embedded')
 MySQLMetadata = namedtuple('MySQLMetadata', ['version', 'flavor', 'build'])
 
 
+class EventEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(EventEncoder, self).default(o)
+
+
 class MySql(AgentCheck):
     SERVICE_CHECK_NAME = 'mysql.can_connect'
     SLAVE_SERVICE_CHECK_NAME = 'mysql.replication.slave_running'
@@ -352,6 +362,7 @@ class MySql(AgentCheck):
                 # Metric collection
                 self._collect_metrics(db, tags, options, queries, max_custom_queries)
                 self._collect_system_metrics(host, db, tags)
+                self._collect_queries(db, tags, options)
 
                 # keeping track of these:
                 self._put_qcache_stats()
@@ -656,6 +667,19 @@ class MySql(AgentCheck):
             if len(queries) > max_custom_queries:
                 self.warning("Maximum number (%s) of custom queries reached.  Skipping the rest.", max_custom_queries)
 
+    def _collect_queries(self, db, tags, options):
+        results = self._get_stats_from_status(db)
+        results.update(self._get_stats_from_variables(db))
+        performance_schema_enabled = self._get_variable_enabled(results, 'performance_schema')
+        above_560 = self._version_compatible(db, (5, 6, 0))
+        if not(is_affirmative(options.get('extra_performance_queries', False)) and above_560 and performance_schema_enabled):
+            return False
+
+        threads = self._query_active_threads(db)
+        self._submit_log_events(threads, tags)
+        summaries = self._query_summary_per_statement(db)
+        self._submit_log_events(summaries, tags)
+
     def _is_master(self, slaves, results):
         # master uuid only collected in slaves
         master_host = self._collect_string('Master_Host', results)
@@ -680,6 +704,20 @@ class MySql(AgentCheck):
                         self.count(metric_name, value, tags=metric_tags)
                     elif metric_type == MONOTONIC:
                         self.monotonic_count(metric_name, value, tags=metric_tags)
+
+    def _submit_log_events(self, events, tags):
+        try:
+            c = socket.create_connection(('localhost', 10518))
+        except ConnectionRefusedError:
+            self.warning('Unable to connect to the logs agent; please see the '
+                'documentation on configuring the logs agent.')
+            return
+        else:
+            for e in events:
+                event = {'tags': tags, 'db': {'mysql': e}}
+                c.sendall((json.dumps(event, cls=EventEncoder) + '\n').encode())
+        finally:
+            c.close()
 
     def _version_compatible(self, db, compat_version):
         # some patch version numbers contain letters (e.g. 5.0.51a)
@@ -1339,6 +1377,79 @@ class MySql(AgentCheck):
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
             self.warning("Avg exec time performance metrics unavailable at this time: %s", e)
             return None
+
+    def _query_summary_per_statement(self, db):
+        sql_statement_summary ="""\
+            SELECT {columns}
+            FROM performance_schema.events_statements_summary_by_digest
+            ORDER BY avg_timer_wait DESC"""
+
+        columns = (
+            'schema_name',
+            'digest',
+            'digest_text',
+            'count_star',
+            'sum_timer_wait / 1000000 as sum_timer_wait',
+            'min_timer_wait / 1000000 as min_timer_wait',
+            'avg_timer_wait / 1000000 as avg_timer_wait',
+            'max_timer_wait / 1000000 as max_timer_wait',
+            'sum_lock_time / 1000000 as sum_lock_time',
+            'sum_errors',
+            'sum_rows_affected',
+            'sum_rows_sent',
+            'sum_rows_examined',
+            'sum_created_tmp_disk_tables',
+            'sum_created_tmp_tables',
+            'sum_select_full_join',
+            'sum_select_full_range_join',
+            'sum_select_scan',
+            'sum_sort_merge_passes',
+            'sum_sort_range',
+            'sum_sort_rows',
+            'sum_sort_scan',
+            'sum_no_index_used',
+            'sum_no_good_index_used',
+        )
+
+        try:
+            with closing(db.cursor(pymysql.cursors.DictCursor)) as cursor:
+                cursor.execute(sql_statement_summary.format(columns=', '.join(columns)))
+
+                return cursor.fetchall()
+        except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
+            self.warning("Statement summary metrics are unavailable at this time: %s", e)
+            return []
+
+    def _query_active_threads(self, db):
+        sql_query_threads ="""\
+            SELECT {columns}
+            FROM performance_schema.threads
+            ORDER BY processlist_time DESC"""
+
+        columns = (
+            'thread_id',
+            'name',
+            'type',
+            'processlist_id',
+            'processlist_user',
+            'processlist_host',
+            'processlist_db',
+            'processlist_command',
+            'processlist_time',
+            'processlist_state',
+            'processlist_info',
+            'parent_thread_id',
+            'thread_os_id',
+            'resource_group',
+        )
+        try:
+            with closing(db.cursor(pymysql.cursors.DictCursor)) as cursor:
+                cursor.execute(sql_query_threads.format(columns=', '.join(columns)))
+
+                return cursor.fetchall()
+        except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
+            self.warning("Active threads are unavailable at this time: %s", e)
+            return []
 
     def _query_size_per_schema(self, db):
         # Fetches the avg query execution time per schema and returns the
