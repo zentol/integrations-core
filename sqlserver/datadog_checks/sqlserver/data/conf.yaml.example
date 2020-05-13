@@ -2,6 +2,22 @@
 #
 init_config:
 
+    ## @param connector - string - optional - default: adodbapi
+    ## Change the connection method from adodbapi (the default) to
+    ## odbc (valid connector names are 'odbc' and 'adodbapi')
+    ## Note: 'adodbapi` is only available on Windows
+    #
+    # connector: adodbapi
+
+    ## @param adoprovider - string - optional - default: SQLOLEDB
+    ## Choose the ADO provider.  Note that the (default) provider
+    ## SQLOLEDB is being deprecated.  To use the newer MSOLEDBSQL
+    ## provider, set the adoprovider to "MSOLEDBSQL" below. You will also need
+    ## to download the new provider from
+    ## https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-sql-server?view=sql-server-2017
+    #
+    # adoprovider: SQLOLEDB
+
     ## @param custom_metrics - list of mappings - optional
     ## Collect custom metrics and send them to Datadog based on
     ## your SQL server counters.
@@ -37,22 +53,6 @@ instances:
     ## Database name to query
     #
     # database: master
-
-    ## @param adoprovider - string - optional - default: SQLOLEDB
-    ## Choose the ADO provider.  Note that the (default) provider
-    ## SQLOLEDB is being deprecated.  To use the newer MSOLEDBSQL
-    ## provider, set the adoprovider to "MSOLEDBSQL" below. You will also need
-    ## to download the new provider from
-    ## https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-sql-server?view=sql-server-2017
-    #
-    # adoprovider: SQLOLEDB
-
-    ## @param connector - string - optional - default: adodbapi
-    ## Change the connection method from adodbapi (the default) to
-    ## odbc (valid connector names are 'odbc' and 'adodbapi')
-    ## Note: 'adodbapi` is only available on Windows
-    #
-    # connector: adodbapi
 
     ## @param driver - string - optional - default: SQL Server
     ## If using odbc, use the named driver.

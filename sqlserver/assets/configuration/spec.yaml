@@ -4,11 +4,29 @@ files:
   options:
   - template: init_config
     options:
+    - name: connector
+      description: |
+        Change the connection method from adodbapi (the default) to
+        odbc (valid connector names are 'odbc' and 'adodbapi')
+        Note: 'adodbapi` is only available on Windows
+      value:
+        type: string
+        example: adodbapi
+    - name: adoprovider
+      description: |
+        Choose the ADO provider.  Note that the (default) provider
+        SQLOLEDB is being deprecated.  To use the newer MSOLEDBSQL
+        provider, set the adoprovider to "MSOLEDBSQL" below. You will also need
+        to download the new provider from
+        https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-sql-server?view=sql-server-2017
+      value:
+        type: string
+        example: SQLOLEDB
     - name: custom_metrics
       description: |
         Collect custom metrics and send them to Datadog based on
         your SQL server counters.
-        
+
         See https://docs.datadoghq.com/integrations/guide/collect-sql-server-custom-metrics/
       value:
         type: array
@@ -42,24 +60,7 @@ files:
       value:
         type: string
         example: master
-    - name: adoprovider
-      description: |
-        Choose the ADO provider.  Note that the (default) provider
-        SQLOLEDB is being deprecated.  To use the newer MSOLEDBSQL
-        provider, set the adoprovider to "MSOLEDBSQL" below. You will also need
-        to download the new provider from
-        https://docs.microsoft.com/en-us/sql/connect/oledb/oledb-driver-for-sql-server?view=sql-server-2017
-      value:
-        type: string
-        example: SQLOLEDB
-    - name: connector
-      description: |
-        Change the connection method from adodbapi (the default) to
-        odbc (valid connector names are 'odbc' and 'adodbapi')
-        Note: 'adodbapi` is only available on Windows
-      value:
-        type: string
-        example: adodbapi
+
     - name: driver
       description: If using odbc, use the named driver.
       value:
