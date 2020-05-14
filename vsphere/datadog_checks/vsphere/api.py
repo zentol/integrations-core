@@ -262,8 +262,9 @@ class VSphereAPI(object):
         try:
             events = event_manager.QueryEvents(query_filter)
         except pyVmomi.SoapAdapter.ParserError as e:
-            self.log.debug("Error parsing all events (%s). Fetch events one by one.", e)
+            self.log.debug("Error parsing all events %s", e)
 
+            self.log.debug("Trying to fetch events one at time.")
             event_collector = event_manager.CreateCollectorForEvents(query_filter)
             while True:
                 try:
