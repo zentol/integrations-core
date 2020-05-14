@@ -6,6 +6,7 @@
   -x, --here            Work on the current location.
   --color / --no-color  Whether or not to display colored output (default
                         true).
+
   -q, --quiet           Silence output
   -d, --debug           Include debug output
   --version             Show the version and exit.
@@ -15,6 +16,7 @@
   --to TEXT     Final Agent version
   -w, --write   Write to the changelog file, if omitted contents will be
                 printed to stdout
+
   -f, --force   Replace an existing file
 </code></pre></div></p> <h3 id="integrations">integrations<a class="headerlink" href="#integrations" title="Permanent link">¶</a></h3> <p>Generates a markdown file containing the list of integrations shipped in a given Agent release. Agent version numbers are derived inspecting tags on <code>integrations-core</code> so running this tool might provide unexpected results if the repo is not up to date with the Agent release process.</p> <p>If neither <code>--since</code> or <code>--to</code> are passed (the most common use case), the tool will generate the list for every Agent since version 6.3.0 (before that point we don't have enough information to build the log).</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev agent integrations [OPTIONS]
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  --since TEXT  Initial Agent version
@@ -28,13 +30,16 @@
 </code></pre></div></p> <h2 id="clean">clean<a class="headerlink" href="#clean" title="Permanent link">¶</a></h2> <p>Remove build and test artifacts for the given CHECK. If CHECK is not specified, the current working directory is used.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev clean [OPTIONS] [CHECK]
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -c, --compiled-only  Remove compiled files only (*.pyc, *.pyd, *.pyo, *.whl,
                        __pycache__).
+
   -a, --all            Disable the detection of a project's dedicated virtual
                        env and/or editable installation. By default, these
                        will not be considered.
+
   -f, --force          If set and the command is run from the root directory,
                        allow removing build and test artifacts (*.egg-info,
                        .benchmarks, .cache, .coverage, .eggs, .pytest_cache,
                        .tox, build, dist).
+
   -v, --verbose        Shows removed paths.
 </code></pre></div></p> <h2 id="config">config<a class="headerlink" href="#config" title="Permanent link">¶</a></h2> <p>Manage the config file</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev config [OPTIONS] COMMAND [ARGS]...
 </code></pre></div></p> <h3 id="explore">explore<a class="headerlink" href="#explore" title="Permanent link">¶</a></h3> <p>Open the config location in your file manager.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev config explore [OPTIONS]
@@ -64,6 +69,7 @@ api_key = "***********"
   -r, --resolve      Resolve transient dependencies
   -l, --lazy         Do not attempt to upgrade transient dependencies when
                      resolving
+
   -q, --quiet
 </code></pre></div></p> <h3 id="resolve">resolve<a class="headerlink" href="#resolve" title="Permanent link">¶</a></h3> <p>Resolve transient dependencies for any number of checks. If you want to do this en masse, put <code>all</code>.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev dep resolve [OPTIONS] CHECKS...
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -l, --lazy   Do not attempt to upgrade transient dependencies
@@ -74,22 +80,26 @@ api_key = "***********"
 </code></pre></div></p> <h3 id="deploy">deploy<a class="headerlink" href="#deploy" title="Permanent link">¶</a></h3> <p>Deploy built documentation.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev docs deploy [OPTIONS] [BRANCH]
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -y, --yes
 </code></pre></div></p> <h3 id="serve">serve<a class="headerlink" href="#serve" title="Permanent link">¶</a></h3> <p>Serve and view documentation in a web browser.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev docs serve [OPTIONS]
-</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -n, --no-open  Do not open the documentation in a web browser
-  -v, --verbose  Increase verbosity (can be used additively)
+</code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -v, --verbose  Increase verbosity (can be used additively)
 </code></pre></div></p> <h2 id="env">env<a class="headerlink" href="#env" title="Permanent link">¶</a></h2> <p>Manage environments</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev env [OPTIONS] COMMAND [ARGS]...
 </code></pre></div></p> <h3 id="check">check<a class="headerlink" href="#check" title="Permanent link">¶</a></h3> <p>Run an Agent check.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev env check [OPTIONS] CHECK [ENV]
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -r, --rate                Compute rates by running the check twice with a
                             pause between each run
+
   -t, --times INTEGER       Number of times to run the check
   --pause INTEGER           Number of milliseconds to pause between multiple
                             check runs
+
   -d, --delay INTEGER       Delay in milliseconds between running the check
                             and grabbing what was collected
+
   -l, --log-level TEXT      Set the log level (default `off`)
   --json                    Format the aggregator and check runner output as
                             JSON
+
   -b, --breakpoint INTEGER  Line number to start a PDB session (0: first line,
                             -1: last line)
+
   --config TEXT             Path to a JSON check configuration to use
   --jmx-list TEXT           JMX metrics listing method
 </code></pre></div></p> <h3 id="ls">ls<a class="headerlink" href="#ls" title="Permanent link">¶</a></h3> <p>List active or available environments.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev env ls [OPTIONS] [CHECKS]...
@@ -101,15 +111,20 @@ api_key = "***********"
                          `datadog/agent:latest`. You can also use the name of
                          an agent defined in the `agents` configuration
                          section.
+
   -py, --python INTEGER  The version of Python to use. Defaults to 2 if no tox
                          Python is specified.
+
   --dev / --prod         Whether to use the latest version of a check or what
                          is shipped
+
   --base                 Whether to use the latest version of the base check
                          or what is shipped
+
   -e, --env-vars TEXT    ENV Variable that should be passed to the Agent
                          container. Ex: -e DD_URL=app.datadoghq.com -e
                          DD_API_KEY=123456
+
   -o, --org-name TEXT    The org to use for data submission.
   -pm, --profile-memory  Whether to collect metrics about memory usage
 </code></pre></div></p> <h3 id="stop">stop<a class="headerlink" href="#stop" title="Permanent link">¶</a></h3> <p>Stop environments, use "all" as check argument to stop everything.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev env stop [OPTIONS] CHECK [ENV]
@@ -118,15 +133,20 @@ api_key = "***********"
                          `datadog/agent:latest`. You can also use the name of
                          an agent defined in the `agents` configuration
                          section.
+
   -py, --python INTEGER  The version of Python to use. Defaults to 2 if no tox
                          Python is specified.
+
   --dev / --prod         Whether to use the latest version of a check or what
                          is shipped
+
   --base                 Whether to use the latest version of the base check
                          or what is shipped
+
   -e, --env-vars TEXT    ENV Variable that should be passed to the Agent
                          container. Ex: -e DD_URL=app.datadoghq.com -e
                          DD_API_KEY=123456
+
   -ne, --new-env         Execute setup and tear down actions
   -pm, --profile-memory  Whether to collect metrics about memory usage
   -j, --junit            Generate junit reports
@@ -134,6 +154,7 @@ api_key = "***********"
 </code></pre></div></p> <h3 id="catalog">catalog<a class="headerlink" href="#catalog" title="Permanent link">¶</a></h3> <p>Create a catalog with information about integrations</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev meta catalog [OPTIONS] CHECKS...
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -f, --file TEXT  Output to file (it will be overwritten), you can pass "tmp"
                    to generate a temporary file
+
   -m, --markdown   Output to markdown instead of CSV
 </code></pre></div></p> <h3 id="changes">changes<a class="headerlink" href="#changes" title="Permanent link">¶</a></h3> <p>Show changes since a specific date.</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev meta changes [OPTIONS] SINCE
 </code></pre></div> Options: <div class="highlight"><pre><span></span><code>  -o, --out  Output to file
@@ -194,6 +215,7 @@ api_key = "***********"
   -c, --cov                Measure code coverage
   -cm, --cov-missing       Show line numbers of statements that were not
                            executed
+
   -j, --junit              Generate junit reports
   -m, --marker TEXT        Only run tests matching given marker expression
   -k, --filter TEXT        Only run tests matching given substring expression
@@ -206,6 +228,7 @@ api_key = "***********"
   --cov-keep               Keep coverage reports
   --skip-env               Skip environment creation and assume it is already
                            running
+
   -pa, --pytest-args TEXT  Additional arguments to pytest
 </code></pre></div></p> <h2 id="validate">validate<a class="headerlink" href="#validate" title="Permanent link">¶</a></h2> <p>Verify certain aspects of the repo</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev validate [OPTIONS] COMMAND [ARGS]...
 </code></pre></div></p> <h3 id="agent-reqs">agent-reqs<a class="headerlink" href="#agent-reqs" title="Permanent link">¶</a></h3> <p>Verify that the checks versions are in sync with the requirements-agent-release.txt file</p> <p>Usage: <div class="highlight"><pre><span></span><code>ddev validate agent-reqs [OPTIONS]
