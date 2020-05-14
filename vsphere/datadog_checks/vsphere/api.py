@@ -6,6 +6,7 @@ import functools
 import ssl
 from typing import Any, Callable, List, TypeVar, cast
 
+import pyVmomi
 from pyVim import connect
 from pyVmomi import vim, vmodl
 
@@ -257,13 +258,24 @@ class VSphereAPI(object):
         query_filter = vim.event.EventFilterSpec()
         time_filter = vim.event.EventFilterSpec.ByTime(beginTime=start_time)
         query_filter.time = time_filter
-        return event_manager.QueryEvents(query_filter)
+        events = []
+        try:
+            events = event_manager.QueryEvents(query_filter)
+        except pyVmomi.SoapAdapter.ParserError as e:
+            self.log.debug("Error parsing all events (%s). Fetch events one by one.", e)
 
-    @smart_retry
-    def get_latest_event_timestamp(self):
-        # type: () -> dt.datetime
-        event_manager = self._conn.content.eventManager
-        return event_manager.latestEvent.createdTime
+            event_collector = event_manager.CreateCollectorForEvents(query_filter)
+            while True:
+                try:
+                    page_size = 1
+                    collected_events = event_collector.ReadNextEvents(page_size)
+                except pyVmomi.SoapAdapter.ParserError as e:
+                    self.log.debug("Cannot parse event, skipped: %s", e)
+                    continue
+                if len(collected_events) == 0:
+                    break
+                events.extend(collected_events)
+        return events
 
     @smart_retry
     def get_max_query_metrics(self):
