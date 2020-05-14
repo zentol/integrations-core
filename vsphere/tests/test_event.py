@@ -11,7 +11,7 @@ from .legacy.utils import mock_alarm_event
 
 
 @pytest.mark.usefixtures('mock_type', 'mock_threadpool', 'mock_api', 'mock_rest_api')
-def test_events_time(aggregator, dd_run_check, realtime_instance, datadog_agent):
+def test_events_collection(aggregator, dd_run_check, realtime_instance, datadog_agent):
     check = VSphereCheck('vsphere', {}, [realtime_instance])
     check.initiate_api_connection()
     time_initial = check.latest_event_query
