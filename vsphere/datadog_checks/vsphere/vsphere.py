@@ -496,12 +496,12 @@ class VSphereCheck(AgentCheck):
             self.log.debug("Got %s new events from the vCenter event manager", len(new_events))
             event_config = {'collect_vcenter_alarms': True}
             for event in new_events:
-                self.log.debug("Processing event number %s: %s", event.key, event)
+                self.log.debug("Processing event number %s: %s", event.key, type(event))
                 normalized_event = VSphereEvent(event, event_config, self.config.base_tags)
                 # Can return None if the event if filtered out
                 event_payload = normalized_event.get_datadog_payload()
                 if event_payload is not None:
-                    self.log.debug("Submit event number %s: %s", event.key, event)
+                    self.log.debug("Submit event number %s: %s", event.key, type(event))
                     self.event(event_payload)
                 if latest_event_time is None or event.createdTime > latest_event_time:
                     latest_event_time = event.createdTime
