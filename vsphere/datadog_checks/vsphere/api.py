@@ -6,8 +6,9 @@ import functools
 import ssl
 from typing import Any, Callable, List, TypeVar, cast
 
-import pyVmomi
 from pyVim import connect
+
+from datadog_checks.vsphere.legacy.event import ALLOWED_EVENTS
 from pyVmomi import vim, vmodl
 
 from datadog_checks.base.log import CheckLoggingAdapter
@@ -258,25 +259,8 @@ class VSphereAPI(object):
         query_filter = vim.event.EventFilterSpec()
         time_filter = vim.event.EventFilterSpec.ByTime(beginTime=start_time)
         query_filter.time = time_filter
-        events = []
-        try:
-            events = event_manager.QueryEvents(query_filter)
-        except pyVmomi.SoapAdapter.ParserError as e:
-            self.log.debug("Error parsing all events %s", e)
-
-            self.log.debug("Trying to fetch events one at time.")
-            event_collector = event_manager.CreateCollectorForEvents(query_filter)
-            while True:
-                try:
-                    page_size = 1
-                    collected_events = event_collector.ReadNextEvents(page_size)
-                except pyVmomi.SoapAdapter.ParserError as e:
-                    self.log.debug("Cannot parse event, skipped: %s", e)
-                    continue
-                if len(collected_events) == 0:
-                    break
-                events.extend(collected_events)
-        return events
+        query_filter.type = ALLOWED_EVENTS
+        return event_manager.QueryEvents(query_filter)
 
     @smart_retry
     def get_max_query_metrics(self):
