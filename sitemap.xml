@@ -104,7 +104,23 @@
      <lastmod>2020-02-02</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/</loc>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/introduction/</loc>
+     <lastmod>2020-02-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profiles/</loc>
+     <lastmod>2020-02-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/how-to/</loc>
+     <lastmod>2020-02-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profile-format/</loc>
+     <lastmod>2020-02-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/sim-format/</loc>
      <lastmod>2020-02-02</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
