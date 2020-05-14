@@ -13,6 +13,21 @@ from datadog_checks.vsphere.legacy.event import ALLOWED_EVENTS
 from .legacy.utils import mock_alarm_event
 
 
+def test_allowed_event_list():
+    expected_events = [
+        vim.event.AlarmStatusChangedEvent,
+        vim.event.TaskEvent,
+        vim.event.VmBeingHotMigratedEvent,
+        vim.event.VmMessageEvent,
+        vim.event.VmMigratedEvent,
+        vim.event.VmPoweredOnEvent,
+        vim.event.VmPoweredOffEvent,
+        vim.event.VmReconfiguredEvent,
+        vim.event.VmSuspendedEvent,
+    ]
+    assert expected_events == ALLOWED_EVENTS
+
+
 @pytest.mark.usefixtures('mock_type', 'mock_threadpool', 'mock_api', 'mock_rest_api')
 def test_events_collection(aggregator, dd_run_check, realtime_instance, datadog_agent):
     check = VSphereCheck('vsphere', {}, [realtime_instance])
@@ -50,17 +65,3 @@ def test_events_collection(aggregator, dd_run_check, realtime_instance, datadog_
     assert len(aggregator.events) == 3
     assert check.latest_event_query == time3 + dt.timedelta(seconds=1)
 
-
-def test_allowed_event_list():
-    expected_events = [
-        vim.event.AlarmStatusChangedEvent,
-        vim.event.TaskEvent,
-        vim.event.VmBeingHotMigratedEvent,
-        vim.event.VmMessageEvent,
-        vim.event.VmMigratedEvent,
-        vim.event.VmPoweredOnEvent,
-        vim.event.VmPoweredOffEvent,
-        vim.event.VmReconfiguredEvent,
-        vim.event.VmSuspendedEvent,
-    ]
-    assert expected_events == ALLOWED_EVENTS
