@@ -3,7 +3,10 @@
 # Licensed under a 3-clause BSD style license (see LICENSE)
 import mmh3
 
-import datadog_agent
+try:
+    import datadog_agent
+except ImportError:
+    from ..stubs import datadog_agent
 
 
 def compute_sql_signature(query):

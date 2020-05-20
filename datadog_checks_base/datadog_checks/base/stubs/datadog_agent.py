@@ -57,7 +57,7 @@ class DatadogAgentStub(object):
         return False
 
     def obfuscate_sql(self, *args, **kwargs):
-        return None
+        return ''
 
 
 # Use the stub as a singleton
