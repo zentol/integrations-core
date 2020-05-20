@@ -47,6 +47,9 @@ class DatadogAgentStub(object):
     def tracemalloc_enabled(self, *args, **kwargs):
         return False
 
+    def obfuscate_sql(self, *args, **kwargs):
+        return None
+
 
 # Use the stub as a singleton
 datadog_agent = DatadogAgentStub()
