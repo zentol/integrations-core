@@ -14,7 +14,6 @@ from datadog_checks.vsphere.constants import (
     DEFAULT_METRICS_PER_QUERY,
     DEFAULT_REFRESH_INFRASTRUCTURE_CACHE_INTERVAL,
     DEFAULT_REFRESH_METRICS_METADATA_CACHE_INTERVAL,
-    DEFAULT_REFRESH_TAGS_CACHE_INTERVAL,
     DEFAULT_TAGS_COLLECTOR_SIZE,
     DEFAULT_THREAD_COUNT,
     DEFAULT_VSPHERE_TAG_PREFIX,
@@ -61,9 +60,6 @@ class VSphereConfig(object):
         )
         self.refresh_metrics_metadata_cache_interval = instance.get(
             'refresh_metrics_metadata_cache_interval', DEFAULT_REFRESH_METRICS_METADATA_CACHE_INTERVAL
-        )
-        self.refresh_tags_cache_interval = instance.get(
-            'refresh_tags_cache_interval', DEFAULT_REFRESH_TAGS_CACHE_INTERVAL
         )
 
         # Utility
@@ -127,6 +123,12 @@ class VSphereConfig(object):
                 resource_filter['type'] = 'whitelist'
             if 'property' not in resource_filter:
                 resource_filter['property'] = 'name'
+
+            if resource_filter['property'] == 'tag' and not self.should_collect_tags:
+                raise ConfigurationError(
+                    'Your configuration is incorrectly attempting to filter resources '
+                    'by the `tag` property but `collect_tags` is disabled.'
+                )
 
             # Check required fields and their types
             for (field, field_type) in iteritems(

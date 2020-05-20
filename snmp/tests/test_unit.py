@@ -2,8 +2,10 @@
 # All rights reserved
 # Licensed under Simplified BSD License (see LICENSE)
 
+import copy
 import os
 import time
+import weakref
 from concurrent import futures
 from typing import Any, List
 
@@ -15,12 +17,13 @@ from datadog_checks.base import ConfigurationError
 from datadog_checks.dev import temp_dir
 from datadog_checks.snmp import SnmpCheck
 from datadog_checks.snmp.config import InstanceConfig
-from datadog_checks.snmp.models import ObjectIdentity
+from datadog_checks.snmp.discovery import discover_instances
+from datadog_checks.snmp.parsing import ParsedSymbolMetric, ParsedTableMetric
 from datadog_checks.snmp.resolver import OIDTrie
 from datadog_checks.snmp.utils import _load_default_profiles, oid_pattern_specificity, recursively_expand_base_profiles
 
 from . import common
-from .utils import ClassInstantiationSpy, mock_profiles_confd_root
+from .utils import mock_profiles_confd_root
 
 pytestmark = pytest.mark.unit
 
@@ -29,89 +32,113 @@ pytestmark = pytest.mark.unit
 def test_parse_metrics(lcd_mock):
     # type: (Any) -> None
     lcd_mock.configure.return_value = ('addr', None)
-    instance = common.generate_instance_config(common.SUPPORTED_METRIC_TYPES)
-    check = SnmpCheck('snmp', {}, [instance])
-    # Unsupported metric
-    metrics = [{"foo": "bar"}]  # type: list
+
     config = InstanceConfig(
-        {"ip_address": "127.0.0.1", "community_string": "public", "metrics": [{"OID": "1.2.3", "name": "foo"}]},
-        warning=check.warning,
+        {"ip_address": "127.0.0.1", "community_string": "public", "metrics": [{"OID": "1.2.3", "name": "foo"}]}
     )
 
-    object_identity_factory = ClassInstantiationSpy(ObjectIdentity)
-
+    # Unsupported metric.
+    metrics = [{"foo": "bar"}]  # type: list
     with pytest.raises(Exception):
-        config.parse_metrics(metrics, check.warning)
+        config.parse_metrics(metrics)
 
     # Simple OID
     metrics = [{"OID": "1.2.3", "name": "foo"}]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 1
-    object_identity_factory.assert_called_once_with("1.2.3")
-    object_identity_factory.reset()
+    oids, _, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(oids) == 1
+    assert len(parsed_metrics) == 1
+    foo = parsed_metrics[0]
+    assert isinstance(foo, ParsedSymbolMetric)
+    assert foo.name == 'foo'
 
     # MIB with no symbol or table
     metrics = [{"MIB": "foo_mib"}]
     with pytest.raises(Exception):
-        config.parse_metrics(metrics, check.warning)
+        config.parse_metrics(metrics)
 
     # MIB with symbol
     metrics = [{"MIB": "foo_mib", "symbol": "foo"}]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 1
-    object_identity_factory.assert_called_once_with("foo_mib", "foo")
-    object_identity_factory.reset()
+    oids, _, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(oids) == 1
+    assert len(parsed_metrics) == 1
+    foo = parsed_metrics[0]
+    assert isinstance(foo, ParsedSymbolMetric)
+    assert foo.name == 'foo'
 
     # MIB with table, no symbols
     metrics = [{"MIB": "foo_mib", "table": "foo"}]
     with pytest.raises(Exception):
-        config.parse_metrics(metrics, check.warning)
+        config.parse_metrics(metrics)
 
     # MIB with table and symbols
-    metrics = [{"MIB": "foo_mib", "table": "foo", "symbols": ["foo", "bar"]}]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 2
-    object_identity_factory.assert_any_call("foo_mib", "foo")
-    object_identity_factory.assert_any_call("foo_mib", "bar")
-    object_identity_factory.reset()
+    metrics = [{"MIB": "foo_mib", "table": "foo_table", "symbols": ["foo", "bar"]}]
+    _, next_oids, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(next_oids) == 2
+    assert len(parsed_metrics) == 2
+    foo, bar = parsed_metrics
+    assert isinstance(foo, ParsedTableMetric)
+    assert foo.name == 'foo'
+    assert isinstance(foo, ParsedTableMetric)
+    assert bar.name == 'bar'
 
     # MIB with table, symbols, bad metrics_tags
-    metrics = [{"MIB": "foo_mib", "table": "foo", "symbols": ["foo", "bar"], "metric_tags": [{}]}]
+    metrics = [{"MIB": "foo_mib", "table": "foo_table", "symbols": ["foo", "bar"], "metric_tags": [{}]}]
     with pytest.raises(Exception):
-        config.parse_metrics(metrics, check.warning)
+        config.parse_metrics(metrics)
 
     # MIB with table, symbols, bad metrics_tags
-    metrics = [{"MIB": "foo_mib", "table": "foo", "symbols": ["foo", "bar"], "metric_tags": [{"tag": "foo"}]}]
+    metrics = [{"MIB": "foo_mib", "table": "foo_table", "symbols": ["foo", "bar"], "metric_tags": [{"tag": "test"}]}]
     with pytest.raises(Exception):
-        config.parse_metrics(metrics, check.warning)
+        config.parse_metrics(metrics)
 
     # Table with manual OID
-    metrics = [{"MIB": "foo_mib", "table": "foo", "symbols": [{"OID": "1.2.3", "name": "foo"}]}]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 1
-    object_identity_factory.assert_any_call("1.2.3")
-    object_identity_factory.reset()
+    metrics = [{"MIB": "foo_mib", "table": "foo_table", "symbols": [{"OID": "1.2.3", "name": "foo"}]}]
+    _, next_oids, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(next_oids) == 1
+    assert len(parsed_metrics) == 1
+    foo = parsed_metrics[0]
+    assert isinstance(foo, ParsedTableMetric)
+    assert foo.name == 'foo'
 
     # MIB with table, symbols, metrics_tags index
     metrics = [
-        {"MIB": "foo_mib", "table": "foo", "symbols": ["foo", "bar"], "metric_tags": [{"tag": "foo", "index": "1"}]}
+        {
+            "MIB": "foo_mib",
+            "table": "foo_table",
+            "symbols": ["foo", "bar"],
+            "metric_tags": [{"tag": "test", "index": "1"}],
+        },
     ]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 2
-    object_identity_factory.assert_any_call("foo_mib", "foo")
-    object_identity_factory.assert_any_call("foo_mib", "bar")
-    object_identity_factory.reset()
+    _, next_oids, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(next_oids) == 2
+    assert len(parsed_metrics) == 2
+    foo, bar = parsed_metrics
+    assert isinstance(foo, ParsedTableMetric)
+    assert foo.name == 'foo'
+    assert foo.index_tags == [('test', '1')]
+    assert isinstance(bar, ParsedTableMetric)
+    assert bar.name == 'bar'
+    assert bar.index_tags == [('test', '1')]
 
     # MIB with table, symbols, metrics_tags column
     metrics = [
-        {"MIB": "foo_mib", "table": "foo", "symbols": ["foo", "bar"], "metric_tags": [{"tag": "foo", "column": "baz"}]}
+        {
+            "MIB": "foo_mib",
+            "table": "foo_table",
+            "symbols": ["foo", "bar"],
+            "metric_tags": [{"tag": "test", "column": "baz"}],
+        }
     ]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 3
-    object_identity_factory.assert_any_call("foo_mib", "foo")
-    object_identity_factory.assert_any_call("foo_mib", "bar")
-    object_identity_factory.assert_any_call("foo_mib", "baz")
-    object_identity_factory.reset()
+    _, next_oids, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(next_oids) == 3
+    assert len(parsed_metrics) == 2
+    foo, bar = parsed_metrics
+    assert isinstance(foo, ParsedTableMetric)
+    assert foo.name == 'foo'
+    assert foo.column_tags == [('test', 'baz')]
+    assert isinstance(bar, ParsedTableMetric)
+    assert bar.name == 'bar'
+    assert bar.column_tags == [('test', 'baz')]
 
     # MIB with table, symbols, metrics_tags column with OID
     metrics = [
@@ -119,15 +146,19 @@ def test_parse_metrics(lcd_mock):
             "MIB": "foo_mib",
             "table": "foo_table",
             "symbols": ["foo", "bar"],
-            "metric_tags": [{"tag": "foo", "column": {"name": "baz", "OID": "1.5.6"}}],
+            "metric_tags": [{"tag": "test", "column": {"name": "baz", "OID": "1.5.6"}}],
         }
     ]
-    table, _, _ = config.parse_metrics(metrics, check.warning, object_identity_factory=object_identity_factory)
-    assert len(table) == 3
-    object_identity_factory.assert_any_call("1.5.6")
-    object_identity_factory.assert_any_call("foo_mib", "foo")
-    object_identity_factory.assert_any_call("foo_mib", "bar")
-    object_identity_factory.reset()
+    _, next_oids, _, parsed_metrics = config.parse_metrics(metrics)
+    assert len(next_oids) == 3
+    assert len(parsed_metrics) == 2
+    foo, bar = parsed_metrics
+    assert isinstance(foo, ParsedTableMetric)
+    assert foo.name == 'foo'
+    assert foo.column_tags == [('test', 'baz')]
+    assert isinstance(bar, ParsedTableMetric)
+    assert bar.name == 'bar'
+    assert foo.column_tags == [('test', 'baz')]
 
 
 def test_ignore_ip_addresses():
@@ -147,6 +178,16 @@ def test_ignore_ip_addresses():
         SnmpCheck('snmp', {}, [instance])
 
 
+def test_empty_values():
+    instance = common.generate_instance_config(common.SUPPORTED_METRIC_TYPES)
+    instance['user'] = ''
+    instance['enforce_mib_constraints'] = ''
+    instance['timeout'] = ''
+    instance['retries'] = ''
+    check = SnmpCheck('snmp', {}, [instance])
+    assert check._config.enforce_constraints
+
+
 def test_profile_error():
     instance = common.generate_instance_config([])
     instance['profile'] = 'profile1'
@@ -164,6 +205,22 @@ def test_profile_error():
         init_config = {'profiles': {'profile1': {'definition_file': profile_file}}}
         with pytest.raises(ConfigurationError):
             SnmpCheck('snmp', init_config, [instance])
+
+
+def test_duplicate_sysobjectid_error():
+    profile1 = {'sysobjectid': '1.3.6.1.4.1.30932.*'}
+    profile2 = copy.copy(profile1)
+
+    instance = common.generate_instance_config([])
+    init_config = {'profiles': {'profile1': {'definition': profile1}, 'profile2': {'definition': profile2}}}
+
+    with pytest.raises(ConfigurationError) as e:
+        SnmpCheck('snmp', init_config, [instance])
+    assert "has the same sysObjectID" in str(e.value)
+
+    # no errors are raised
+    init_config['profiles']['profile2']['definition']['sysobjectid'] = '1.3.6.2.4.1.30932.*'
+    SnmpCheck('snmp', init_config, [instance])
 
 
 def test_no_address():
@@ -236,7 +293,7 @@ def test_cache_discovered_host(read_mock):
 
     read_mock.return_value = '["192.168.0.1"]'
     check = SnmpCheck('snmp', {}, [instance])
-    check.discover_instances = lambda: None
+    check._thread_factory = lambda **kwargs: mock.Mock()
     check.check(instance)
 
     assert '192.168.0.1' in check._config.discovered_instances
@@ -250,7 +307,7 @@ def test_cache_corrupted(write_mock, read_mock):
     instance['network_address'] = '192.168.0.0/24'
     read_mock.return_value = '["192.168.0."]'
     check = SnmpCheck('snmp', {}, [instance])
-    check.discover_instances = lambda: None
+    check._thread_factory = lambda **kwargs: mock.Mock()
     check.check(instance)
 
     assert not check._config.discovered_instances
@@ -258,9 +315,10 @@ def test_cache_corrupted(write_mock, read_mock):
 
 
 @mock.patch("datadog_checks.snmp.snmp.read_persistent_cache")
-@mock.patch("datadog_checks.snmp.snmp.write_persistent_cache")
+@mock.patch("datadog_checks.snmp.discovery.write_persistent_cache")
 def test_cache_building(write_mock, read_mock):
     instance = common.generate_instance_config(common.SUPPORTED_METRIC_TYPES)
+    instance['timeout'] = 1
     instance.pop('ip_address')
 
     read_mock.return_value = '[]'
@@ -403,7 +461,7 @@ def test_discovery_tags():
 
     check.fetch_sysobject_oid = mock_fetch
 
-    check.discover_instances(interval=0)
+    discover_instances(check._config, 0, weakref.ref(check))
 
     config = check._config.discovered_instances['192.168.0.2']
     assert set(config.tags) == {'snmp_device:192.168.0.2', 'test:check', 'snmp_profile:generic-router'}

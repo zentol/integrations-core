@@ -35,6 +35,7 @@ REQUIRES = [
     'six',
     "shutilwhich==1.1.0; python_version < '3.0'",
     "subprocess32==3.5.4; python_version < '3.0'",
+    'tenacity',
 ]
 
 
@@ -57,7 +58,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',

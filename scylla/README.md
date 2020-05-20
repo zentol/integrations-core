@@ -47,8 +47,8 @@ Scylla has different modes of outputting logs depending on the environment it's 
 
 3. [Restart the Agent][4].
 
-See [Datadog's documentation][10] for additional information on how to configure the Agent for log collection in Docker environments.
-  
+See [Datadog's documentation][10] for additional information on how to configure the Agent for log collection in Kubernetes environments.
+
 ### Validation
 
 [Run the Agent's status subcommand][5] and look for `scylla` under the Checks section.
@@ -72,12 +72,12 @@ The Scylla check does not include any events.
 Need help? Contact [Datadog support][7].
 
 [1]: https://scylladb.com
-[2]: https://docs.datadoghq.com/agent
+[2]: https://docs.datadoghq.com/agent/
 [3]: https://github.com/DataDog/integrations-core/blob/master/scylla/datadog_checks/scylla/data/conf.yaml.example
 [4]: https://docs.datadoghq.com/agent/guide/agent-commands/#start-stop-and-restart-the-agent
 [5]: https://docs.datadoghq.com/agent/guide/agent-commands/#agent-status-and-information
 [6]: https://github.com/DataDog/integrations-core/blob/master/scylla/metadata.csv
-[7]: https://docs.datadoghq.com/help
+[7]: https://docs.datadoghq.com/help/
 [8]: https://docs.scylladb.com/getting-started/logging/
 [9]: https://github.com/DataDog/integrations-core/blob/master/scylla/datadog_checks/scylla/data/conf.yaml.example
-[10]: https://docs.datadoghq.com/agent/docker/log/
+[10]: https://docs.datadoghq.com/agent/kubernetes/log/
