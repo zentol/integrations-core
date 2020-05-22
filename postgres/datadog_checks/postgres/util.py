@@ -367,3 +367,50 @@ SELECT datname,
 FROM pg_stat_activity
 GROUP BY datid, datname
 """
+
+
+STATEMENTS_COUNT_METRICS = {
+    'count': ('postgresql.queries.count', AgentCheck.count),
+}
+
+
+STATEMENTS_PER_STATEMENT_METRICS = {
+    'time': ('postgresql.queries.time', AgentCheck.gauge),
+    'rows': ('postgresql.queries.rows', AgentCheck.gauge),
+    'shared_blks_hit': ('postgresql.queries.shared_blks_hit', AgentCheck.gauge),
+    'shared_blks_read': ('postgresql.queries.shared_blks_read', AgentCheck.gauge),
+    'shared_blks_dirtied': ('postgresql.queries.shared_blks_dirtied', AgentCheck.gauge),
+    'shared_blks_written': ('postgresql.queries.shared_blks_written', AgentCheck.gauge),
+    'local_blks_hit': ('postgresql.queries.local_blks_hit', AgentCheck.gauge),
+    'local_blks_read': ('postgresql.queries.local_blks_read', AgentCheck.gauge),
+    'local_blks_dirtied': ('postgresql.queries.local_blks_dirtied', AgentCheck.gauge),
+    'local_blks_written': ('postgresql.queries.local_blks_written', AgentCheck.gauge),
+    'temp_blks_read': ('postgresql.queries.temp_blks_read', AgentCheck.gauge),
+    'temp_blks_written': ('postgresql.queries.temp_blks_written', AgentCheck.gauge),
+}
+
+
+STATEMENTS_QUERY = """
+SELECT s.calls AS count,
+    d.datname AS db,
+    a.rolname AS user,
+    s.query AS query,
+    s.total_time AS time,
+    s.rows AS rows,
+    s.shared_blks_hit AS shared_blks_hit,
+    s.shared_blks_read AS shared_blks_read,
+    s.shared_blks_dirtied AS shared_blks_dirtied,
+    s.shared_blks_written AS shared_blks_written,
+    s.local_blks_hit AS local_blks_hit,
+    s.local_blks_read AS local_blks_read,
+    s.local_blks_dirtied AS local_blks_dirtied,
+    s.local_blks_written AS local_blks_written,
+    s.temp_blks_read AS temp_blks_read,
+    s.temp_blks_written AS temp_blks_written
+  FROM pg_stat_statements s
+  LEFT JOIN pg_authid a
+         ON s.userid = a.oid
+  LEFT JOIN pg_database d
+         ON s.dbid = d.oid
+ORDER BY (s.total_time / NULLIF(s.calls, 0)) DESC;
+"""
