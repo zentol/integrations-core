@@ -7,7 +7,8 @@ GITLAB_TOKEN = os.environ['GITLAB_TOKEN']
 CI_PROJECT_ID = os.environ['CI_PROJECT_ID']
 CI_PIPELINE_ID = int(os.environ['CI_PIPELINE_ID'])
 
-PENDING_STATES = ['running', 'pending', 'created']
+# TODO: Re-add pending for later
+PENDING_STATES = ['running', 'created']
 
 
 def get_pipelines_to_run_with_higher_priority():
