@@ -1,9 +1,10 @@
 # (C) Datadog, Inc. 2020-present
 # All rights reserved
 # Licensed under Simplified BSD License (see LICENSE)
-
 import pytest
 
+from datadog_checks.base import ConfigurationError
+from datadog_checks.dev.utils import get_metadata_metrics
 from datadog_checks.snmp import SnmpCheck
 
 from . import common
@@ -47,6 +48,16 @@ from .metrics import (
 pytestmark = pytest.mark.usefixtures("dd_environment")
 
 
+def test_load_profiles():
+    instance = common.generate_instance_config([])
+    check = SnmpCheck('snmp', {}, [instance])
+    for name, profile in check.profiles.items():
+        try:
+            check._config.refresh_with_profile(profile)
+        except ConfigurationError as e:
+            pytest.fail("Profile `{}` is not configured correctly: {}".format(name, e))
+
+
 def run_profile_check(recording_name):
     """
     Run a single check with the provided `recording_name` used as
@@ -58,6 +69,67 @@ def run_profile_check(recording_name):
     instance['enforce_mib_constraints'] = False
     check = SnmpCheck('snmp', {}, [instance])
     check.check(instance)
+
+
+def test_cisco_voice(aggregator):
+    run_profile_check('cisco_icm')
+
+    tags = ['snmp_profile:cisco_icm', 'snmp_host:test'] + common.CHECK_TAGS
+
+    resources = ["hrSWRunPerfMem", "hrSWRunPerfCPU", "hrSWRunStatus"]
+
+    for resource in resources:
+        aggregator.assert_metric('snmp.{}'.format(resource), metric_type=aggregator.GAUGE, tags=tags)
+
+    cvp_gauges = [
+        "ccvpSipIntAvgLatency1",
+        "ccvpSipIntAvgLatency2",
+        "ccvpSipIntConnectsRcv",
+        "ccvpSipIntNewCalls",
+        "ccvpSipRtActiveCalls",
+        "ccvpSipRtTotalCallLegs",
+        "ccvpLicRtPortsInUse",
+    ]
+
+    cvp_counts = [
+        "ccvpLicAggMaxPortsInUse",
+    ]
+    for cvp in cvp_gauges:
+        aggregator.assert_metric('snmp.{}'.format(cvp), metric_type=aggregator.GAUGE, tags=tags)
+
+    for cvp in cvp_counts:
+        aggregator.assert_metric('snmp.{}'.format(cvp), metric_type=aggregator.RATE, tags=tags)
+
+    ccms = ["ccmRegisteredGateways", "ccmRejectedPhones", "ccmRegisteredPhones", "ccmUnregisteredPhones"]
+
+    for ccm in ccms:
+        aggregator.assert_metric('snmp.{}'.format(ccm), metric_type=aggregator.RATE, tags=tags)
+
+    calls = [
+        "cvCallVolPeerIncomingCalls",
+        "cvCallVolPeerOutgoingCalls",
+        "cvCallVolMediaIncomingCalls",
+        "cvCallVolMediaOutgoingCalls",
+    ]
+
+    for call in calls:
+        aggregator.assert_metric('snmp.{}'.format(call), metric_type=aggregator.GAUGE, tags=tags)
+
+    dial_controls = [
+        "dialCtlPeerStatsAcceptCalls",
+        "dialCtlPeerStatsFailCalls",
+        "dialCtlPeerStatsRefuseCalls",
+        "dialCtlPeerStatsSuccessCalls",
+    ]
+
+    for ctl in dial_controls:
+        aggregator.assert_metric('snmp.{}'.format(ctl), metric_type=aggregator.MONOTONIC_COUNT, tags=tags)
+
+    pim_tags = tags + ['pim_host:test', 'pim_name:name', 'pim_num:2']
+    aggregator.assert_metric('snmp.{}'.format("cccaPimStatus"), metric_type=aggregator.GAUGE, tags=pim_tags)
+    aggregator.assert_metric('snmp.{}'.format("sysUpTimeInstance"), metric_type=aggregator.GAUGE, tags=tags, count=1)
+
+    aggregator.assert_all_metrics_covered()
 
 
 def test_f5(aggregator):
@@ -1269,7 +1341,43 @@ def test_aruba(aggregator):
 def test_chatsworth(aggregator):
     run_profile_check('chatsworth')
 
-    common_tags = common.CHECK_TAGS + ['snmp_profile:chatsworth_pdu']
+    # Legacy global tags are applied to all metrics
+    legacy_global_tags = [
+        'legacy_pdu_macaddress:00:0E:D3:AA:CC:EE',
+        'legacy_pdu_model:P10-1234-ABC',
+        'legacy_pdu_name:legacy-name1',
+        'legacy_pdu_version:1.2.3',
+    ]
+    common_tags = common.CHECK_TAGS + legacy_global_tags + ['snmp_profile:chatsworth_pdu']
+
+    # Legacy metrics
+    legacy_pdu_tags = common_tags
+    legacy_pdu_gauge_metrics = [
+        'snmp.pduRole',
+        'snmp.outOfService',
+    ]
+    legacy_pdu_monotonic_count_metrics = []
+    for line in range(1, 4):
+        legacy_pdu_gauge_metrics.append('snmp.line{}curr'.format(line))
+    for branch in range(1, 3):
+        legacy_pdu_gauge_metrics.append('snmp.temperatureProbe{}'.format(branch))
+        legacy_pdu_gauge_metrics.append('snmp.humidityProbe{}'.format(branch))
+        for xyz in ['xy', 'yz', 'zx']:
+            legacy_pdu_monotonic_count_metrics.append('snmp.energy{}{}s'.format(xyz, branch))
+            legacy_pdu_gauge_metrics.append('snmp.voltage{}{}'.format(xyz, branch))
+            legacy_pdu_gauge_metrics.append('snmp.power{}{}'.format(xyz, branch))
+            legacy_pdu_gauge_metrics.append('snmp.powerFact{}{}'.format(xyz, branch))
+            legacy_pdu_gauge_metrics.append('snmp.current{}{}'.format(xyz, branch))
+    for branch in range(1, 25):
+        legacy_pdu_monotonic_count_metrics.append('snmp.receptacleEnergyoutlet{}s'.format(branch))
+        legacy_pdu_gauge_metrics.append('snmp.outlet{}Current'.format(branch))
+
+    for metric in legacy_pdu_gauge_metrics:
+        aggregator.assert_metric(metric, metric_type=aggregator.GAUGE, tags=legacy_pdu_tags, count=1)
+    for metric in legacy_pdu_monotonic_count_metrics:
+        aggregator.assert_metric(metric, metric_type=aggregator.MONOTONIC_COUNT, tags=legacy_pdu_tags, count=1)
+
+    # New metrics
     pdu_tags = common_tags + [
         'pdu_cabinetid:cab1',
         'pdu_ipaddress:42.2.210.224',
@@ -1332,6 +1440,7 @@ def test_chatsworth(aggregator):
         )
 
     aggregator.assert_all_metrics_covered()
+    aggregator.assert_metrics_using_metadata(get_metadata_metrics(), check_metric_type=False)
 
 
 def test_isilon(aggregator):
@@ -1396,6 +1505,10 @@ def test_isilon(aggregator):
     for fan in [4, 6, 10, 11, 14, 21, 22, 23, 25, 30]:
         tags = ['fan_name:testfan', 'fan_number:{}'.format(fan)] + common_tags
         aggregator.assert_metric('snmp.fanSpeed', metric_type=aggregator.GAUGE, tags=tags, count=1)
+
+    for status, bay in [('SMARTFAIL', 1), ('HEALTHY', 2), ('DEAD', 3)]:
+        tags = common_tags + ['disk_status:{}'.format(status), 'disk_bay:{}'.format((bay))]
+        aggregator.assert_metric('snmp.diskSizeBytes', metric_type=aggregator.RATE, tags=tags)
 
     aggregator.assert_metric('snmp.ifsUsedBytes', metric_type=aggregator.RATE, tags=common_tags, count=1)
     aggregator.assert_metric('snmp.ifsTotalBytes', metric_type=aggregator.RATE, tags=common_tags, count=1)

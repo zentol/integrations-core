@@ -71,8 +71,11 @@ ddev docs serve
 
 By default, live reloading is enabled so any modification will be reflected in near-real time.
 
+<<<<<<< HEAD
 **Note:** In order to export the site as PDF, you can use the `--pdf` flag, but you will need some [external installations][weasyprint-dependencies].
 
+=======
+>>>>>>> master
 ## Deploy
 
 Our [CI](ci.md#docs) deploys the documentation to [GitHub Pages][github-pages-docs] if any changes occur on commits to the `master` branch.

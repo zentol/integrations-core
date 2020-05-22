@@ -59,7 +59,16 @@ nav:
     - Status: meta/status.md
   - Tutorials:
     - JMX: tutorials/jmx.md
+<<<<<<< HEAD
     - SNMP: tutorials/snmp.md
+=======
+    - SNMP:
+      - tutorials/snmp/introduction.md
+      - tutorials/snmp/profiles.md
+      - tutorials/snmp/how-to.md
+      - tutorials/snmp/profile-format.md
+      - tutorials/snmp/sim-format.md
+>>>>>>> master
     - Memory profiling: tutorials/memory-profiling.md
   - Architecture:
     - SNMP: architecture/snmp.md
