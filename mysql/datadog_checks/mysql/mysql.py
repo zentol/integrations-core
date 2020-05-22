@@ -5,6 +5,9 @@
 from __future__ import division
 
 import re
+import json
+import socket
+import decimal
 import traceback
 from collections import defaultdict, namedtuple
 from contextlib import closing, contextmanager
@@ -13,6 +16,7 @@ import pymysql
 from six import PY3, iteritems, itervalues, text_type
 
 from datadog_checks.base import AgentCheck, is_affirmative
+from datadog_checks.base.utils.sql import compute_sql_signature
 
 try:
     import psutil
@@ -279,6 +283,13 @@ BUILDS = ('log', 'standard', 'debug', 'valgrind', 'embedded')
 MySQLMetadata = namedtuple('MySQLMetadata', ['version', 'flavor', 'build'])
 
 
+class EventEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(EventEncoder, self).default(o)
+
+
 class MySql(AgentCheck):
     SERVICE_CHECK_NAME = 'mysql.can_connect'
     SLAVE_SERVICE_CHECK_NAME = 'mysql.replication.slave_running'
@@ -288,6 +299,8 @@ class MySql(AgentCheck):
         super(MySql, self).__init__(name, init_config, instances)
         self.qcache_stats = {}
         self.metadata = None
+        # Cache to compare the statement metrics to the previous collection
+        self.statement_cache = {}
 
     def _get_metadata(self, db):
         with closing(db.cursor()) as cursor:
@@ -352,6 +365,7 @@ class MySql(AgentCheck):
                 # Metric collection
                 self._collect_metrics(db, tags, options, queries, max_custom_queries)
                 self._collect_system_metrics(host, db, tags)
+                self._collect_queries(db, tags, options)
 
                 # keeping track of these:
                 self._put_qcache_stats()
@@ -656,6 +670,19 @@ class MySql(AgentCheck):
             if len(queries) > max_custom_queries:
                 self.warning("Maximum number (%s) of custom queries reached.  Skipping the rest.", max_custom_queries)
 
+    def _collect_queries(self, db, tags, options):
+        results = self._get_stats_from_status(db)
+        results.update(self._get_stats_from_variables(db))
+        performance_schema_enabled = self._get_variable_enabled(results, 'performance_schema')
+        above_560 = self._version_compatible(db, (5, 6, 0))
+        if not(is_affirmative(options.get('extra_performance_queries', False)) and above_560 and performance_schema_enabled):
+            return False
+
+        summary_metrics = self._query_summary_per_statement(db)
+
+        for metric_name, value, fn, metric_tags in summary_metrics:
+            fn(metric_name, value, tags=metric_tags + tags)
+
     def _is_master(self, slaves, results):
         # master uuid only collected in slaves
         master_host = self._collect_string('Master_Host', results)
@@ -680,6 +707,17 @@ class MySql(AgentCheck):
                         self.count(metric_name, value, tags=metric_tags)
                     elif metric_type == MONOTONIC:
                         self.monotonic_count(metric_name, value, tags=metric_tags)
+
+    def _submit_log_events(self, events, tags):
+        try:
+            with closing(socket.create_connection(('localhost', 10518))) as c:
+                for e in events:
+                    event = {'tags': tags, 'db': {'mysql': e}}
+                    c.sendall((json.dumps(event, cls=EventEncoder) + '\n').encode())
+        except ConnectionRefusedError:
+            self.warning('Unable to connect to the logs agent; please see the '
+                'documentation on configuring the logs agent.')
+            return
 
     def _version_compatible(self, db, compat_version):
         # some patch version numbers contain letters (e.g. 5.0.51a)
@@ -1339,6 +1377,102 @@ class MySql(AgentCheck):
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
             self.warning("Avg exec time performance metrics unavailable at this time: %s", e)
             return None
+
+    def _query_summary_per_statement(self, db):
+        """
+        Collects per-statement metrics from performance schema. Because the statement sums are
+        cumulative, the results of the previous run are stored and subtracted from the current
+        values to get the counts for the elapsed period. This is similar to monotonic_count, but
+        several fields must be further processed from the delta values.
+        """
+        DEFAULT_LIMIT = 200
+
+        sql_statement_summary ="""\
+            SELECT `schema_name` as `schema`,
+                `digest` as `digest`,
+                `digest_text` as `query`,
+                `count_star` as `count`,
+                `sum_timer_wait` / 1000000 as `time`,
+                `sum_lock_time` / 1000000 as `lock_time`,
+                `sum_errors` as `errors`,
+                `sum_rows_affected` as `rows_affected`,
+                `sum_rows_sent` as `rows_sent`,
+                `sum_rows_examined` as `rows_examined`,
+                `sum_select_scan` as `select_scan`,
+                `sum_select_full_join` as `select_full_join`,
+                `sum_no_index_used` as `no_index_used`,
+                `sum_no_good_index_used` as `no_good_index_used`
+            FROM performance_schema.events_statements_summary_by_digest
+            ORDER BY `avg_timer_wait` DESC"""
+
+        COUNT_METRICS = {
+            'count': ('mysql.queries.count', self.count),
+            'errors': ('mysql.queries.errors', self.count),
+            'select_scan': ('mysql.queries.select_scan', self.count),
+            'select_full_join': ('mysql.queries.select_full_join', self.count),
+            'no_index_used': ('mysql.queries.no_index_used', self.count),
+            'no_good_index_used': ('mysql.queries.no_good_index_used', self.count),
+        }
+
+        PER_STATMENT_METRICS = {
+            'time': ('mysql.queries.time', self.gauge),
+            'lock_time': ('mysql.queries.lock_time', self.gauge),
+            'rows_affected': ('mysql.queries.rows', self.gauge),
+            'rows_sent': ('mysql.queries.rows_sent', self.gauge),
+            'rows_examined': ('mysql.queries.rows_examined', self.count),
+        }
+
+        try:
+            with closing(db.cursor(pymysql.cursors.DictCursor)) as cursor:
+                cursor.execute(sql_statement_summary)
+
+                rows = cursor.fetchall()
+        except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
+            self.warning("Statement summary metrics are unavailable at this time: %s", e)
+            return []
+
+        # # TODO: apply a limit
+        # In the event the row count exceeds the limit, select the most "interesting" statements
+        # which are slow, have errors, no good index, etc.
+        # - avg duration
+        # - high lock time
+
+        rows = rows[:DEFAULT_LIMIT]
+
+        # Given the queried rows, each row must be checked against its previous result
+        # to derive the values in the elapsed period. Statements which appeared first this
+        # run will emit no metrics. If the table was truncated or cumulative counts were
+        # lost since the last run, this run will emit no metrics.
+
+        metrics = []
+
+        new_cache = {}
+        for row in rows:
+            key = (row['schema'], row['digest'])
+            new_cache[key] = row
+            if key not in self.statement_cache:
+                continue
+            prev = self.statement_cache[key]
+
+            # Table was truncated or no new queries; start tracking from this point
+            if row['count'] - prev['count'] <= 0:
+                continue
+
+            for col, (name, fn) in list(COUNT_METRICS.items()) + list(PER_STATMENT_METRICS.items()):
+                tags = []
+                if row['schema'] is not None:
+                    tags.append('schema:' + row['schema'])
+                tags.append('query:' + row['query'[:200]])
+                tags.append('digest:' + row['digest'])
+                tags.append('querysignature:' + compute_sql_signature(row['query']))
+                if col in PER_STATMENT_METRICS:
+                    val = (row[col] - prev[col]) / (row['count'] - prev['count'])
+                    metrics.append((name, val, fn, tags))
+                else:
+                    metrics.append((name, row[col] - prev[col], fn, tags))
+
+        self.statement_cache = new_cache
+        return metrics
 
     def _query_size_per_schema(self, db):
         # Fetches the avg query execution time per schema and returns the
