@@ -28,13 +28,15 @@ def get_pipelines_to_run_with_higher_priority():
 
 for _ in range(10):
     remaining = get_pipelines_to_run_with_higher_priority()
-    print(f"Found remaining pipelines: {', '.join([p['id'] for p in remaining])}")
-    if remaining:
-        # Success, pipeline cqn run
+    if not remaining:
+        # Success, pipeline can run
         break
+    ids = [str(p['id']) for p in remaining]
+    print(f"Found remaining pipelines: {', '.join(ids)}")
     time.sleep(120)
 else:
     # Unable to run for 20min, maybe a pipeline is stuck ?
-    print(f"ERROR: Can't run pipeline as there are remaining pipelines: {', '.join([p['id'] for p in remaining])}")
+    ids = [str(p['id']) for p in remaining]
+    print(f"ERROR: Can't run pipeline as there are remaining pipelines: {', '.join(ids)}")
     sys.exit(-1)
 
