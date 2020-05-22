@@ -34,7 +34,7 @@ for _ in range(10):
         break
     ids = [str(p['id']) for p in remaining]
     print(f"Found remaining pipelines: {', '.join(ids)}")
-    time.sleep(120)
+    time.sleep(1)
 else:
     print("Hey")
     # Unable to run for 20min, maybe a pipeline is stuck ?
