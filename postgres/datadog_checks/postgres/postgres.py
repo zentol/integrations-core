@@ -4,12 +4,18 @@
 import copy
 from contextlib import closing
 
+import mmh3
 import psycopg2
 import psycopg2.extras
 from six import iteritems
 
 from datadog_checks.base import AgentCheck, ConfigurationError, is_affirmative
-from datadog_checks.base.utils.sql import compute_sql_signature
+
+try:
+    import datadog_agent
+except ImportError:
+    from ..stubs import datadog_agent
+
 
 from .util import (
     ACTIVITY_DD_METRICS,
@@ -55,8 +61,13 @@ TABLE_COUNT_LIMIT = 200
 SSL_MODES = {'disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'}
 
 
-def compute_query_signature(query):
-    return format(mmh3.hash64('hello', signed=False)[0], 'x')
+def compute_sql_signature(query):
+    """
+    Given a raw SQL query or prepared statement, generate a 64-bit hex signature
+    on the normalized query.
+    """
+    normalized = datadog_agent.obfuscate_sql(query)
+    return format(mmh3.hash64(normalized, signed=False)[0], 'x')
 
 
 class PostgreSql(AgentCheck):
