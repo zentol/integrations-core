@@ -16,7 +16,8 @@ def get_pipelines_to_run_with_higher_priority():
         get_params = {'per_page': 100, 'status': state}
         r = requests.get(
             f"https://gitlab.ddbuild.io/api/v4/projects/{CI_PROJECT_ID}/pipelines",
-            params=get_params
+            params=get_params,
+            headers={'PRIVATE-TOKEN': GITLAB_TOKEN}
         )
         r.raise_for_status()
         pending.extend(r.json())
