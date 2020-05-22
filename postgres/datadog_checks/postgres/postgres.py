@@ -5,10 +5,18 @@ import copy
 from contextlib import closing
 
 import psycopg2
+import psycopg2.extras
 from six import iteritems
 
 from datadog_checks.base import AgentCheck, ConfigurationError, is_affirmative
 
+try:
+    import datadog_agent
+except ImportError:
+    from ..stubs import datadog_agent
+
+
+from .statements import PgStatementsMixin
 from .util import (
     ACTIVITY_DD_METRICS,
     ACTIVITY_METRICS_8_3,
@@ -50,7 +58,7 @@ TABLE_COUNT_LIMIT = 200
 SSL_MODES = {'disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'}
 
 
-class PostgreSql(AgentCheck):
+class PostgreSql(PgStatementsMixin, AgentCheck):
     """Collects per-database, and optionally per-relation metrics, custom metrics"""
 
     SOURCE_TYPE_NAME = 'postgresql'
@@ -62,10 +70,13 @@ class PostgreSql(AgentCheck):
 
     def __init__(self, name, init_config, instances):
         AgentCheck.__init__(self, name, init_config, instances)
+        PgStatementsMixin.__init__(self, name, init_config, instances)
         self._clean_state()
         self.db = None
         self._version = None
         self.custom_metrics = None
+        # Cache results of monotonic pg_stat_statements to compare to previous collection
+        self.statement_cache = {}
 
         # Deprecate custom_metrics in favor of custom_queries
         if 'custom_metrics' in self.instance:
@@ -306,35 +317,13 @@ class PostgreSql(AgentCheck):
                 self.log.warning('Unhandled relations config type: %s', element)
         return config
 
-    def _query_scope(self, cursor, scope, instance_tags, is_custom_metrics, relations_config):
-        if scope is None:
-            return None
-        if scope == REPLICATION_METRICS or not self.version >= V9:
-            log_func = self.log.debug
-        else:
-            log_func = self.log.warning
-
-        # build query
-        cols = list(scope['metrics'])  # list of metrics to query, in some order
-        # we must remember that order to parse results
-
-        # A descriptor is the association of a Postgres column name (e.g. 'schemaname')
-        # to a tag name (e.g. 'schema').
-        descriptors = scope['descriptors']
+    def _execute_query(self, cursor, query, log_func=None):
+        if log_func is None:
+            log_func = self.warning
 
         results = None
         try:
-            query = fmt.format(scope['query'], metrics_columns=", ".join(cols))
-            # if this is a relation-specific query, we need to list all relations last
-            if scope['relation'] and len(relations_config) > 0:
-                schema_field = get_schema_field(descriptors)
-                relations_filter = build_relations_filter(relations_config, schema_field)
-                self.log.debug("Running query: %s with relations matching: %s", query, relations_filter)
-                cursor.execute(query.format(relations=relations_filter))
-            else:
-                self.log.debug("Running query: %s", query)
-                cursor.execute(query.replace(r'%', r'%%'))
-
+            cursor.execute(query)
             results = cursor.fetchall()
         except psycopg2.errors.FeatureNotSupported as e:
             # This happens for example when trying to get replication metrics
@@ -353,6 +342,34 @@ class PostgreSql(AgentCheck):
             log_func("Not all metrics may be available: %s" % str(e))
             self.db.rollback()
 
+        return results
+
+    def _query_scope(self, cursor, scope, instance_tags, is_custom_metrics, relations_config):
+        if scope is None:
+            return None
+        if scope == REPLICATION_METRICS or not self.version >= V9:
+            log_func = self.log.debug
+        else:
+            log_func = self.log.warning
+
+        # build query
+        cols = list(scope['metrics'])  # list of metrics to query, in some order
+        # we must remember that order to parse results
+
+        # A descriptor is the association of a Postgres column name (e.g. 'schemaname')
+        # to a tag name (e.g. 'schema').
+        descriptors = scope['descriptors']
+
+        query = fmt.format(scope['query'], metrics_columns=", ".join(cols))
+        # if this is a relation-specific query, we need to list all relations last
+        if scope['relation'] and len(relations_config) > 0:
+            schema_field = get_schema_field(descriptors)
+            relations_filter = build_relations_filter(relations_config, schema_field)
+            self.log.debug("Running query: %s with relations matching: %s", query, relations_filter)
+        else:
+            self.log.debug("Running query: %s", query)
+
+        results = self._execute_query(cursor, query, log_func=log_func)
         if not results:
             return None
 
@@ -421,6 +438,7 @@ class PostgreSql(AgentCheck):
         collect_activity_metrics,
         collect_database_size_metrics,
         collect_default_db,
+        collect_statement_metrics,
     ):
         """Query pg_stat_* for various metrics
         If relations is not an empty list, gather per-relation metrics
@@ -461,6 +479,9 @@ class PostgreSql(AgentCheck):
         if collect_activity_metrics:
             activity_metrics = self._get_activity_metrics(user)
             self._query_scope(cursor, activity_metrics, instance_tags, False, relations_config)
+
+        if collect_statement_metrics:
+            self._collect_statement_metrics(instance_tags)
 
         for scope in list(metric_scope) + custom_metrics:
             self._query_scope(cursor, scope, instance_tags, scope in custom_metrics, relations_config)
@@ -658,6 +679,7 @@ class PostgreSql(AgentCheck):
         collect_activity_metrics = is_affirmative(self.instance.get('collect_activity_metrics', False))
         collect_database_size_metrics = is_affirmative(self.instance.get('collect_database_size_metrics', True))
         collect_default_db = is_affirmative(self.instance.get('collect_default_database', False))
+        collect_statement_metrics = is_affirmative(self.instance.get('collect_statement_metrics', False))
 
         custom_metrics = self._get_custom_metrics(instance.get('custom_metrics', []))
         custom_queries = instance.get('custom_queries', [])
@@ -691,6 +713,7 @@ class PostgreSql(AgentCheck):
                 collect_activity_metrics,
                 collect_database_size_metrics,
                 collect_default_db,
+                collect_statement_metrics,
             )
             self._get_custom_queries(tags, custom_queries)
         except Exception as e:
