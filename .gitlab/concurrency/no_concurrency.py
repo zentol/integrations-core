@@ -5,7 +5,7 @@ import requests
 
 GITLAB_TOKEN = os.environ['GITLAB_TOKEN']
 CI_PROJECT_ID = os.environ['CI_PROJECT_ID']
-CI_PIPELINE_ID = os.environ['CI_PIPELINE_ID']
+CI_PIPELINE_ID = int(os.environ['CI_PIPELINE_ID'])
 
 PENDING_STATES = ['running', 'pending', 'created']
 
