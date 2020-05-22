@@ -25,9 +25,10 @@ def get_pipelines_to_run_with_higher_priority():
     # Filter out all pipelines with lower priority
     return [p for p in pending if p['id'] < CI_PIPELINE_ID]
 
-
+print("Hello")
 for _ in range(10):
     remaining = get_pipelines_to_run_with_higher_priority()
+    print(remaining)
     if not remaining:
         # Success, pipeline can run
         break
@@ -35,6 +36,7 @@ for _ in range(10):
     print(f"Found remaining pipelines: {', '.join(ids)}")
     time.sleep(120)
 else:
+    print("Hey")
     # Unable to run for 20min, maybe a pipeline is stuck ?
     ids = [str(p['id']) for p in remaining]
     print(f"ERROR: Can't run pipeline as there are remaining pipelines: {', '.join(ids)}")
