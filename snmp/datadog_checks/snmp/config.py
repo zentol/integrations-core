@@ -31,6 +31,10 @@ from .resolver import OIDResolver
 from .types import OIDMatch
 
 
+class CustomMibBuilder(MibBuilder):
+    defaultMiscMibs = '/fake_path'
+
+
 class InstanceConfig:
     """Parse and hold configuration about a single instance."""
 
@@ -194,7 +198,7 @@ class InstanceConfig:
     @staticmethod
     def _create_mib_builder(mibs_path):
         # type: (Optional[str]) -> Tuple[MibBuilder, MibInstrumController, MibViewController]
-        mib_builder = MibBuilder()
+        mib_builder = CustomMibBuilder()
         if mibs_path:
             mib_builder.addMibSources(DirMibSource(mibs_path))
         mib_instrum = MibInstrumController(mib_builder)
