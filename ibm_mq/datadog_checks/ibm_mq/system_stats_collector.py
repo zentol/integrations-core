@@ -19,6 +19,7 @@ class SystemStatsCollector:
         self.config = config
         self.log = log
         self.gauge = gauge
+        self.collected = False
 
     def collect_system_stats(self, queue_manager):
         queue = pymqi.Queue(queue_manager, self.STATS_QUEUE)
@@ -26,9 +27,13 @@ class SystemStatsCollector:
             while True:
                 message = queue.get()
                 self.log.debug(str(message))
+                self.collected = True
                 #process message
         except pymqi.MQMIError as e:
-            if e.reason != pymqi.CMQC.MQRC_NO_MSG_AVAILABLE:
+            if e.reason == pymqi.CMQC.MQRC_NO_MSG_AVAILABLE:
+                if not self.collected:
+                    self.log.debug("There are no messages in the {}, queue. Check that system statistics are enabled")
+            else:
                 raise e
         finally:
             queue.close()
