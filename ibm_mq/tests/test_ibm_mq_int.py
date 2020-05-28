@@ -173,3 +173,10 @@ def test_check_regex_tag(aggregator, instance_queue_regex_tag, seed_data):
 
     for metric, _ in QUEUE_METRICS:
         aggregator.assert_metric(metric, tags=tags)
+
+
+def test_check_statistics_queue(aggregator, instance):
+    instance['queues'] = [common.SYSTEM_STATISTICS_QUEUE]
+    check = IbmMqCheck('ibm_mq', {}, [instance])
+    check.check(instance)
+    assert 1 == 2

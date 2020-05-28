@@ -2,7 +2,6 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 
-import logging
 import re
 from typing import Dict, List, Pattern
 
@@ -13,7 +12,10 @@ from datadog_checks.base.constants import ServiceCheck
 
 try:
     import pymqi
-except ImportError:
+except ImportError as e:
+    import logging
+    log = logging.getLogger(__file__)
+    log.error(e)
     pymqi = None
 else:
     # Since pymqi is not be available/installed on win/macOS when running e2e,
@@ -31,9 +33,6 @@ else:
         pymqi.CMQCFC.MQCHS_PAUSED: AgentCheck.WARNING,
         pymqi.CMQCFC.MQCHS_INITIALIZING: AgentCheck.WARNING,
     }
-
-
-log = logging.getLogger(__file__)
 
 
 class IBMMQConfig:
@@ -77,9 +76,10 @@ class IBMMQConfig:
         self.username = instance.get('username')  # type: str
         self.password = instance.get('password')  # type: str
 
-        self.queues = instance.get('queues', [])  # type: List[str]
         self.queue_patterns = instance.get('queue_patterns', [])  # type: List[str]
         self.queue_regex = [re.compile(regex) for regex in instance.get('queue_regex', [])]  # type: List[Pattern]
+        # Note: during the check run this list gets appended queues discovered by matching patterns or regexes
+        self.queues = instance.get('queues', [])  # type: List[str]
 
         self.auto_discover_queues = is_affirmative(instance.get('auto_discover_queues', False))  # type: bool
 

@@ -33,6 +33,7 @@ else:
 
 
 class ChannelMetricCollector:
+    """ Collects metrics about channels """
     CHANNEL_SERVICE_CHECK = 'ibm_mq.channel'
     CHANNEL_STATUS_SERVICE_CHECK = 'ibm_mq.channel.status'
 

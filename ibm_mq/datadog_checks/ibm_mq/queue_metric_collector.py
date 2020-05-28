@@ -21,6 +21,9 @@ else:
 
 
 class QueueMetricCollector:
+    """
+    Collects metrics about queues
+    """
     QUEUE_SERVICE_CHECK = 'ibm_mq.queue'
     QUEUE_MANAGER_SERVICE_CHECK = 'ibm_mq.queue_manager'
 
@@ -55,6 +58,9 @@ class QueueMetricCollector:
                 self.service_check(self.QUEUE_SERVICE_CHECK, AgentCheck.CRITICAL, queue_tags)
 
     def discover_queues(self, queue_manager):
+        """
+        Discover queues that match provided patterns or regexes and appends them to the config queues
+        """
         queues = []
         if self.config.auto_discover_queues:
             queues.extend(self._discover_queues(queue_manager, '*'))
