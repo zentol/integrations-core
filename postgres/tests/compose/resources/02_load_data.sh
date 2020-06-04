@@ -13,6 +13,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" datadog_test <<-EOSQL
     SELECT * FROM persons;
 EOSQL
 
+for i in $(seq 1 2000); do
+#  cat <<-EOSQL
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" datadog_test <<-EOSQL
+    CREATE TABLE personstab$i (personid SERIAL, lastname VARCHAR(255), firstname VARCHAR(255), address VARCHAR(255), city VARCHAR(255));
+    INSERT INTO personstab$i (lastname, firstname, address, city) VALUES ('Cavaille', 'Leo', 'Midtown', 'New York'), ('Someveryveryveryveryveryveryveryveryveryverylongname', 'something', 'Avenue des Champs Elysees', 'Beautiful city of lights');
+EOSQL
+
+done
+
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" dogs <<-EOSQL
     CREATE TABLE breed (id SERIAL, name VARCHAR(255));
     CREATE TABLE kennel (id SERIAL, address VARCHAR(255));

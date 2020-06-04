@@ -37,8 +37,8 @@ IDX_METRICS = ['postgresql.index_scans', 'postgresql.index_rows_read', 'postgres
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
-def test_relations_metrics(aggregator, integration_check, pg_instance):
+# @pytest.mark.usefixtures('dd_environment')
+def test_relations_metrics_base(aggregator, integration_check, pg_instance):
     pg_instance['relations'] = ['persons']
 
     posgres_check = integration_check(pg_instance)
@@ -72,7 +72,7 @@ def test_relations_metrics(aggregator, integration_check, pg_instance):
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
+# @pytest.mark.usefixtures('dd_environment')
 def test_relations_metrics_regex(aggregator, integration_check, pg_instance):
     pg_instance['relations'] = [
         {'relation_regex': '.*', 'schemas': ['hello', 'hello2']},
@@ -106,7 +106,7 @@ def test_relations_metrics_regex(aggregator, integration_check, pg_instance):
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
+# @pytest.mark.usefixtures('dd_environment')
 def test_max_relations(aggregator, integration_check, pg_instance):
     pg_instance.update({'relations': [{'relation_regex': '.*'}], 'max_relations': 1})
     posgres_check = integration_check(pg_instance)
@@ -128,7 +128,7 @@ def test_max_relations(aggregator, integration_check, pg_instance):
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
+# @pytest.mark.usefixtures('dd_environment')
 def test_index_metrics(aggregator, integration_check, pg_instance):
     pg_instance['relations'] = ['breed']
     pg_instance['dbname'] = 'dogs'
@@ -150,7 +150,7 @@ def test_index_metrics(aggregator, integration_check, pg_instance):
 
 
 @pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
+# @pytest.mark.usefixtures('dd_environment')
 def test_locks_metrics(aggregator, integration_check, pg_instance):
     pg_instance['relations'] = ['persons']
     pg_instance['query_timeout'] = 1000  # One of the relation queries waits for the table to not be locked
