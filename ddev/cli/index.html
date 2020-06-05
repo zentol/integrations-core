@@ -130,6 +130,7 @@ api_key = "***********"
 
   -o, --org-name TEXT    The org to use for data submission.
   -pm, --profile-memory  Whether to collect metrics about memory usage
+  --dogstatsd            Enable dogstatsd port on agent
 </code></pre></div> <h3 id="stop">stop<a class="headerlink" href="#stop" title="Permanent link">¶</a></h3> <p>Stop environments, use "all" as check argument to stop everything.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev env stop [OPTIONS] CHECK [ENV]
 </code></pre></div> <h3 id="test">test<a class="headerlink" href="#test" title="Permanent link">¶</a></h3> <p>Test an environment.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev env test [OPTIONS] [CHECKS]...
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  -a, --agent TEXT       The agent build to use e.g. a Docker image like
