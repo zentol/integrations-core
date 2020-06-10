@@ -185,10 +185,11 @@ api_key = "***********"
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  -s, --sdist
 </code></pre></div> <h3 id="changelog_1">changelog<a class="headerlink" href="#changelog_1" title="Permanent link">¶</a></h3> <p>Perform the operations needed to update the changelog.</p> <p>This method is supposed to be used by other tasks and not directly.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release changelog [OPTIONS] CHECK VERSION [OLD_VERSION]
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  --initial
+  -r, --organization TEXT
   -q, --quiet
   -n, --dry-run
-  -o, --output-file TEXT  [default: CHANGELOG.md]
-  -tp, --tag-prefix TEXT  [default: v]
+  -o, --output-file TEXT   [default: CHANGELOG.md]
+  -tp, --tag-prefix TEXT   [default: v]
 </code></pre></div> <h3 id="make">make<a class="headerlink" href="#make" title="Permanent link">¶</a></h3> <p>Perform a set of operations needed to release checks:</p> <ul> <li>update the version in <code>__about__.py</code></li> <li>update the changelog</li> <li>update the <code>requirements-agent-release.txt</code> file</li> <li>update in-toto metadata</li> <li>commit the above changes</li> </ul> <p>You can release everything at once by setting the check to <code>all</code>.</p> <p>If you run into issues signing:</p> <ul> <li>Ensure you did <code>gpg --import &lt;YOUR_KEY_ID&gt;.gpg.pub</code></li> </ul> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release make [OPTIONS] CHECKS...
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  --version TEXT
   --new           Ensure versions are at 1.0.0
@@ -197,7 +198,8 @@ api_key = "***********"
   --exclude TEXT  Comma-separated list of checks to skip
 </code></pre></div> <h3 id="show_1">show<a class="headerlink" href="#show_1" title="Permanent link">¶</a></h3> <p>To avoid GitHub's public API rate limits, you need to set <code>github.user</code>/<code>github.token</code> in your config file or use the <code>DD_GITHUB_USER</code>/<code>DD_GITHUB_TOKEN</code> environment variables.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release show [OPTIONS] COMMAND [ARGS]...
 </code></pre></div> <h4 id="changes_1">changes<a class="headerlink" href="#changes_1" title="Permanent link">¶</a></h4> <p>Show all the pending PRs for a given check.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release show changes [OPTIONS] CHECK
-</code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  --tag-pattern TEXT
+</code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  -r, --organization TEXT
+  --tag-pattern TEXT
   --tag-prefix TEXT
   -n, --dry-run
 </code></pre></div> <h4 id="ready">ready<a class="headerlink" href="#ready" title="Permanent link">¶</a></h4> <p>Show all the checks that can be released.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release show ready [OPTIONS]
