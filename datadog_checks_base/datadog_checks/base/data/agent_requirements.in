@@ -36,6 +36,7 @@ paramiko==2.6.0
 ply==3.10
 prometheus-client==0.7.1
 protobuf==3.7.0
+pure-sasl==0.6.2
 psutil==5.7.0
 psycopg2-binary==2.8.4
 pyasn1==0.4.6
