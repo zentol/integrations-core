@@ -17,7 +17,7 @@ from .common import (
     LEGACY_CONFIG,
     METRICS,
     METRICS_TO_TEST,
-)
+    WEBSERVER_METRICS_TO_TEST)
 
 
 def assert_check(aggregator, metrics):
@@ -108,6 +108,9 @@ def test_e2e_legacy(dd_agent_check):
 def test_e2e(dd_agent_check):
     aggregator = dd_agent_check(CONFIG, rate=True)
     assert_check(aggregator, METRICS_TO_TEST)
+    # Assert that one of gitlab.unicorn.workers or gitlab.puma.workers was submitted (based on the configured webserver)
+    assert any(aggregator.metrics(metric_name) for metric_name in WEBSERVER_METRICS_TO_TEST)
+
     # Excluding gitlab.rack.http_requests_total because it is a distribution metric
     # (its sum and count metrics are in the metadata)
     aggregator.assert_metrics_using_metadata(get_metadata_metrics(), exclude=["gitlab.rack.http_requests_total"])

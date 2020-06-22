@@ -94,12 +94,18 @@ METRICS = [
 ]
 
 METRICS_TO_TEST = [
-    "unicorn.workers",
     "rack.http_requests_total",
     "ruby.process_start_time_seconds",
     "rack.http_request_duration_seconds.sum",
     "ruby.process_start_time_seconds",
     "sql_duration_seconds.sum",
+]
+
+# Since gitlab 13 the default webserver has changed from unicorn to puma.
+# The metric describing the number of workers has thus changed its name.
+WEBSERVER_METRICS_TO_TEST = [
+    "gitlab.unicorn.workers",
+    "gitlab.puma.workers"
 ]
 
 LEGACY_CONFIG = {
