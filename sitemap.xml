@@ -140,7 +140,11 @@
      <lastmod>2020-02-02</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
-     <loc>https://datadoghq.dev/integrations-core/process/agent-release/</loc>
+     <loc>https://datadoghq.dev/integrations-core/process/agent-release/agent-release/</loc>
+     <lastmod>2020-02-02</lastmod>
+     <changefreq>daily</changefreq>
+    </url><url>
+     <loc>https://datadoghq.dev/integrations-core/process/agent-release/post-release/</loc>
      <lastmod>2020-02-02</lastmod>
      <changefreq>daily</changefreq>
     </url><url>
