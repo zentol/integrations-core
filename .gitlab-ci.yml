@@ -145,3 +145,4 @@ validate-log-intgs-builder:
     - docker images $VALIDATE_LOG_INTGS
     - docker push $VALIDATE_LOG_INTGS
   tags: [ "runner:docker", "size:large" ]
+  except: [ tags, schedules ]
