@@ -826,6 +826,32 @@ def test_metric_tag_profile_sysoid(aggregator):
     aggregator.all_metrics_asserted()
 
 
+def test_profile_sysoid_list(aggregator):
+    instance = common.generate_instance_config([])
+    definition = {
+        'metric_tags': [{'OID': '1.3.6.1.2.1.1.2', 'symbol': 'sysoid', 'tag': 'snmp_oid'}],
+        'metrics': common.SUPPORTED_METRIC_TYPES,
+        'sysobjectid': ['1.3.6.1.4.1.232.1.2', '1.3.6.1.4.1.1.2.1.3.4'],
+    }
+    init_config = {'profiles': {'profile1': {'definition': definition}}}
+    check = SnmpCheck('snmp', init_config, [instance])
+
+    check.check(instance)
+
+    tags = list(common.CHECK_TAGS)
+    tags.extend(['snmp_profile:profile1'])
+
+    for metric in common.SUPPORTED_METRIC_TYPES:
+        metric_name = "snmp." + metric['name']
+        aggregator.assert_metric(metric_name, tags=tags, count=1)
+    aggregator.assert_metric('snmp.sysUpTimeInstance', count=1)
+
+    aggregator.assert_service_check("snmp.can_check", status=SnmpCheck.OK, tags=tags, at_least=1)
+
+    print(aggregator.not_asserted())
+    aggregator.all_metrics_asserted()
+
+
 def test_metric_tags_misconfiguration():
     metrics = common.SUPPORTED_METRIC_TYPES
     instance = common.generate_instance_config(metrics)
