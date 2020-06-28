@@ -4,21 +4,130 @@
 import random
 import time
 from typing import List, Optional, Sequence, Set, Tuple
-
+from datetime import datetime, timedelta
+import requests
 import click
 
 from .....subprocess import SubprocessError, run_command
 from .....utils import basepath, chdir, get_next
-from ....constants import CHANGELOG_LABEL_PREFIX, CHANGELOG_TYPE_NONE, get_root
-from ....github import get_pr, get_pr_from_hash, get_pr_labels, get_pr_milestone, parse_pr_number
+from ....constants import CHANGELOG_LABEL_PREFIX, CHANGELOG_TYPE_NONE, get_root, set_root
+from ....github import get_pr, get_pr_from_hash, get_pr_labels, get_pr_milestone, parse_pr_number, get_team_members, get_reviews, get_last_prs
 from ....trello import TrelloClient
 from ....utils import format_commit_id
 from ...console import CONTEXT_SETTINGS, abort, echo_failure, echo_info, echo_success, echo_waiting, echo_warning
 
 
+class TrelloCardAssigner:
+    def __init__(self, teams: [str]):
+        self.__user_teams = {}
+        self.__teams = []
+        
+        for team in teams:
+            echo_info(f'Get team members for #{team}')
+            members = get_team_members(team)
+            member_logins = [m["login"] for m in members]
+            team = TrelloCardAssigner.Team(team)
+            limit = datetime.utcnow() + timedelta(days=-100)
+            self.__teams.append(team)
+            for login in member_logins:
+                date = self.__get_last_pr_date(login)
+            
+                if date and date > limit:
+                    self.__user_teams[login] = team
+                    team.add(login)
+                else:
+                    echo_info(f'Skip inactive user {login} {date}')
+                time.sleep(1)
+
+
+    def get_next_tester(self, author: str, pr_num: int) -> Optional[str]:
+        if author not in self.__user_teams:            
+            return None
+        team = self.__user_teams[author]
+        return team.get_next_tester(author, pr_num)
+
+    def get_stats(self):
+        stats = {}
+        for team in self.__teams:
+            stats[team.get_name()] = team.get_stats()        
+        return stats
+
+    def __get_last_pr_date(self, user: str) -> Optional[datetime]:
+        last_prs = []
+        for _ in range(7):
+            try:
+                last_prs = get_last_prs(user)
+                break
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 403:
+                    time.sleep(5)                    
+                else:
+                    raise
+
+        last_prs_items = last_prs['items']
+        if len(last_prs_items) == 0:
+            return None
+        last_pr = last_prs_items[0]
+        created_at = last_pr['created_at']
+        return datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ")        
+        
+
+    class Team:
+        def __init__(self, name: str):
+            self.__prs_by_tester = {}
+            self.__name = name            
+        
+        def add(self, user: str):
+            self.__prs_by_tester[user] = []
+
+        def get_next_tester(self, author: str, pr_num: int) -> Optional[str]:            
+            exclude_testers = self.__get_reviewers(pr_num)
+            exclude_testers.add(author)
+            
+            # find a tester who are not the author or a reviewer
+            tester = self.__select_testers(lambda t: t in exclude_testers)
+            if tester is None:
+                # find a tester who are not the author
+                tester = self.select_testers(lambda t: t != author)
+
+            if tester is not None:
+                self.__prs_by_tester[tester].append(pr_num)
+            else:
+                raise Exception() ## TODOTOTOD
+            return tester
+
+        def get_stats(self):
+            return self.__prs_by_tester
+
+        def get_name(self):
+            return self.__name
+
+        def __select_testers(self, user_excluded_fct) -> Optional[str]:
+            candidates = []
+            minReview = 0
+            for user, prs in self.__prs_by_tester.items():
+                if not user_excluded_fct(user):
+                    if len(candidates) == 0 or len(prs) <= minReview:
+                        # if we find a user with last review clean the candidate
+                        if len(prs) < minReview:
+                            candidates.clear()
+                        candidates.append(user)
+                        minReview = len(prs)
+
+            if len(candidates) > 0:
+                return candidates[random.randint(0, len(candidates) - 1)]
+            return None
+
+        def __get_reviewers(self, pr_num: int) -> Set[str]:
+            reviews = get_reviews(pr_num)
+            return set([r["user"]["login"] for r in reviews])
+
+
 def create_trello_card(
     client: TrelloClient,
+    trelloCardAssigner: TrelloCardAssigner,
     teams: List[str],
+    pr_num: int,
     pr_title: str,
     pr_url: str,
     pr_labels: List[str],
@@ -36,6 +145,8 @@ Labels: {labels}
 {pr_body}'''
     for team in teams:
         member = pick_card_member(config, pr_author, team)
+        if member is None:
+            member = trelloCardAssigner.get_next_tester(pr_author, pr_num)
         if member:
             echo_info(f'Randomly assigned issue to {member}')
         if dry_run:
@@ -143,9 +254,10 @@ def pick_card_member(config: dict, author: str, team: str) -> Optional[str]:
 @click.argument('base_ref')
 @click.argument('target_ref')
 @click.option('--milestone', help='The PR milestone to filter by')
+@click.option('--new-root', help='')
 @click.option('--dry-run', '-n', is_flag=True, help='Only show the changes')
 @click.pass_context
-def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str, dry_run: bool) -> None:
+def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str, dry_run: bool, new_root: str) -> None:
     """
     Create a Trello card for changes since a previous release (referenced by `BASE_REF`)
     that need to be tested for the next release (referenced by `TARGET_REF`).
@@ -190,7 +302,9 @@ def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str,
 
     `ddev release trello -h`.
 
-"""
+"""    
+    if new_root is not None:
+        set_root(new_root)
     root = get_root()
     repo = basepath(root)
     if repo not in ('integrations-core', 'datadog-agent'):
@@ -235,6 +349,19 @@ def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str,
     user_config = ctx.obj
     trello = TrelloClient(user_config)
 
+    teams = [
+             'agent-core',
+             'container-integrations',
+             'logs-intake',            
+             'agent-platform',        
+             'networks',
+             'processes',
+             'agent-apm',                          
+    ]
+
+
+    trelloCardAssigner = TrelloCardAssigner(teams)
+            
     for i, (commit_hash, commit_subject) in enumerate(commits, 1):
         commit_id = parse_pr_number(commit_subject)
         if commit_id is not None:
@@ -304,6 +431,7 @@ def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str,
         pr_title = pr_data.get('title', commit_subject)
         pr_author = pr_data.get('user', {}).get('login', '')
         pr_body = pr_data.get('body', '')
+        pr_num = pr_data.get('number', 0)
 
         trello_config = user_config['trello']
         if not (trello_config['key'] and trello_config['token']):
@@ -311,7 +439,8 @@ def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str,
 
         teams = [trello.label_team_map[label] for label in pr_labels if label in trello.label_team_map]
         if teams:
-            create_trello_card(trello, teams, pr_title, pr_url, pr_labels, pr_body, dry_run, pr_author, user_config)
+            create_trello_card(trello, trelloCardAssigner, teams, pr_num, pr_title,
+                               pr_url, pr_labels, pr_body, dry_run, pr_author, user_config)
             continue
 
         finished = False
@@ -371,7 +500,15 @@ def testable(ctx: click.Context, base_ref: str, target_ref: str, milestone: str,
                 return
             else:
                 create_trello_card(
-                    trello, [value], pr_title, pr_url, pr_labels, pr_body, dry_run, pr_author, user_config
+                    trello, trelloCardAssigner, [
+                        value], pr_num, pr_title, pr_url, pr_labels, pr_body, dry_run, pr_author, user_config
                 )
 
             finished = True
+    for team, stat in trelloCardAssigner.get_stats().items():
+        print (team)
+        for k, v in stat.items():
+            print ("\t" + k, end =" ")
+            for x in v:
+                print (x, end =" ")
+            print ()

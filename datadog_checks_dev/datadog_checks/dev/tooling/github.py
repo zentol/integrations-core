@@ -117,3 +117,26 @@ def parse_pr_numbers(git_log_lines):
         if pr_number:
             prs.append(pr_number)
     return prs
+
+def get_team_members(team, org='DataDog'):
+    repo = basepath(get_root())
+    response = requests.get('{}/orgs/{}/teams/{}/members'.format(API_URL, org, team), auth=get_auth_info())
+    
+    response.raise_for_status()
+    return response.json()
+
+
+def get_reviews(pr_num, org='DataDog'):
+    repo = basepath(get_root())
+
+    response = requests.get('{}/repos/{}/{}/pulls/{}/reviews'.format(API_URL, org, repo, pr_num), auth=get_auth_info())
+    
+    response.raise_for_status()
+    return response.json()
+
+def get_last_prs(user, org='DataDog'): 
+    repo = basepath(get_root())
+    response = requests.get('{}/search/issues?q=repo:{}/{}+author:{}+is:pr+sort:created'.format(API_URL, org, repo, user), auth=get_auth_info())
+    
+    response.raise_for_status()
+    return response.json()
