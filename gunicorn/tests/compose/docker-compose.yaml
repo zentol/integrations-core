@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  gunicorn:
+    build:
+      context: .
+      args:
+        PROC_NAME: ${PROC_NAME}
+        GUNICORN_VERSION: ${GUNICORN_VERSION}
+    container_name: dd-test-gunicorn

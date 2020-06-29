@@ -1,0 +1,42 @@
+{
+  "categories": [
+    "security",
+    "configuration & deployment",
+    "log collection",
+    "autodiscovery"
+  ],
+  "creates_events": true,
+  "display_name": "Vault",
+  "guid": "d65af827-c818-44ce-9ec3-cd7ead3ac4ce",
+  "is_public": true,
+  "maintainer": "help@datadoghq.com",
+  "manifest_version": "1.0.0",
+  "metric_prefix": "vault.",
+  "metric_to_check": "vault.is_leader",
+  "name": "vault",
+  "public_title": "Datadog-Vault Integration",
+  "short_description": "Vault is a secrets management service application",
+  "support": "core",
+  "supported_os": [
+    "linux",
+    "mac_os",
+    "windows"
+  ],
+  "type": "check",
+  "integration_id": "vault",
+  "assets": {
+    "configuration": {
+      "spec": "assets/configuration/spec.yaml"
+    },
+    "monitors": {},
+    "dashboards": {
+      "Vault - Overview": "assets/dashboards/vault_overview.json"
+    },
+    "saved_views": {
+      "error_warning_status": "assets/saved_views/error_warning_status.json",
+      "service_name_overview": "assets/saved_views/service_name_overview.json",
+      "vault_patern": "assets/saved_views/vault_patern.json"
+    },
+    "service_checks": "assets/service_checks.json"
+  }
+}

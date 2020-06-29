@@ -1,0 +1,18 @@
+[
+    {
+        "agent_version": "5.7.0",
+        "integration": "System",
+        "groups": [
+            "nameserver",
+            "resolved_hostname",
+            "record_type"
+        ],
+        "check": "dns.can_resolve",
+        "statuses": [
+            "ok",
+            "critical"
+        ],
+        "name": "DNS Can Resolve",
+        "description": "Returns Critical if DNS resolution times out or fails, OK otherwise. ."
+    }
+]

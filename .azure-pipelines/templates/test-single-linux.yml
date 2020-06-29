@@ -1,0 +1,45 @@
+parameters:
+  job_name: ''
+  check: ''
+  display: ''
+  test: true
+  test_e2e: true
+  benchmark: true
+  latest_metrics: false
+  validate: false
+  repo: 'core'
+  pip_cache_config: null
+
+jobs:
+- job: '${{ coalesce(parameters.job_name, parameters.check) }}_Linux'
+  displayName: '${{ parameters.display }}'
+
+  pool:
+    vmImage: 'ubuntu-18.04'
+
+  steps:
+  - template: './checkout-code.yml'
+
+  - template: './install-deps.yml'
+    parameters:
+      repo: ${{ parameters.repo }}
+      pip_cache_config: ${{ parameters.pip_cache_config }}
+
+  - template: './set-up-integrations.yml'
+    parameters:
+      check: ${{ parameters.check }}
+
+  - ${{ if eq(parameters.validate, 'true') }}:
+    - template: './run-validations.yml'
+      parameters:
+        repo: ${{ parameters.repo }}
+
+  - template: './run-tests.yml'
+    parameters:
+      test_run: '${{ coalesce(parameters.job_name, parameters.check) }}.linux'
+      check: ${{ parameters.check }}
+      test: ${{ parameters.test }}
+      test_e2e: ${{ parameters.test_e2e }}
+      benchmark: ${{ parameters.benchmark }}
+      latest_metrics: ${{ parameters.latest_metrics }}
+      repo: ${{ parameters.repo }}

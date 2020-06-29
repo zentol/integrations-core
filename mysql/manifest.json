@@ -1,0 +1,42 @@
+{
+  "categories": [
+    "data store",
+    "log collection"
+  ],
+  "creates_events": true,
+  "description": "The MySQL integration helps to collect performance and availability metrics from MySQL server instances.",
+  "display_name": "MySQL",
+  "guid": "056bfc7f-4775-4581-9442-502078593d10",
+  "is_public": true,
+  "maintainer": "help@datadoghq.com",
+  "manifest_version": "1.0.0",
+  "metric_prefix": "mysql.",
+  "metric_to_check": "mysql.net.connections",
+  "name": "MySQL",
+  "process_signatures": [
+    "mysqld"
+  ],
+  "public_title": "Datadog-MySQL Integration",
+  "short_description": "Collect performance schema metrics, query throughput, custom metrics, and more.",
+  "support": "core",
+  "supported_os": [
+    "linux",
+    "mac_os",
+    "windows"
+  ],
+  "type": "check",
+  "integration_id": "mysql",
+  "assets": {
+    "configuration": {
+      "spec": "assets/configuration/spec.yaml"
+    },
+    "monitors": {},
+    "dashboards": {},
+    "saved_views": {
+      "operations": "assets/saved_views/operations.json",
+      "operations_overview": "assets/saved_views/operations_overview.json",
+      "slow_operations": "assets/saved_views/slow_operations.json"
+    },
+    "service_checks": "assets/service_checks.json"
+  }
+}
