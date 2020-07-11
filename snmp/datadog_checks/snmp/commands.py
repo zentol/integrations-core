@@ -104,7 +104,7 @@ def snmp_getnext(config, oids, lookup_mib, ignore_nonincreasing_oid):
         for col, var_bind in enumerate(ctx['var_bind_table']):
             name, val = var_bind
             if not isinstance(val, Null) and initial_vars[col].isPrefixOf(name):
-                var_binds.append(var_bind)
+                var_binds.append((name, None))
                 new_initial_vars.append(initial_vars[col])
                 yield var_bind
         if not var_binds:
