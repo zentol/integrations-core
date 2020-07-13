@@ -1,5 +1,8 @@
 # CHANGELOG - ProxySQL
 
+## 1.2.2-rc.1 / 2020-07-13
+
+
 ## 1.2.1 / 2020-07-03
 
 * [Fixed] Revert/Remove unnecessary `database_name` config. See [#7049](https://github.com/DataDog/integrations-core/pull/7049).
