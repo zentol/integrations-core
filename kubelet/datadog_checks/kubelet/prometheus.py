@@ -69,7 +69,6 @@ class CadvisorPrometheusScraperMixin(object):
         cadvisor_instance = deepcopy(instance)
         cadvisor_instance.update(
             {
-                'namespace': self.NAMESPACE,
                 # We need to specify a prometheus_url so the base class can use it as the key for our config_map,
                 # we specify a dummy url that will be replaced in the `check()` function. We append it with "cadvisor"
                 # so the key is different than the kubelet scraper.
@@ -324,7 +323,6 @@ class CadvisorPrometheusScraperMixin(object):
                     tags.append('%s:%s' % (label, value))
 
             val = sample[self.SAMPLE_VALUE]
-
             if "rate" == type:
                 self.rate(metric_name, val, tags)
             elif "gauge" == type:
@@ -445,7 +443,7 @@ class CadvisorPrometheusScraperMixin(object):
                     )
 
     def container_cpu_usage_seconds_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.usage.total'
+        metric_name = 'cpu.usage.total'
 
         for i, sample in enumerate(metric.samples):
             # Replacing the sample tuple to convert cores in nano cores
@@ -457,66 +455,66 @@ class CadvisorPrometheusScraperMixin(object):
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_cpu_load_average_10s(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.load.10s.avg'
+        metric_name = 'cpu.load.10s.avg'
         self._process_container_metric('gauge', metric_name, metric, scraper_config)
 
     def container_cpu_system_seconds_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.system.total'
+        metric_name = 'cpu.system.total'
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_cpu_user_seconds_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.user.total'
+        metric_name = 'cpu.user.total'
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_cpu_cfs_periods_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.cfs.periods'
+        metric_name = 'cpu.cfs.periods'
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_cpu_cfs_throttled_periods_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.cfs.throttled.periods'
+        metric_name = 'cpu.cfs.throttled.periods'
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_cpu_cfs_throttled_seconds_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.cpu.cfs.throttled.seconds'
+        metric_name = 'cpu.cfs.throttled.seconds'
         self._process_container_metric('rate', metric_name, metric, scraper_config)
 
     def container_fs_reads_bytes_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.io.read_bytes'
+        metric_name = 'io.read_bytes'
         labels = ['device']
         self._process_container_metric('rate', metric_name, metric, scraper_config, labels=labels)
 
     def container_fs_writes_bytes_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.io.write_bytes'
+        metric_name = 'io.write_bytes'
         labels = ['device']
         self._process_container_metric('rate', metric_name, metric, scraper_config, labels=labels)
 
     def container_network_receive_bytes_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.rx_bytes'
+        metric_name = 'network.rx_bytes'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
     def container_network_transmit_bytes_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.tx_bytes'
+        metric_name = 'network.tx_bytes'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
     def container_network_receive_errors_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.rx_errors'
+        metric_name = 'network.rx_errors'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
     def container_network_transmit_errors_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.tx_errors'
+        metric_name = 'network.tx_errors'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
     def container_network_transmit_packets_dropped_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.tx_dropped'
+        metric_name = 'network.tx_dropped'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
     def container_network_receive_packets_dropped_total(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.network.rx_dropped'
+        metric_name = 'network.rx_dropped'
         labels = ['interface']
         self._process_pod_rate(metric_name, metric, scraper_config, labels=labels)
 
@@ -524,7 +522,7 @@ class CadvisorPrometheusScraperMixin(object):
         """
         Number of bytes that are consumed by the container on this filesystem.
         """
-        metric_name = scraper_config['namespace'] + '.filesystem.usage'
+        metric_name = 'filesystem.usage'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return
@@ -536,49 +534,49 @@ class CadvisorPrometheusScraperMixin(object):
         Number of bytes that can be consumed by the container on this filesystem.
         This method is used by container_fs_usage_bytes, it doesn't report any metric
         """
-        pct_m_name = scraper_config['namespace'] + '.filesystem.usage_pct'
+        pct_m_name = 'filesystem.usage_pct'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return
         self._process_limit_metric('', metric, self.fs_usage_bytes, scraper_config, pct_m_name)
 
     def container_memory_usage_bytes(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.usage'
+        metric_name = 'memory.usage'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return
         self._process_usage_metric(metric_name, metric, self.mem_usage_bytes, scraper_config)
 
     def container_memory_working_set_bytes(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.working_set'
+        metric_name = 'memory.working_set'
         self._process_container_metric('gauge', metric_name, metric, scraper_config)
 
     def container_memory_cache(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.cache'
+        metric_name = 'memory.cache'
         self._process_container_metric('gauge', metric_name, metric, scraper_config)
 
     def container_memory_rss(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.rss'
+        metric_name = 'memory.rss'
         self._process_container_metric('gauge', metric_name, metric, scraper_config)
 
     def container_memory_swap(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.swap'
+        metric_name = 'memory.swap'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return
         self._process_usage_metric(metric_name, metric, self.swap_usage_bytes, scraper_config)
 
     def container_spec_memory_limit_bytes(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.limits'
-        pct_m_name = scraper_config['namespace'] + '.memory.usage_pct'
+        metric_name = 'memory.limits'
+        pct_m_name = 'memory.usage_pct'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return
         self._process_limit_metric(metric_name, metric, self.mem_usage_bytes, scraper_config, pct_m_name=pct_m_name)
 
     def container_spec_memory_swap_limit_bytes(self, metric, scraper_config):
-        metric_name = scraper_config['namespace'] + '.memory.sw_limit'
-        pct_m_name = scraper_config['namespace'] + '.memory.sw_in_use'
+        metric_name = 'memory.sw_limit'
+        pct_m_name = 'memory.sw_in_use'
         if metric.type not in METRIC_TYPES:
             self.log.error("Metric type %s unsupported for metric %s", metric.type, metric.name)
             return

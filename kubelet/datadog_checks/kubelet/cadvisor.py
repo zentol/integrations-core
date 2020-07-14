@@ -20,7 +20,6 @@ Collects metrics from cAdvisor instance
 """
 
 
-NAMESPACE = "kubernetes"
 DEFAULT_MAX_DEPTH = 10
 DEFAULT_ENABLED_RATES = ['diskio.io_service_bytes.stats.total', 'network.??_bytes', 'cpu.*.total']
 DEFAULT_ENABLED_GAUGES = [
@@ -80,11 +79,11 @@ class CadvisorScraper(object):
         """
         self.max_depth = instance.get('max_depth', DEFAULT_MAX_DEPTH)
         enabled_gauges = instance.get('enabled_gauges', DEFAULT_ENABLED_GAUGES)
-        self.enabled_gauges = ["{0}.{1}".format(NAMESPACE, x) for x in enabled_gauges]
+        self.enabled_gauges = ["{}".format(x) for x in enabled_gauges]
         enabled_rates = instance.get('enabled_rates', DEFAULT_ENABLED_RATES)
-        self.enabled_rates = ["{0}.{1}".format(NAMESPACE, x) for x in enabled_rates]
+        self.enabled_rates = ["{}".format(x) for x in enabled_rates]
         pod_level_metrics = instance.get('pod_level_metrics', DEFAULT_POD_LEVEL_METRICS)
-        self.pod_level_metrics = ["{0}.{1}".format(NAMESPACE, x) for x in pod_level_metrics]
+        self.pod_level_metrics = ["{}".format(x) for x in pod_level_metrics]
 
         self._update_metrics(instance, cadvisor_url, pod_list, pod_list_utils)
 
@@ -94,7 +93,6 @@ class CadvisorScraper(object):
 
     def _update_metrics(self, instance, cadvisor_url, pod_list, pod_list_utils):
         metrics = self._retrieve_cadvisor_metrics(cadvisor_url)
-
         if not metrics:
             self.warning('cAdvisor returned no metrics')
             return
@@ -109,6 +107,7 @@ class CadvisorScraper(object):
             except Exception as e:
                 self.log.error("Unable to collect metrics for container: %s (%s)", c_id, e)
 
+    # TODO update this method to not use self.__NAMESPACE__
     def _publish_raw_metrics(self, metric, dat, tags, is_pod, depth=0):
         """
         Recusively parses and submit metrics for a given entity, until
@@ -190,13 +189,13 @@ class CadvisorScraper(object):
         tags = list(set(tags + instance.get('tags', [])))
 
         stats = subcontainer['stats'][-1]  # take the latest
-        self._publish_raw_metrics(NAMESPACE, stats, tags, is_pod)
+        self._publish_raw_metrics(self.__NAMESPACE__, stats, tags, is_pod)
 
         if is_pod is False and subcontainer.get("spec", {}).get("has_filesystem") and stats.get('filesystem'):
             fs = stats['filesystem'][-1]
             fs_utilization = float(fs['usage']) / float(fs['capacity'])
-            self.gauge(NAMESPACE + '.filesystem.usage_pct', fs_utilization, tags=tags)
+            self.gauge('filesystem.usage_pct', fs_utilization, tags=tags)
 
         if is_pod and subcontainer.get("spec", {}).get("has_network"):
             net = stats['network']
-            self.rate(NAMESPACE + '.network_errors', sum(float(net[x]) for x in NET_ERRORS), tags=tags)
+            self.rate('network_errors', sum(float(net[x]) for x in NET_ERRORS), tags=tags)

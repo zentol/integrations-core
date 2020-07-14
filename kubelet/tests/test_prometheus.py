@@ -53,7 +53,6 @@ def test_cadvisor_default_options():
     assert check.fs_usage_bytes == {}
     assert check.mem_usage_bytes == {}
 
-    assert cadvisor_scraper_config['namespace'] == 'kubernetes'
     assert cadvisor_scraper_config['metrics_mapper'] == {}
 
 

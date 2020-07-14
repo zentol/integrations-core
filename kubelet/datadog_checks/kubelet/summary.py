@@ -44,7 +44,7 @@ class SummaryScraperMixin(object):
 
         used_bytes = pod.get('ephemeral-storage', {}).get('usedBytes')
         if used_bytes:
-            self.gauge(self.NAMESPACE + '.ephemeral_storage.usage', used_bytes, pod_tags)
+            self.gauge('ephemeral_storage.usage', used_bytes, pod_tags)
 
         # Metrics below should already be gathered by another mean (cadvisor endpoints)
         if not main_stats_source:
@@ -52,10 +52,10 @@ class SummaryScraperMixin(object):
 
         rx_bytes = pod.get('network', {}).get('rxBytes')
         if rx_bytes:
-            self.rate(self.NAMESPACE + '.network.rx_bytes', rx_bytes, pod_tags)
+            self.rate('network.rx_bytes', rx_bytes, pod_tags)
         tx_bytes = pod.get('network', {}).get('txBytes')
         if tx_bytes:
-            self.rate(self.NAMESPACE + '.network.tx_bytes', tx_bytes, pod_tags)
+            self.rate('network.tx_bytes', tx_bytes, pod_tags)
 
     def _report_container_stats(
         self, pod_namespace, pod_name, containers, pod_list_utils, instance_tags, main_stats_source
@@ -101,11 +101,11 @@ class SummaryScraperMixin(object):
 
             cpu_total = container.get('cpu', {}).get('usageCoreNanoSeconds')
             if cpu_total:
-                self.rate(self.NAMESPACE + '.cpu.usage.total', cpu_total, container_tags)
+                self.rate('cpu.usage.total', cpu_total, container_tags)
 
             working_set = container.get('memory', {}).get('workingSetBytes')
             if working_set:
-                self.gauge(self.NAMESPACE + '.memory.working_set', working_set, container_tags)
+                self.gauge('memory.working_set', working_set, container_tags)
 
             # TODO: Review meaning of these metrics as capacity != available + used
             # availableBytes = container.get('rootfs', {}).get('availableBytes')
@@ -113,9 +113,9 @@ class SummaryScraperMixin(object):
             used_bytes = container.get('rootfs', {}).get('usedBytes')
 
             if used_bytes is not None:
-                self.gauge(self.NAMESPACE + '.filesystem.usage', used_bytes, container_tags)
+                self.gauge('filesystem.usage', used_bytes, container_tags)
             if used_bytes is not None and capacity_bytes is not None:
-                self.gauge(self.NAMESPACE + '.filesystem.usage_pct', float(used_bytes) / capacity_bytes, container_tags)
+                self.gauge('filesystem.usage_pct', float(used_bytes) / capacity_bytes, container_tags)
 
     def _report_system_container_metrics(self, stats, instance_tags):
         sys_containers = stats.get('node', {}).get('systemContainers', [])
@@ -123,14 +123,14 @@ class SummaryScraperMixin(object):
             if ctr.get('name') == 'runtime':
                 mem_rss = ctr.get('memory', {}).get('rssBytes')
                 if mem_rss:
-                    self.gauge(self.NAMESPACE + '.runtime.memory.rss', mem_rss, instance_tags)
+                    self.gauge('runtime.memory.rss', mem_rss, instance_tags)
                 cpu_usage = ctr.get('cpu', {}).get('usageNanoCores')
                 if cpu_usage:
-                    self.gauge(self.NAMESPACE + '.runtime.cpu.usage', cpu_usage, instance_tags)
+                    self.gauge('runtime.cpu.usage', cpu_usage, instance_tags)
             if ctr.get('name') == 'kubelet':
                 mem_rss = ctr.get('memory', {}).get('rssBytes')
                 if mem_rss:
-                    self.gauge(self.NAMESPACE + '.kubelet.memory.rss', mem_rss, instance_tags)
+                    self.gauge('kubelet.memory.rss', mem_rss, instance_tags)
                 cpu_usage = ctr.get('cpu', {}).get('usageNanoCores')
                 if cpu_usage:
-                    self.gauge(self.NAMESPACE + '.kubelet.cpu.usage', cpu_usage, instance_tags)
+                    self.gauge('kubelet.cpu.usage', cpu_usage, instance_tags)

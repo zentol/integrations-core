@@ -155,6 +155,8 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
     Collect metrics from Kubelet.
     """
 
+    __NAMESPACE__ = 'kubernetes'
+
     DEFAULT_METRIC_LIMIT = 0
 
     COUNTER_METRICS = {'kubelet_evictions': 'kubelet.evictions'}
@@ -171,7 +173,6 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
     VOLUME_TAG_KEYS_TO_EXCLUDE = ['persistentvolumeclaim', 'pod_phase']
 
     def __init__(self, name, init_config, instances):
-        self.NAMESPACE = 'kubernetes'
         if instances is not None and len(instances) > 1:
             raise Exception('Kubelet check only supports one configured instance.')
         inst = instances[0] if instances else None
@@ -191,9 +192,7 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
         self.cadvisor_scraper_config = self.get_scraper_config(cadvisor_instance)
         # Filter out system slices (empty pod name) to reduce memory footprint
         self.cadvisor_scraper_config['_text_filter_blacklist'] = ['pod_name=""', 'pod=""']
-
         self.kubelet_scraper_config = self.get_scraper_config(kubelet_instance)
-
         counter_transformers = {k: self.send_always_counter for k in self.COUNTER_METRICS}
 
         histogram_transformers = {
@@ -219,7 +218,6 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
         kubelet_instance = deepcopy(instance)
         kubelet_instance.update(
             {
-                'namespace': self.NAMESPACE,
                 # We need to specify a prometheus_url so the base class can use it as the key for our config_map,
                 # we specify a dummy url that will be replaced in the `check()` function. We append it with "kubelet"
                 # so the key is different than the cadvisor scraper.
@@ -449,12 +447,12 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
         memory_capacity = node_spec.get('memory_capacity', 0)
 
         tags = instance_tags
-        self.gauge(self.NAMESPACE + '.cpu.capacity', float(num_cores), tags)
-        self.gauge(self.NAMESPACE + '.memory.capacity', float(memory_capacity), tags)
+        self.gauge('cpu.capacity', float(num_cores), tags)
+        self.gauge('memory.capacity', float(memory_capacity), tags)
 
     def _perform_kubelet_check(self, instance_tags):
         """Runs local service checks"""
-        service_check_base = self.NAMESPACE + '.kubelet.check'
+        service_check_base = 'kubelet.check'
         is_ok = True
         url = self.kube_health_url
 
@@ -533,9 +531,9 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
             hash_tags = tuple(sorted(tags))
             pods_tag_counter[hash_tags] += 1
         for tags, count in iteritems(pods_tag_counter):
-            self.gauge(self.NAMESPACE + '.pods.running', count, list(tags))
+            self.gauge('pods.running', count, list(tags))
         for tags, count in iteritems(containers_tag_counter):
-            self.gauge(self.NAMESPACE + '.containers.running', count, list(tags))
+            self.gauge('containers.running', count, list(tags))
 
     def _report_container_spec_metrics(self, pod_list, instance_tags):
         """Reports pod requests & limits by looking at pod specs."""
@@ -571,21 +569,21 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
                 try:
                     for resource, value_str in iteritems(ctr.get('resources', {}).get('requests', {})):
                         value = self.parse_quantity(value_str)
-                        self.gauge('{}.{}.requests'.format(self.NAMESPACE, resource), value, tags)
+                        self.gauge('{}.requests'.format(resource), value, tags)
                 except (KeyError, AttributeError) as e:
                     self.log.debug("Unable to retrieve container requests for %s: %s", c_name, e)
 
                 try:
                     for resource, value_str in iteritems(ctr.get('resources', {}).get('limits', {})):
                         value = self.parse_quantity(value_str)
-                        self.gauge('{}.{}.limits'.format(self.NAMESPACE, resource), value, tags)
+                        self.gauge('{}.limits'.format(resource), value, tags)
                 except (KeyError, AttributeError) as e:
                     self.log.debug("Unable to retrieve container limits for %s: %s", c_name, e)
 
     def _report_container_state_metrics(self, pod_list, instance_tags):
         """Reports container state & reasons by looking at container statuses"""
         if pod_list.get('expired_count'):
-            self.gauge(self.NAMESPACE + '.pods.expired', pod_list.get('expired_count'), tags=instance_tags)
+            self.gauge('pods.expired', pod_list.get('expired_count'), tags=instance_tags)
 
         for pod in pod_list['items']:
             pod_name = pod.get('metadata', {}).get('name')
@@ -610,7 +608,7 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
                 tags += instance_tags
 
                 restart_count = ctr_status.get('restartCount', 0)
-                self.gauge(self.NAMESPACE + '.containers.restarts', restart_count, tags)
+                self.gauge('containers.restarts', restart_count, tags)
 
                 for (metric_name, field_name) in [('state', 'state'), ('last_state', 'lastState')]:
                     c_state = ctr_status.get(field_name, {})
@@ -631,7 +629,7 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
             else:
                 return
 
-            gauge_name = '{}.containers.{}.{}'.format(self.NAMESPACE, metric_name, state_name)
+            gauge_name = 'containers.{}.{}'.format(metric_name, state_name)
             self.gauge(gauge_name, 1, tags + reason_tags)
 
     @staticmethod
@@ -666,7 +664,7 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
         return False
 
     def send_always_counter(self, metric, scraper_config, hostname=None):
-        metric_name_with_namespace = '{}.{}'.format(scraper_config['namespace'], self.COUNTER_METRICS[metric.name])
+        metric_name_with_namespace = '{}'.format(self.COUNTER_METRICS[metric.name])
         for sample in metric.samples:
             val = sample[self.SAMPLE_VALUE]
             if not self._is_value_valid(val):
@@ -678,7 +676,7 @@ class KubeletCheck(CadvisorPrometheusScraperMixin, OpenMetricsBaseCheck, Cadviso
             self.monotonic_count(metric_name_with_namespace, val, tags=tags, hostname=custom_hostname)
 
     def append_pod_tags_to_volume_metrics(self, metric, scraper_config, hostname=None):
-        metric_name_with_namespace = '{}.{}'.format(scraper_config['namespace'], self.VOLUME_METRICS[metric.name])
+        metric_name_with_namespace = '{}'.format(self.VOLUME_METRICS[metric.name])
         for sample in metric.samples:
             val = sample[self.SAMPLE_VALUE]
             if not self._is_value_valid(val):

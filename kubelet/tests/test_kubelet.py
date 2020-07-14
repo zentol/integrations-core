@@ -238,7 +238,6 @@ def tagger():
     tagger.set_tags(COMMON_TAGS)
     return tagger
 
-
 def mock_kubelet_check(monkeypatch, instances, kube_version=KUBE_1_14, stats_summary_fail=False):
     """
     Returns a check that uses mocked data for responses from prometheus endpoints, pod list,
@@ -327,8 +326,6 @@ def test_parse_quantity():
 
 def test_kubelet_default_options():
     check = KubeletCheck('kubelet', {}, [{}])
-    assert check.cadvisor_scraper_config['namespace'] == 'kubernetes'
-    assert check.kubelet_scraper_config['namespace'] == 'kubernetes'
 
     assert isinstance(check.cadvisor_scraper_config, dict)
     assert isinstance(check.kubelet_scraper_config, dict)
@@ -361,7 +358,6 @@ def _test_kubelet_check_prometheus(monkeypatch, aggregator, tagger, kube_version
 
     check = mock_kubelet_check(monkeypatch, [instance], kube_version=kube_version)
     monkeypatch.setattr(check, 'process_cadvisor', mock.Mock(return_value=None))
-
     check.check(instance)
     assert check.cadvisor_legacy_url is None
     check.retrieve_pod_list.assert_called_once()
@@ -389,7 +385,7 @@ def _test_kubelet_check_prometheus(monkeypatch, aggregator, tagger, kube_version
         if instance_tags:
             for tag in instance_tags:
                 aggregator.assert_metric_has_tag(metric, tag)
-
+    
     assert aggregator.metrics_asserted_pct == 100.0
 
 
