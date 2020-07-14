@@ -203,6 +203,7 @@ api_key = "***********"
   --skip-sign     Skip the signing of release metadata
   --sign-only     Only sign release metadata
   --exclude TEXT  Comma-separated list of checks to skip
+  --allow-master  Allow ddev to commit directly to master. Forbidden for core.
 </code></pre></div> <h3 id="show_1">show<a class="headerlink" href="#show_1" title="Permanent link">¶</a></h3> <p>To avoid GitHub's public API rate limits, you need to set <code>github.user</code>/<code>github.token</code> in your config file or use the <code>DD_GITHUB_USER</code>/<code>DD_GITHUB_TOKEN</code> environment variables.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release show [OPTIONS] COMMAND [ARGS]...
 </code></pre></div> <h4 id="changes_1">changes<a class="headerlink" href="#changes_1" title="Permanent link">¶</a></h4> <p>Show all the pending PRs for a given check.</p> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release show changes [OPTIONS] CHECK
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  -r, --organization TEXT
