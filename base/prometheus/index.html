@@ -423,7 +423,21 @@
 333
 334
 335
-336</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">create_scraper_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">create_scraper_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Creates a scraper configuration.</span>
 
@@ -617,6 +631,20 @@
     <span class="n">config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type_overrides'</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type_overrides'</span><span class="p">,</span> <span class="p">{}))</span>
 
+    <span class="c1"># `_type_override_patterns` is a dictionary where we store Pattern objects</span>
+    <span class="c1"># that match metric names as keys, and their corresponding metric type overrrides as values.</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">'_type_override_patterns'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">with_wildcards</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">metric</span><span class="p">,</span> <span class="nb">type</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="s1">'*'</span> <span class="ow">in</span> <span class="n">metric</span><span class="p">:</span>
+            <span class="n">config</span><span class="p">[</span><span class="s1">'_type_override_patterns'</span><span class="p">][</span><span class="nb">compile</span><span class="p">(</span><span class="n">translate</span><span class="p">(</span><span class="n">metric</span><span class="p">))]</span> <span class="o">=</span> <span class="nb">type</span>
+            <span class="n">with_wildcards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+
+    <span class="c1"># cleanup metric names with wildcards from the 'type_overrides' dict</span>
+    <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">with_wildcards</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">][</span><span class="n">metric</span><span class="p">]</span>
+
     <span class="c1"># Some metrics are retrieved from differents hosts and often</span>
     <span class="c1"># a label can hold this information, this transfers it to the hostname</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">'label_to_hostname'</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'label_to_hostname'</span><span class="p">,</span> <span class="n">default_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'label_to_hostname'</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
@@ -704,26 +732,33 @@
         <span class="n">config</span><span class="p">[</span><span class="s1">'_default_metric_transformers'</span><span class="p">][</span><span class="n">config</span><span class="p">[</span><span class="s1">'metadata_metric_name'</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_metadata</span>
 
     <span class="k">return</span> <span class="n">config</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family"> <code class="highlight language-python"> parse_metric_family<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Parse the MetricFamily from a valid <code>requests.Response</code> object to provide a MetricFamily object. The text format uses iter_lines() generator.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>380
-381
-382
-383
-384
-385
-386
-387
-388
-389
-390
-391
-392
-393
-394
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family"> <code class="highlight language-python"> parse_metric_family<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Parse the MetricFamily from a valid <code>requests.Response</code> object to provide a MetricFamily object. The text format uses iter_lines() generator.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>394
 395
 396
 397
 398
-399</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">parse_metric_family</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">parse_metric_family</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Parse the MetricFamily from a valid `requests.Response` object to provide a MetricFamily object.</span>
 <span class="sd">    The text format uses iter_lines() generator.</span>
@@ -738,33 +773,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_send_telemetry_counter</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">TELEMETRY_COUNTER_METRICS_INPUT_COUNT</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">samples</span><span class="p">),</span> <span class="n">scraper_config</span>
         <span class="p">)</span>
-        <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+        <span class="n">type_override</span> <span class="o">=</span> <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'type_overrides'</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">type_override</span><span class="p">:</span>
+            <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">type_override</span>
+        <span class="k">elif</span> <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'_type_override_patterns'</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">new_type</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">[</span><span class="s1">'_type_override_patterns'</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                    <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">new_type</span>
+                    <span class="k">break</span>
         <span class="k">if</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">METRIC_TYPES</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">metric</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_metric_prefix</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">metric</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll"> <code class="highlight language-python"> poll<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Returns a valid <code>requests.Response</code>, otherwise raise requests.HTTPError if the status code of the response isn't valid - see <code>response.raise_for_status()</code></p> <p>The caller needs to close the requests.Response.</p> <p>Custom headers can be added to the default headers.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>665
-666
-667
-668
-669
-670
-671
-672
-673
-674
-675
-676
-677
-678
-679
-680
-681
-682
-683
-684
-685
-686
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll"> <code class="highlight language-python"> poll<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Returns a valid <code>requests.Response</code>, otherwise raise requests.HTTPError if the status code of the response isn't valid - see <code>response.raise_for_status()</code></p> <p>The caller needs to close the requests.Response.</p> <p>Custom headers can be added to the default headers.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>686
 687
 688
 689
@@ -778,7 +799,28 @@
 697
 698
 699
-700</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Returns a valid `requests.Response`, otherwise raise requests.HTTPError if the status code of the</span>
 <span class="sd">    response isn't valid - see `response.raise_for_status()`</span>
@@ -814,20 +856,20 @@
         <span class="k">if</span> <span class="n">health_service_check</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">service_check</span><span class="p">(</span><span class="n">service_check_name</span><span class="p">,</span> <span class="n">AgentCheck</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">service_check_tags</span><span class="p">)</span>
         <span class="k">raise</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process"> <code class="highlight language-python"> process<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Polls the data from Prometheus and submits them as Datadog metrics. <code>endpoint</code> is the metrics endpoint to use to poll metrics from Prometheus</p> <p>Note that if the instance has a <code>tags</code> attribute, it will be pushed automatically as additional custom tags and added to the metrics</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>474
-475
-476
-477
-478
-479
-480
-481
-482
-483
-484
-485
-486
-487</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process"> <code class="highlight language-python"> process<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Polls the data from Prometheus and submits them as Datadog metrics. <code>endpoint</code> is the metrics endpoint to use to poll metrics from Prometheus</p> <p>Note that if the instance has a <code>tags</code> attribute, it will be pushed automatically as additional custom tags and added to the metrics</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Polls the data from Prometheus and submits them as Datadog metrics.</span>
 <span class="sd">    `endpoint` is the metrics endpoint to use to poll metrics from Prometheus</span>
@@ -841,28 +883,7 @@
 
     <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scrape_metrics</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">process_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="n">transformers</span><span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric"> <code class="highlight language-python"> process_metric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Handle a Prometheus metric according to the following flow: - search <code>scraper_config['metrics_mapper']</code> for a prometheus.metric to datadog.metric mapping - call check method with the same name as the metric - log info if none of the above worked</p> <p><code>metric_transformers</code> is a dict of <code>&lt;metric name&gt;:&lt;function to run when the metric name is encountered&gt;</code></p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>603
-604
-605
-606
-607
-608
-609
-610
-611
-612
-613
-614
-615
-616
-617
-618
-619
-620
-621
-622
-623
-624
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric"> <code class="highlight language-python"> process_metric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Handle a Prometheus metric according to the following flow: - search <code>scraper_config['metrics_mapper']</code> for a prometheus.metric to datadog.metric mapping - call check method with the same name as the metric - log info if none of the above worked</p> <p><code>metric_transformers</code> is a dict of <code>&lt;metric name&gt;:&lt;function to run when the metric name is encountered&gt;</code></p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>624
 625
 626
 627
@@ -901,7 +922,28 @@
 660
 661
 662
-663</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Handle a Prometheus metric according to the following flow:</span>
 <span class="sd">    - search `scraper_config['metrics_mapper']` for a prometheus.metric to datadog.metric mapping</span>
@@ -962,28 +1004,7 @@
             <span class="s1">'has no transformer function, nor does it match any wildcards.'</span><span class="p">,</span>
             <span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics"> <code class="highlight language-python"> scrape_metrics<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Poll the data from Prometheus and return the metrics as a generator.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>422
-423
-424
-425
-426
-427
-428
-429
-430
-431
-432
-433
-434
-435
-436
-437
-438
-439
-440
-441
-442
-443
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics"> <code class="highlight language-python"> scrape_metrics<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Poll the data from Prometheus and return the metrics as a generator.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>443
 444
 445
 446
@@ -1012,7 +1033,28 @@
 469
 470
 471
-472</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">scrape_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">scrape_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Poll the data from Prometheus and return the metrics as a generator.</span>
 <span class="sd">    """</span>
@@ -1063,28 +1105,7 @@
         <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'_active_label_mapping'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric"> <code class="highlight language-python"> submit_openmetric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>For each sample in the metric, report it as a gauge with all labels as tags except if a labels <code>dict</code> is passed, in which case keys are label names we'll extract and corresponding values are tag names we'll use (eg: {'node': 'node'}).</p> <p>Histograms generate a set of values instead of a unique metric. <code>send_histograms_buckets</code> is used to specify if you want to send the buckets as tagged values when dealing with histograms.</p> <p><code>custom_tags</code> is an array of <code>tag:value</code> that will be added to the metric when sending the gauge to Datadog.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>717
-718
-719
-720
-721
-722
-723
-724
-725
-726
-727
-728
-729
-730
-731
-732
-733
-734
-735
-736
-737
-738
+</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric"> <code class="highlight language-python"> submit_openmetric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>For each sample in the metric, report it as a gauge with all labels as tags except if a labels <code>dict</code> is passed, in which case keys are label names we'll extract and corresponding values are tag names we'll use (eg: {'node': 'node'}).</p> <p>Histograms generate a set of values instead of a unique metric. <code>send_histograms_buckets</code> is used to specify if you want to send the buckets as tagged values when dealing with histograms.</p> <p><code>custom_tags</code> is an array of <code>tag:value</code> that will be added to the metric when sending the gauge to Datadog.</p> <details class="quote"> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/mixins.py</code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>738
 739
 740
 741
@@ -1104,7 +1125,28 @@
 755
 756
 757
-758</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">submit_openmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771
+772
+773
+774
+775
+776
+777
+778
+779</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">submit_openmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    For each sample in the metric, report it as a gauge with all labels as tags</span>
 <span class="sd">    except if a labels `dict` is passed, in which case keys are label names we'll extract</span>
