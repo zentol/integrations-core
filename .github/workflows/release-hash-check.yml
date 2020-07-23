@@ -19,5 +19,7 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Upgrade Python packaging tools
-      run: git status
+    - name: Run script
+      run: |
+        CHANGED_FILES=$(git diff --name-only master)
+        python .github/workflows/release-hash-check.yml $CHANGED_FILES
