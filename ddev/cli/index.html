@@ -197,6 +197,7 @@ api_key = "***********"
   -n, --dry-run
   -o, --output-file TEXT   [default: CHANGELOG.md]
   -tp, --tag-prefix TEXT   [default: v]
+  -ns, --no-semver
 </code></pre></div> <h3 id="make">make<a class="headerlink" href="#make" title="Permanent link">¶</a></h3> <p>Perform a set of operations needed to release checks:</p> <ul> <li>update the version in <code>__about__.py</code></li> <li>update the changelog</li> <li>update the <code>requirements-agent-release.txt</code> file</li> <li>update in-toto metadata</li> <li>commit the above changes</li> </ul> <p>You can release everything at once by setting the check to <code>all</code>.</p> <p>If you run into issues signing:</p> <ul> <li>Ensure you did <code>gpg --import &lt;YOUR_KEY_ID&gt;.gpg.pub</code></li> </ul> <p>Usage:</p> <div class="highlight"><pre><span></span><code>ddev release make [OPTIONS] CHECKS...
 </code></pre></div> <p>Options:</p> <div class="highlight"><pre><span></span><code>  --version TEXT
   --new           Ensure versions are at 1.0.0
