@@ -14,8 +14,8 @@ from ...utils import get_valid_integrations, load_manifest, write_manifest
 from ..console import CONTEXT_SETTINGS, abort
 
 BOARD_ID_PATTERN = r'{site}/[^/]+/([^/]+)/.+'
-SCREEN_API = 'https://api.{site}/api/v1/screen/{board_id}'
-REQUIRED_FIELDS = ["board_title", "description", "template_variables", "widgets"]
+SCREEN_API = 'https://api.{site}/api/v1/dashboard/{board_id}'
+REQUIRED_FIELDS = ["layout_type", "title", "description", "template_variables", "widgets"]
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, short_help='Dashboard utilities')
@@ -80,7 +80,7 @@ def export(ctx, url, integration, author):
 
     output = json.dumps(new_payload, indent=4, sort_keys=True)
 
-    file_name = new_payload['board_title'].strip().lower()
+    file_name = new_payload['title'].strip().lower()
     if integration:
         manifest = load_manifest(integration)
 
@@ -101,7 +101,7 @@ def export(ctx, url, integration, author):
         location = path_join(get_root(), integration, 'assets', 'dashboards')
         ensure_dir_exists(location)
 
-        manifest['assets']['dashboards'][new_payload['board_title']] = f'assets/dashboards/{file_name}'
+        manifest['assets']['dashboards'][new_payload['title']] = f'assets/dashboards/{file_name}'
         write_manifest(manifest, integration)
     else:
         file_name = f"{file_name.replace(' ', '_')}.json"
