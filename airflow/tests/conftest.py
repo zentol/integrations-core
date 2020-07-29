@@ -6,17 +6,20 @@ from os import path
 
 import pytest
 
-from datadog_checks.dev import docker_run
-from datadog_checks.dev.conditions import CheckEndpoints
+from datadog_checks.dev import docker_run, run_command
+from datadog_checks.dev.conditions import CheckEndpoints, WaitFor
 
-from .common import URL
+from .common import URL, FULL_CONFIG
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 TMP_DATA_FOLDER = path.join(HERE, 'compose', 'tmp_data')
 
 E2E_METADATA = {
-    'docker_volumes': ['{}/datadog.yaml:/etc/datadog-agent/datadog.yaml'.format(TMP_DATA_FOLDER)],
+    'docker_volumes': [
+        '{}/datadog.yaml:/etc/datadog-agent/datadog.yaml'.format(TMP_DATA_FOLDER),
+        '/host/Users/alexandre.yang/Downloads/airflow_logs:/airflow_logs',
+    ],
 }
 
 
@@ -44,7 +47,7 @@ dogstatsd_metrics_stats_enable: true
         os.path.join(HERE, 'compose', 'docker-compose.yaml'),
         conditions=[CheckEndpoints(URL + '/api/experimental/test', attempts=100)],
     ):
-        yield instance, E2E_METADATA
+        yield FULL_CONFIG, E2E_METADATA
 
 
 @pytest.fixture(scope='session')
