@@ -214,7 +214,10 @@ def test_table_regex_match(aggregator):
             'symbols': ["ifInOctets", "ifOutOctets"],
             'metric_tags': [
                 {'tag': "interface", 'column': "ifDescr"},
-                {'column': "ifDescr", 'match': '(\\w)(\\w+)', 'tags': {'prefix': '\\1', 'suffix': '\\2'}},
+                {'column': "ifDescr", 'match': '(\\w+)(\\d)', 'tags': {'prefix': '\\1', 'suffix': '\\2'}},
+                {'column': "ifDescr", 'match': '(\\d)', 'tags': {'first_digit': '\\1'}},
+                # The tag `type:tunnel` is only added if the match succeed
+                {'column': "ifDescr", 'match': '(tunl|tnl)', 'tags': {'type': 'tunnel'}},
             ],
         }
     ]
@@ -228,13 +231,17 @@ def test_table_regex_match(aggregator):
     # Test metrics
     for symbol in common.TABULAR_OBJECTS[0]['symbols']:
         metric_name = "snmp." + symbol
-        for interface in ['tunl0', 'eth0', 'ip6tnl0']:
-            tags = common_tags + [
-                'interface:{}'.format(interface),
-                'prefix:{}'.format(interface[:1]),
-                'suffix:{}'.format(interface[1:]),
-            ]
-            aggregator.assert_metric(metric_name, tags=tags)
+        aggregator.assert_metric(
+            metric_name,
+            tags=common_tags + ['interface:tunl0', 'prefix:tunl', 'suffix:0', 'first_digit:0', 'type:tunnel'],
+        )
+        aggregator.assert_metric(
+            metric_name, tags=common_tags + ['interface:eth0', 'prefix:eth', 'suffix:0', 'first_digit:0']
+        )
+        aggregator.assert_metric(
+            metric_name,
+            tags=common_tags + ['interface:ip6tnl0', 'prefix:ip6tnl', 'suffix:0', 'first_digit:6', 'type:tunnel'],
+        )
 
     aggregator.assert_metric('snmp.sysUpTimeInstance', count=1)
 

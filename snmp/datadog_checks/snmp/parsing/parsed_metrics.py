@@ -75,7 +75,7 @@ class ParsedMatchMetricTag(object):
 
     def matched_tags(self, value):
         # type: (Any) -> Iterator[str]
-        match = self.pattern.match(str(value))
+        match = self.pattern.search(str(value))
         if match is None:
             return
 
