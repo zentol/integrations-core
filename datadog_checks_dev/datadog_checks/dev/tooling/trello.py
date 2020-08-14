@@ -55,6 +55,7 @@ class TrelloClient:
             'team/integrations': 'agent-integrations',
             'team/logs': 'logs-intake',
             'team/intg-tools-libs': 'integrations-tools-and-libraries',
+            'team/agent-security': 'agent-security',
         }
 
         self.label_map = {
