@@ -88,8 +88,6 @@ class MongoDb(AgentCheck):
         # Members' last replica set states
         self._last_state_by_server = {}
 
-        self.collection_metrics_names = (key.split('.')[1] for key in metrics.COLLECTION_METRICS)
-
         # x.509 authentication
         ssl_params = {
             'ssl': self.instance.get('ssl', None),
@@ -524,6 +522,7 @@ class MongoDb(AgentCheck):
         Returns a dictionary that looks a lot like what's sent back by
         db.serverStatus()
         """
+        self.collection_metrics_names = (key.split('.')[1] for key in metrics.COLLECTION_METRICS)
 
         def total_seconds(td):
             """
