@@ -4,8 +4,8 @@
 # https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
 from six import iteritems
 
-from datadog_checks.base.utils.aws import rds_parse_tags_from_endpoint
 from datadog_checks.base import AgentCheck, ConfigurationError, is_affirmative
+from datadog_checks.base.utils.aws import rds_parse_tags_from_endpoint
 
 SSL_MODES = {'disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'}
 TABLE_COUNT_LIMIT = 200
