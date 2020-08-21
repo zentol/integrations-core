@@ -6,44 +6,7 @@
     - bar
     - foo
 </code></pre> </div> <p>Agent 6 signature:</p> <div class="highlight"> <pre><span></span><code>OpenMetricsBaseCheck(name, init_config, instances, default_instances=None, default_namespace=None)
-</code></pre> </div> <div class="doc doc-children"> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.__init__"> <code class="highlight language-python"> __init__<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> </code> <span class="doc doc-properties"> <small class="doc doc-property doc-property-special"><code>special</code></small> </span> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.__init__" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>The base class for any Prometheus-based integration.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span> 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</code></pre> </div> <div class="doc doc-children"> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.__init__"> <code class="highlight language-python"> __init__<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> </code> <span class="doc doc-properties"> <small class="doc doc-property doc-property-special"><code>special</code></small> </span> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.__init__" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>The base class for any Prometheus-based integration.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    The base class for any Prometheus-based integration.</span>
 <span class="sd">    """</span>
@@ -81,17 +44,7 @@
     <span class="k">if</span> <span class="n">instances</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_scraper_config</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.check"> <code class="highlight language-python"> check<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.check" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.check"> <code class="highlight language-python"> check<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.check" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
     <span class="c1"># Get the configuration for this specific instance</span>
     <span class="n">scraper_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_scraper_config</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
 
@@ -102,27 +55,7 @@
         <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.get_scraper_config"> <code class="highlight language-python"> get_scraper_config<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.get_scraper_config" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Validates the instance configuration and creates a scraper configuration for a new instance. If the endpoint already has a corresponding configuration, return the cached configuration.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">get_scraper_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.get_scraper_config"> <code class="highlight language-python"> get_scraper_config<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.base_check.OpenMetricsBaseCheck.get_scraper_config" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Validates the instance configuration and creates a scraper configuration for a new instance. If the endpoint already has a corresponding configuration, return the cached configuration.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">get_scraper_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Validates the instance configuration and creates a scraper configuration for a new instance.</span>
 <span class="sd">    If the endpoint already has a corresponding configuration, return the cached configuration.</span>
@@ -143,301 +76,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">config_map</span><span class="p">[</span><span class="n">endpoint</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span>
 
     <span class="k">return</span> <span class="n">config</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> </div> </div> </div> <div class="doc doc-object doc-class"> <h4 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin"> <code>datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin</code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin" title="Permanent link">¶</a></h4> <div class="doc doc-contents first"> <div class="doc doc-children"> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.create_scraper_configuration"> <code class="highlight language-python"> create_scraper_configuration<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.create_scraper_configuration" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Creates a scraper configuration.</p> <p>If instance does not specify a value for a configuration option, the value will default to the <code>init_config</code>. Otherwise, the <code>default_instance</code> value will be used.</p> <p>A default mixin configuration will be returned if there is no instance.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span> 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
-235
-236
-237
-238
-239
-240
-241
-242
-243
-244
-245
-246
-247
-248
-249
-250
-251
-252
-253
-254
-255
-256
-257
-258
-259
-260
-261
-262
-263
-264
-265
-266
-267
-268
-269
-270
-271
-272
-273
-274
-275
-276
-277
-278
-279
-280
-281
-282
-283
-284
-285
-286
-287
-288
-289
-290
-291
-292
-293
-294
-295
-296
-297
-298
-299
-300
-301
-302
-303
-304
-305
-306
-307
-308
-309
-310
-311
-312
-313
-314
-315
-316
-317
-318
-319
-320
-321
-322
-323
-324
-325
-326
-327
-328
-329
-330
-331
-332
-333
-334
-335
-336
-337
-338
-339
-340
-341
-342
-343
-344
-345
-346
-347
-348
-349
-350</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">create_scraper_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> </div> </div> </div> <div class="doc doc-object doc-class"> <h4 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin"> <code>datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin</code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin" title="Permanent link">¶</a></h4> <div class="doc doc-contents first"> <div class="doc doc-children"> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.create_scraper_configuration"> <code class="highlight language-python"> create_scraper_configuration<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.create_scraper_configuration" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Creates a scraper configuration.</p> <p>If instance does not specify a value for a configuration option, the value will default to the <code>init_config</code>. Otherwise, the <code>default_instance</code> value will be used.</p> <p>A default mixin configuration will be returned if there is no instance.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">create_scraper_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Creates a scraper configuration.</span>
 
@@ -732,33 +371,7 @@
         <span class="n">config</span><span class="p">[</span><span class="s1">'_default_metric_transformers'</span><span class="p">][</span><span class="n">config</span><span class="p">[</span><span class="s1">'metadata_metric_name'</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_metadata</span>
 
     <span class="k">return</span> <span class="n">config</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family"> <code class="highlight language-python"> parse_metric_family<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Parse the MetricFamily from a valid <code>requests.Response</code> object to provide a MetricFamily object. The text format uses iter_lines() generator.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>394
-395
-396
-397
-398
-399
-400
-401
-402
-403
-404
-405
-406
-407
-408
-409
-410
-411
-412
-413
-414
-415
-416
-417
-418
-419
-420</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">parse_metric_family</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family"> <code class="highlight language-python"> parse_metric_family<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Parse the MetricFamily from a valid <code>requests.Response</code> object to provide a MetricFamily object. The text format uses iter_lines() generator.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">parse_metric_family</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Parse the MetricFamily from a valid `requests.Response` object to provide a MetricFamily object.</span>
 <span class="sd">    The text format uses iter_lines() generator.</span>
@@ -785,42 +398,7 @@
             <span class="k">continue</span>
         <span class="n">metric</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_remove_metric_prefix</span><span class="p">(</span><span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
         <span class="k">yield</span> <span class="n">metric</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll"> <code class="highlight language-python"> poll<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Returns a valid <code>requests.Response</code>, otherwise raise requests.HTTPError if the status code of the response isn't valid - see <code>response.raise_for_status()</code></p> <p>The caller needs to close the requests.Response.</p> <p>Custom headers can be added to the default headers.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>686
-687
-688
-689
-690
-691
-692
-693
-694
-695
-696
-697
-698
-699
-700
-701
-702
-703
-704
-705
-706
-707
-708
-709
-710
-711
-712
-713
-714
-715
-716
-717
-718
-719
-720
-721</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll"> <code class="highlight language-python"> poll<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.poll" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Returns a valid <code>requests.Response</code>, otherwise raise requests.HTTPError if the status code of the response isn't valid - see <code>response.raise_for_status()</code></p> <p>The caller needs to close the requests.Response.</p> <p>Custom headers can be added to the default headers.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">poll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Returns a valid `requests.Response`, otherwise raise requests.HTTPError if the status code of the</span>
 <span class="sd">    response isn't valid - see `response.raise_for_status()`</span>
@@ -856,20 +434,7 @@
         <span class="k">if</span> <span class="n">health_service_check</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">service_check</span><span class="p">(</span><span class="n">service_check_name</span><span class="p">,</span> <span class="n">AgentCheck</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">service_check_tags</span><span class="p">)</span>
         <span class="k">raise</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process"> <code class="highlight language-python"> process<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Polls the data from Prometheus and submits them as Datadog metrics. <code>endpoint</code> is the metrics endpoint to use to poll metrics from Prometheus</p> <p>Note that if the instance has a <code>tags</code> attribute, it will be pushed automatically as additional custom tags and added to the metrics</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>495
-496
-497
-498
-499
-500
-501
-502
-503
-504
-505
-506
-507
-508</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process"> <code class="highlight language-python"> process<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Polls the data from Prometheus and submits them as Datadog metrics. <code>endpoint</code> is the metrics endpoint to use to poll metrics from Prometheus</p> <p>Note that if the instance has a <code>tags</code> attribute, it will be pushed automatically as additional custom tags and added to the metrics</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Polls the data from Prometheus and submits them as Datadog metrics.</span>
 <span class="sd">    `endpoint` is the metrics endpoint to use to poll metrics from Prometheus</span>
@@ -883,67 +448,7 @@
 
     <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scrape_metrics</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">process_metric</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="n">transformers</span><span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric"> <code class="highlight language-python"> process_metric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Handle a Prometheus metric according to the following flow: - search <code>scraper_config['metrics_mapper']</code> for a prometheus.metric to datadog.metric mapping - call check method with the same name as the metric - log info if none of the above worked</p> <p><code>metric_transformers</code> is a dict of <code>&lt;metric name&gt;:&lt;function to run when the metric name is encountered&gt;</code></p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>624
-625
-626
-627
-628
-629
-630
-631
-632
-633
-634
-635
-636
-637
-638
-639
-640
-641
-642
-643
-644
-645
-646
-647
-648
-649
-650
-651
-652
-653
-654
-655
-656
-657
-658
-659
-660
-661
-662
-663
-664
-665
-666
-667
-668
-669
-670
-671
-672
-673
-674
-675
-676
-677
-678
-679
-680
-681
-682
-683
-684</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric"> <code class="highlight language-python"> process_metric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Handle a Prometheus metric according to the following flow: - search <code>scraper_config['metrics_mapper']</code> for a prometheus.metric to datadog.metric mapping - call check method with the same name as the metric - log info if none of the above worked</p> <p><code>metric_transformers</code> is a dict of <code>&lt;metric name&gt;:&lt;function to run when the metric name is encountered&gt;</code></p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">process_metric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_transformers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Handle a Prometheus metric according to the following flow:</span>
 <span class="sd">    - search `scraper_config['metrics_mapper']` for a prometheus.metric to datadog.metric mapping</span>
@@ -1004,57 +509,7 @@
             <span class="s1">'has no transformer function, nor does it match any wildcards.'</span><span class="p">,</span>
             <span class="n">metric</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
         <span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics"> <code class="highlight language-python"> scrape_metrics<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Poll the data from Prometheus and return the metrics as a generator.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>443
-444
-445
-446
-447
-448
-449
-450
-451
-452
-453
-454
-455
-456
-457
-458
-459
-460
-461
-462
-463
-464
-465
-466
-467
-468
-469
-470
-471
-472
-473
-474
-475
-476
-477
-478
-479
-480
-481
-482
-483
-484
-485
-486
-487
-488
-489
-490
-491
-492
-493</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">scrape_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics"> <code class="highlight language-python"> scrape_metrics<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.scrape_metrics" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>Poll the data from Prometheus and return the metrics as a generator.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">scrape_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    Poll the data from Prometheus and return the metrics as a generator.</span>
 <span class="sd">    """</span>
@@ -1105,48 +560,7 @@
         <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'_active_label_mapping'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric"> <code class="highlight language-python"> submit_openmetric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>For each sample in the metric, report it as a gauge with all labels as tags except if a labels <code>dict</code> is passed, in which case keys are label names we'll extract and corresponding values are tag names we'll use (eg: {'node': 'node'}).</p> <p>Histograms generate a set of values instead of a unique metric. <code>send_histograms_buckets</code> is used to specify if you want to send the buckets as tagged values when dealing with histograms.</p> <p><code>custom_tags</code> is an array of <code>tag:value</code> that will be added to the metric when sending the gauge to Datadog.</p> <details class="quote"> <summary>Source code in <code></code></summary> <table class="highlighttable"> <tr> <td class="linenos"> <div class="linenodiv"> <pre><span></span>738
-739
-740
-741
-742
-743
-744
-745
-746
-747
-748
-749
-750
-751
-752
-753
-754
-755
-756
-757
-758
-759
-760
-761
-762
-763
-764
-765
-766
-767
-768
-769
-770
-771
-772
-773
-774
-775
-776
-777
-778
-779</pre> </div> </td> <td class="code"> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">submit_openmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</code></pre> </div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 class="doc doc-heading" id="datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric"> <code class="highlight language-python"> submit_openmetric<span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> </code> <a class="headerlink" href="#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.submit_openmetric" title="Permanent link">¶</a></h5> <div class="doc doc-contents"> <p>For each sample in the metric, report it as a gauge with all labels as tags except if a labels <code>dict</code> is passed, in which case keys are label names we'll extract and corresponding values are tag names we'll use (eg: {'node': 'node'}).</p> <p>Histograms generate a set of values instead of a unique metric. <code>send_histograms_buckets</code> is used to specify if you want to send the buckets as tagged values when dealing with histograms.</p> <p><code>custom_tags</code> is an array of <code>tag:value</code> that will be added to the metric when sending the gauge to Datadog.</p> <details class="quote"> <summary>Source code in <code></code></summary> <div class="highlight"> <pre><span></span><code><span class="k">def</span> <span class="nf">submit_openmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">,</span> <span class="n">hostname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">"""</span>
 <span class="sd">    For each sample in the metric, report it as a gauge with all labels as tags</span>
 <span class="sd">    except if a labels `dict` is passed, in which case keys are label names we'll extract</span>
@@ -1188,7 +602,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_submit_gauges_from_summary</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Metric type </span><span class="si">%s</span><span class="s2"> unsupported for metric </span><span class="si">%s</span><span class="s2">."</span><span class="p">,</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">)</span>
-</code></pre> </div> </td> </tr> </table> </details> </div> </div> </div> </div> </div> <h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h2> <p>Some options can be set globally in <code>init_config</code> (with <code>instances</code> taking precedence). For complete documentation of every option, see the associated configuration templates for the <a href="https://github.com/DataDog/integrations-core/blob/master/datadog_checks_dev/datadog_checks/dev/tooling/templates/configuration/instances/openmetrics.yaml">instances</a> and <a href="https://github.com/DataDog/integrations-core/blob/master/datadog_checks_dev/datadog_checks/dev/tooling/templates/configuration/init_config/openmetrics.yaml">init_config</a> sections.</p> <p>All <a href="../http/#options">HTTP options</a> are also supported.</p> <div class="doc doc-object doc-class"> <div class="doc doc-contents first"> <ul> <li><code>prometheus_url</code></li> <li><code>namespace</code></li> <li><code>metrics</code></li> <li><code>prometheus_metrics_prefix</code></li> <li><code>health_service_check</code></li> <li><code>label_to_hostname</code></li> <li><code>label_joins</code></li> <li><code>labels_mapper</code></li> <li><code>type_overrides</code></li> <li><code>send_histograms_buckets</code></li> <li><code>send_distribution_buckets</code></li> <li><code>send_monotonic_counter</code></li> <li><code>send_monotonic_with_gauge</code></li> <li><code>send_distribution_counts_as_monotonic</code></li> <li><code>send_distribution_sums_as_monotonic</code></li> <li><code>exclude_labels</code></li> <li><code>bearer_token_auth</code></li> <li><code>bearer_token_path</code></li> <li><code>ignore_metrics</code></li> </ul> </div> </div> <h2 id="prometheus-to-datadog-metric-types">Prometheus to Datadog metric types<a class="headerlink" href="#prometheus-to-datadog-metric-types" title="Permanent link">¶</a></h2> <p>The Openmetrics Base Check supports various configurations for submitting Prometheus metrics to Datadog. We currently support Prometheus <code>gauge</code>, <code>counter</code>, <code>histogram</code>, and <code>summary</code> metric types.</p> <h3 id="gauge">Gauge<a class="headerlink" href="#gauge" title="Permanent link">¶</a></h3> <p>A gauge metric represents a single numerical value that can arbitrarily go up or down.</p> <p>Prometheus gauge metrics are submitted as Datadog gauge metrics.</p> <h3 id="counter">Counter<a class="headerlink" href="#counter" title="Permanent link">¶</a></h3> <p>A <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus counter</a> is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero on restart.</p> <table> <thead> <tr> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td><code>send_monotonic_counter</code></td> <td><code>true</code> (default)</td> <td><code>monotonic_count</code></td> </tr> <tr> <td> </td> <td><code>false</code></td> <td><code>gauge</code></td> </tr> </tbody> </table> <h3 id="histogram">Histogram<a class="headerlink" href="#histogram" title="Permanent link">¶</a></h3> <p>A <a href="https://prometheus.io/docs/concepts/metric_types/#histogram">Prometheus histogram</a> samples observations and counts them in configurable buckets along with a sum of all observed values.</p> <p>Histogram metrics ending in:</p> <ul> <li><code>_sum</code> represent the total sum of all observed values. Generally <a href="https://prometheus.io/docs/practices/histograms/#count-and-sum-of-observations">sums</a> are like counters but it's also possible for a negative observation which would not behave like a typical always increasing counter.</li> <li><code>_count</code> represent the total number of events that have been observed.</li> <li><code>_bucket</code> represent the cumulative counters for the observation buckets. Note that buckets are only submitted if <code>send_histogram_buckets</code> is enabled.</li> </ul> <table> <thead> <tr> <th>Subtype</th> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td> </td> <td><code>send_distribution_buckets</code></td> <td><code>true</code></td> <td>The entire histogram can be submitted as a single <a href="https://docs.datadoghq.com/metrics/distributions/">distribution metric</a>. If the option is enabled, none of the subtype metrics will be submitted.</td> </tr> <tr> <td><code>_sum</code></td> <td><code>send_distribution_sums_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_count</code></td> <td><code>send_distribution_counts_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_bucket</code></td> <td><code>non_cumulative_buckets</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code> under <code>.count</code> metric name if <code>send_distribution_counts_as_monotonic</code> is enabled. Otherwise, <code>gauge</code>.</td> </tr> </tbody> </table> <h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h3> <p>Prometheus <a href="https://prometheus.io/docs/concepts/metric_types/#summary">summary metrics</a> are similar to histograms but allow configurable quantiles.</p> <p>Summary metrics ending in:</p> <ul> <li><code>_sum</code> represent the total sum of all observed values. Generally <a href="https://prometheus.io/docs/practices/histograms/#count-and-sum-of-observations">sums</a> are like counters but it's also possible for a negative observation which would not behave like a typical always increasing counter.</li> <li><code>_count</code> represent the total number of events that have been observed.</li> <li>metrics with labels like <code>{quantile="&lt;φ&gt;"}</code> represent the streaming quantiles of observed events.</li> </ul> <table> <thead> <tr> <th>Subtype</th> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td><code>_sum</code></td> <td><code>send_distribution_sums_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_count</code></td> <td><code>send_distribution_counts_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_quantile</code></td> <td> </td> <td> </td> <td><code>gauge</code></td> </tr> </tbody> </table> <hr/> <div class="md-source-date"> <small> Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 13, 2020</span> </small> </div> </article> </div> </div> </main> <footer class="md-footer"> <div class="md-footer-nav"> <nav aria-label="Footer" class="md-footer-nav__inner md-grid"> <a class="md-footer-nav__link md-footer-nav__link--prev" href="../databases/" rel="prev" title="Databases"> <div class="md-footer-nav__button md-icon"> <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg> </div> <div class="md-footer-nav__title"> <div class="md-ellipsis"> <span class="md-footer-nav__direction"> Previous </span> Databases </div> </div> </a> <a class="md-footer-nav__link md-footer-nav__link--next" href="../metadata/" rel="next" title="Metadata"> <div class="md-footer-nav__title"> <div class="md-ellipsis"> <span class="md-footer-nav__direction"> Next </span> Metadata </div> </div> <div class="md-footer-nav__button md-icon"> <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"></path></svg> </div> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class="md-footer-copyright"> <div class="md-footer-copyright__highlight"> Copyright © Datadog, Inc. 2020-present </div> Made with <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank"> Material for MkDocs </a> </div> <div class="md-footer-social"> <a class="md-footer-social__link" href="https://www.datadoghq.com/blog/engineering/" rel="noopener" target="_blank" title="www.datadoghq.com"> <svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M172.2 226.8c-14.6-2.9-28.2 8.9-28.2 23.8V301c0 10.2 7.1 18.4 16.7 22 18.2 6.8 31.3 24.4 31.3 45 0 26.5-21.5 48-48 48s-48-21.5-48-48V120c0-13.3-10.7-24-24-24H24c-13.3 0-24 10.7-24 24v248c0 89.5 82.1 160.2 175 140.7 54.4-11.4 98.3-55.4 109.7-109.7 17.4-82.9-37-157.2-112.5-172.2zM209 0c-9.2-.5-17 6.8-17 16v31.6c0 8.5 6.6 15.5 15 15.9 129.4 7 233.4 112 240.9 241.5.5 8.4 7.5 15 15.9 15h32.1c9.2 0 16.5-7.8 16-17C503.4 139.8 372.2 8.6 209 0zm.3 96c-9.3-.7-17.3 6.7-17.3 16.1v32.1c0 8.4 6.5 15.3 14.8 15.9 76.8 6.3 138 68.2 144.9 145.2.8 8.3 7.6 14.7 15.9 14.7h32.2c9.3 0 16.8-8 16.1-17.3-8.4-110.1-96.5-198.2-206.6-206.7z"></path></svg> </a> <a class="md-footer-social__link" href="https://github.com/DataDog" rel="noopener" target="_blank" title="github.com"> <svg viewbox="0 0 480 512" xmlns="http://www.w3.org/2000/svg"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"></path></svg> </a> <a class="md-footer-social__link" href="https://twitter.com/datadoghq" rel="noopener" target="_blank" title="twitter.com"> <svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg> </a> <a class="md-footer-social__link" href="https://www.instagram.com/datadoghq" rel="noopener" target="_blank" title="www.instagram.com"> <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"></path></svg> </a> </div> </div> </div> </footer> </div> <script src="../../assets/javascripts/vendor.d1f5a259.min.js"></script> <script src="../../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script> <script>
+</code></pre> </div> </details> </div> </div> </div> </div> </div> <h2 id="options">Options<a class="headerlink" href="#options" title="Permanent link">¶</a></h2> <p>Some options can be set globally in <code>init_config</code> (with <code>instances</code> taking precedence). For complete documentation of every option, see the associated configuration templates for the <a href="https://github.com/DataDog/integrations-core/blob/master/datadog_checks_dev/datadog_checks/dev/tooling/templates/configuration/instances/openmetrics.yaml">instances</a> and <a href="https://github.com/DataDog/integrations-core/blob/master/datadog_checks_dev/datadog_checks/dev/tooling/templates/configuration/init_config/openmetrics.yaml">init_config</a> sections.</p> <p>All <a href="../http/#options">HTTP options</a> are also supported.</p> <div class="doc doc-object doc-class"> <div class="doc doc-contents first"> <ul> <li><code>prometheus_url</code></li> <li><code>namespace</code></li> <li><code>metrics</code></li> <li><code>prometheus_metrics_prefix</code></li> <li><code>health_service_check</code></li> <li><code>label_to_hostname</code></li> <li><code>label_joins</code></li> <li><code>labels_mapper</code></li> <li><code>type_overrides</code></li> <li><code>send_histograms_buckets</code></li> <li><code>send_distribution_buckets</code></li> <li><code>send_monotonic_counter</code></li> <li><code>send_monotonic_with_gauge</code></li> <li><code>send_distribution_counts_as_monotonic</code></li> <li><code>send_distribution_sums_as_monotonic</code></li> <li><code>exclude_labels</code></li> <li><code>bearer_token_auth</code></li> <li><code>bearer_token_path</code></li> <li><code>ignore_metrics</code></li> </ul> </div> </div> <h2 id="prometheus-to-datadog-metric-types">Prometheus to Datadog metric types<a class="headerlink" href="#prometheus-to-datadog-metric-types" title="Permanent link">¶</a></h2> <p>The Openmetrics Base Check supports various configurations for submitting Prometheus metrics to Datadog. We currently support Prometheus <code>gauge</code>, <code>counter</code>, <code>histogram</code>, and <code>summary</code> metric types.</p> <h3 id="gauge">Gauge<a class="headerlink" href="#gauge" title="Permanent link">¶</a></h3> <p>A gauge metric represents a single numerical value that can arbitrarily go up or down.</p> <p>Prometheus gauge metrics are submitted as Datadog gauge metrics.</p> <h3 id="counter">Counter<a class="headerlink" href="#counter" title="Permanent link">¶</a></h3> <p>A <a href="https://prometheus.io/docs/concepts/metric_types/#counter">Prometheus counter</a> is a cumulative metric that represents a single monotonically increasing counter whose value can only increase or be reset to zero on restart.</p> <table> <thead> <tr> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td><code>send_monotonic_counter</code></td> <td><code>true</code> (default)</td> <td><code>monotonic_count</code></td> </tr> <tr> <td> </td> <td><code>false</code></td> <td><code>gauge</code></td> </tr> </tbody> </table> <h3 id="histogram">Histogram<a class="headerlink" href="#histogram" title="Permanent link">¶</a></h3> <p>A <a href="https://prometheus.io/docs/concepts/metric_types/#histogram">Prometheus histogram</a> samples observations and counts them in configurable buckets along with a sum of all observed values.</p> <p>Histogram metrics ending in:</p> <ul> <li><code>_sum</code> represent the total sum of all observed values. Generally <a href="https://prometheus.io/docs/practices/histograms/#count-and-sum-of-observations">sums</a> are like counters but it's also possible for a negative observation which would not behave like a typical always increasing counter.</li> <li><code>_count</code> represent the total number of events that have been observed.</li> <li><code>_bucket</code> represent the cumulative counters for the observation buckets. Note that buckets are only submitted if <code>send_histogram_buckets</code> is enabled.</li> </ul> <table> <thead> <tr> <th>Subtype</th> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td> </td> <td><code>send_distribution_buckets</code></td> <td><code>true</code></td> <td>The entire histogram can be submitted as a single <a href="https://docs.datadoghq.com/metrics/distributions/">distribution metric</a>. If the option is enabled, none of the subtype metrics will be submitted.</td> </tr> <tr> <td><code>_sum</code></td> <td><code>send_distribution_sums_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_count</code></td> <td><code>send_distribution_counts_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_bucket</code></td> <td><code>non_cumulative_buckets</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code> under <code>.count</code> metric name if <code>send_distribution_counts_as_monotonic</code> is enabled. Otherwise, <code>gauge</code>.</td> </tr> </tbody> </table> <h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">¶</a></h3> <p>Prometheus <a href="https://prometheus.io/docs/concepts/metric_types/#summary">summary metrics</a> are similar to histograms but allow configurable quantiles.</p> <p>Summary metrics ending in:</p> <ul> <li><code>_sum</code> represent the total sum of all observed values. Generally <a href="https://prometheus.io/docs/practices/histograms/#count-and-sum-of-observations">sums</a> are like counters but it's also possible for a negative observation which would not behave like a typical always increasing counter.</li> <li><code>_count</code> represent the total number of events that have been observed.</li> <li>metrics with labels like <code>{quantile="&lt;φ&gt;"}</code> represent the streaming quantiles of observed events.</li> </ul> <table> <thead> <tr> <th>Subtype</th> <th>Config Option</th> <th>Value</th> <th>Datadog Metric Submitted</th> </tr> </thead> <tbody> <tr> <td><code>_sum</code></td> <td><code>send_distribution_sums_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_count</code></td> <td><code>send_distribution_counts_as_monotonic</code></td> <td><code>false</code> (default)</td> <td><code>gauge</code></td> </tr> <tr> <td> </td> <td> </td> <td><code>true</code></td> <td><code>monotonic_count</code></td> </tr> <tr> <td><code>_quantile</code></td> <td> </td> <td> </td> <td><code>gauge</code></td> </tr> </tbody> </table> <hr/> <div class="md-source-date"> <small> Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">July 13, 2020</span> </small> </div> </article> </div> </div> </main> <footer class="md-footer"> <div class="md-footer-nav"> <nav aria-label="Footer" class="md-footer-nav__inner md-grid"> <a class="md-footer-nav__link md-footer-nav__link--prev" href="../databases/" rel="prev" title="Databases"> <div class="md-footer-nav__button md-icon"> <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"></path></svg> </div> <div class="md-footer-nav__title"> <div class="md-ellipsis"> <span class="md-footer-nav__direction"> Previous </span> Databases </div> </div> </a> <a class="md-footer-nav__link md-footer-nav__link--next" href="../metadata/" rel="next" title="Metadata"> <div class="md-footer-nav__title"> <div class="md-ellipsis"> <span class="md-footer-nav__direction"> Next </span> Metadata </div> </div> <div class="md-footer-nav__button md-icon"> <svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"></path></svg> </div> </a> </nav> </div> <div class="md-footer-meta md-typeset"> <div class="md-footer-meta__inner md-grid"> <div class="md-footer-copyright"> <div class="md-footer-copyright__highlight"> Copyright © Datadog, Inc. 2020-present </div> Made with <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank"> Material for MkDocs </a> </div> <div class="md-footer-social"> <a class="md-footer-social__link" href="https://www.datadoghq.com/blog/engineering/" rel="noopener" target="_blank" title="www.datadoghq.com"> <svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M172.2 226.8c-14.6-2.9-28.2 8.9-28.2 23.8V301c0 10.2 7.1 18.4 16.7 22 18.2 6.8 31.3 24.4 31.3 45 0 26.5-21.5 48-48 48s-48-21.5-48-48V120c0-13.3-10.7-24-24-24H24c-13.3 0-24 10.7-24 24v248c0 89.5 82.1 160.2 175 140.7 54.4-11.4 98.3-55.4 109.7-109.7 17.4-82.9-37-157.2-112.5-172.2zM209 0c-9.2-.5-17 6.8-17 16v31.6c0 8.5 6.6 15.5 15 15.9 129.4 7 233.4 112 240.9 241.5.5 8.4 7.5 15 15.9 15h32.1c9.2 0 16.5-7.8 16-17C503.4 139.8 372.2 8.6 209 0zm.3 96c-9.3-.7-17.3 6.7-17.3 16.1v32.1c0 8.4 6.5 15.3 14.8 15.9 76.8 6.3 138 68.2 144.9 145.2.8 8.3 7.6 14.7 15.9 14.7h32.2c9.3 0 16.8-8 16.1-17.3-8.4-110.1-96.5-198.2-206.6-206.7z"></path></svg> </a> <a class="md-footer-social__link" href="https://github.com/DataDog" rel="noopener" target="_blank" title="github.com"> <svg viewbox="0 0 480 512" xmlns="http://www.w3.org/2000/svg"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"></path></svg> </a> <a class="md-footer-social__link" href="https://twitter.com/datadoghq" rel="noopener" target="_blank" title="twitter.com"> <svg viewbox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg> </a> <a class="md-footer-social__link" href="https://www.instagram.com/datadoghq" rel="noopener" target="_blank" title="www.instagram.com"> <svg viewbox="0 0 448 512" xmlns="http://www.w3.org/2000/svg"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"></path></svg> </a> </div> </div> </div> </footer> </div> <script src="../../assets/javascripts/vendor.d1f5a259.min.js"></script> <script src="../../assets/javascripts/bundle.d5fec882.min.js"></script><script id="__lang" type="application/json">{"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents"}</script> <script>
         app = initialize({
           base: "../..",
           features: ["tabs"],
