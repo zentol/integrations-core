@@ -65,11 +65,12 @@ To configure this check for an Agent running on a host:
 
 ##### Linux
 
-Extra configuration steps are required to get the SQL Server integration running on a Linux host:
+The agent embeds a pre-configured installation of FreeTDS and unixODBC. To use it simply set the following two options in the configuration:
 
-1. Install an ODBC SQL Server driver, for example the [Microsoft ODBC driver][10].
-2. Copy the `odbc.ini` and `odbcinst.ini` files into the `/opt/datadog-agent/embedded/etc` folder.
-3. Configure the `conf.yaml` file to use the `odbc` connector and specify the proper driver as indicated in the `odbcinst.ini file`.
+  ```yaml
+  connector: odbc
+  driver: FreeTDS
+  ```
 
 ##### Log collection
 

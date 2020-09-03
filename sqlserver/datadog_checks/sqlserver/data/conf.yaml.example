@@ -56,6 +56,7 @@ instances:
 
     ## @param driver - string - optional - default: SQL Server
     ## If using odbc, use the named driver.
+    ## On Linux set the value to 'FreeTDS' to use the pre-configured driver embedded with the agent.
     #
     # driver: SQL Server
 
