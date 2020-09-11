@@ -411,7 +411,7 @@
 
     <span class="c1"># Should we send a service check for when we make a request</span>
     <span class="n">health_service_check</span> <span class="o">=</span> <span class="n">scraper_config</span><span class="p">[</span><span class="s1">'health_service_check'</span><span class="p">]</span>
-    <span class="n">service_check_name</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{}{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">[</span><span class="s1">'namespace'</span><span class="p">],</span> <span class="s1">'.prometheus.health'</span><span class="p">)</span>
+    <span class="n">service_check_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_name_with_namespace</span><span class="p">(</span><span class="s1">'prometheus.health'</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
     <span class="n">service_check_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'endpoint:</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">endpoint</span><span class="p">)]</span>
     <span class="n">service_check_tags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">[</span><span class="s1">'custom_tags'</span><span class="p">])</span>
 
@@ -574,7 +574,7 @@
 <span class="sd">    metric when sending the gauge to Datadog.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"gauge"</span><span class="p">,</span> <span class="s2">"counter"</span><span class="p">,</span> <span class="s2">"rate"</span><span class="p">]:</span>
-        <span class="n">metric_name_with_namespace</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{}</span><span class="s1">.</span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">[</span><span class="s1">'namespace'</span><span class="p">],</span> <span class="n">metric_name</span><span class="p">)</span>
+        <span class="n">metric_name_with_namespace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_name_with_namespace</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">metric</span><span class="o">.</span><span class="n">samples</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SAMPLE_VALUE</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_value_valid</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
