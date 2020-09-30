@@ -38,20 +38,20 @@
 
 ## 1.4.0 / 2018-11-27 / Agent 6.8.0
 
-* [Added] Added unix socket support. See [#2636][1]. Thanks [pperegrina][2].
+* [Added] Added unix socket support. See [#2636](https://github.com/DataDog/integrations-core/pull/2636). Thanks [pperegrina](https://github.com/pperegrina).
 
 ## 1.3.1 / 2018-10-12 / Agent 6.6.0
 
-* [Fixed] Make the status route-agnostic when using fastcgi. See [#2282][3].
+* [Fixed] Make the status route-agnostic when using fastcgi. See [#2282](https://github.com/DataDog/integrations-core/pull/2282).
 
 ## 1.3.0 / 2018-09-04 / Agent 6.5.0
 
-* [Added] Support fastcgi requests. See [#1997][4].
+* [Added] Support fastcgi requests. See [#1997](https://github.com/DataDog/integrations-core/pull/1997).
 
 ## 1.2.0 / 2018-07-06 / Agent 6.4.0
 
-* [Added] Add exponential backoff when status returns 503. See [#1851][5].
-* [Changed] Add data files to the wheel package. See [#1727][6].
+* [Added] Add exponential backoff when status returns 503. See [#1851](https://github.com/DataDog/integrations-core/pull/1851).
+* [Changed] Add data files to the wheel package. See [#1727](https://github.com/DataDog/integrations-core/pull/1727).
 
 ## 1.1.0 / 2018-01-10
 
@@ -61,9 +61,3 @@
 ## 1.0.0 / 2017-03-22
 
 * [FEATURE] adds php_fpm integration.
-[1]: https://github.com/DataDog/integrations-core/pull/2636
-[2]: https://github.com/pperegrina
-[3]: https://github.com/DataDog/integrations-core/pull/2282
-[4]: https://github.com/DataDog/integrations-core/pull/1997
-[5]: https://github.com/DataDog/integrations-core/pull/1851
-[6]: https://github.com/DataDog/integrations-core/pull/1727

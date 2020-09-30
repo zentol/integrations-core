@@ -27,23 +27,18 @@
 
 ## 2.0.0 / 2018-10-12 / Agent 6.6.0
 
-* [Changed] Update linkerd to use the new OpenMetricsBaseCheck. See [#1984][1].
+* [Changed] Update linkerd to use the new OpenMetricsBaseCheck. See [#1984](https://github.com/DataDog/integrations-core/pull/1984).
 
 ## 1.2.0 / 2018-09-04 / Agent 6.5.0
 
-* [Added] Limit Prometheus/OpenMetrics checks to 2000 metrics per run by default. See [#2093][2].
-* [Added] Make HTTP request timeout configurable in prometheus checks. See [#1790][3].
-* [Fixed] Add data files to the wheel package. See [#1727][4].
+* [Added] Limit Prometheus/OpenMetrics checks to 2000 metrics per run by default. See [#2093](https://github.com/DataDog/integrations-core/pull/2093).
+* [Added] Make HTTP request timeout configurable in prometheus checks. See [#1790](https://github.com/DataDog/integrations-core/pull/1790).
+* [Fixed] Add data files to the wheel package. See [#1727](https://github.com/DataDog/integrations-core/pull/1727).
 
 ## 1.1.0 / 2018-06-07
 
-* [Added] Support for gathering metrics from prometheus endpoint for the kubelet itself.. See [#1581][5].
+* [Added] Support for gathering metrics from prometheus endpoint for the kubelet itself.. See [#1581](https://github.com/DataDog/integrations-core/pull/1581).
 
 ## 1.0.0/ 2018-03-23
 
 * [FEATURE] adds linkerd integration.
-[1]: https://github.com/DataDog/integrations-core/pull/1984
-[2]: https://github.com/DataDog/integrations-core/pull/2093
-[3]: https://github.com/DataDog/integrations-core/pull/1790
-[4]: https://github.com/DataDog/integrations-core/pull/1727
-[5]: https://github.com/DataDog/integrations-core/pull/1581

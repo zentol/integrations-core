@@ -18,6 +18,4 @@
 
 ## 1.0.0 / 2019-01-03 / Agent 6.9.0
 
-* [Added] Add Hyper-V integration. See [#2607][1].
-
-[1]: https://github.com/DataDog/integrations-core/pull/2607
+* [Added] Add Hyper-V integration. See [#2607](https://github.com/DataDog/integrations-core/pull/2607).

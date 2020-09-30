@@ -43,25 +43,20 @@
 
 ## 2.1.0 / 2018-11-30 / Agent 6.8.0
 
-* [Added] Send service check as metric. See [#2509][1].
+* [Added] Send service check as metric. See [#2509](https://github.com/DataDog/integrations-core/pull/2509).
 
 ## 2.0.2 / 2018-09-04 / Agent 6.5.0
 
-* [Fixed] Add data files to the wheel package. See [#1727][2].
+* [Fixed] Add data files to the wheel package. See [#1727](https://github.com/DataDog/integrations-core/pull/1727).
 
 ## 2.0.1 / 2018-06-20 / Agent 6.4.0
 
-* [Fixed] Fix error message when TCP check fails. See [#1745][3]. Thanks [Siecje][4].
+* [Fixed] Fix error message when TCP check fails. See [#1745](https://github.com/DataDog/integrations-core/pull/1745). Thanks [Siecje](https://github.com/Siecje).
 
 ## 2.0.0 / 2018-03-23
 
-* [DEPRECATION] Remove the `skip_event` option from the check. See [#1054][5]
+* [DEPRECATION] Remove the `skip_event` option from the check. See [#1054](https://github.com/DataDog/integrations-core/pull/1054)
 
 ## 1.0.0 / 2017-03-22
 
 * [FEATURE] adds tcp_check integration.
-[1]: https://github.com/DataDog/integrations-core/pull/2509
-[2]: https://github.com/DataDog/integrations-core/pull/1727
-[3]: https://github.com/DataDog/integrations-core/pull/1745
-[4]: https://github.com/Siecje
-[5]: 

@@ -62,12 +62,12 @@
 
 ## 2.0.0 / 2018-10-12 / Agent 6.6.0
 
-* [Changed] Update gitlab_runner to use the new OpenMetricsBaseCheck. See [#1978][1].
+* [Changed] Update gitlab_runner to use the new OpenMetricsBaseCheck. See [#1978](https://github.com/DataDog/integrations-core/pull/1978).
 
 ## 1.2.0 / 2018-09-04 / Agent 6.5.0
 
-* [Added] Limit Prometheus/OpenMetrics checks to 2000 metrics per run by default. See [#2093][2].
-* [Fixed] Add data files to the wheel package. See [#1727][3].
+* [Added] Limit Prometheus/OpenMetrics checks to 2000 metrics per run by default. See [#2093](https://github.com/DataDog/integrations-core/pull/2093).
+* [Fixed] Add data files to the wheel package. See [#1727](https://github.com/DataDog/integrations-core/pull/1727).
 
 ## 1.1.0 / 2018-03-23
 
@@ -76,6 +76,3 @@
 ## 1.0.0 / 2018-01-10
 
 * [FEATURE] Add integration for Gitlab Runners.
-[1]: https://github.com/DataDog/integrations-core/pull/1978
-[2]: https://github.com/DataDog/integrations-core/pull/2093
-[3]: https://github.com/DataDog/integrations-core/pull/1727
