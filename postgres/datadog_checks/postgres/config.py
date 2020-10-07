@@ -50,7 +50,7 @@ class PostgresConfig:
             instance.get('collect_query_metrics', True)
         )
         self.collect_execution_plans = is_dbm_enabled() and is_affirmative(
-            instance.get('collect_execution_plans', True)
+            instance.get('collect_execution_plans', False)
         )
         self.collect_exec_plans_rate_limit = instance.get('collect_exec_plans_rate_limit', 10)
         # plan collection time limit defaults to taking up most of the regular collection interval, leaving a one
