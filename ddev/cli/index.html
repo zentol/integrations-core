@@ -240,6 +240,10 @@ api_key = &quot;***********&quot;
   -n, --dry-run             Only show the changes
   --update-rc-builds-cards  Update cards in RC builds column with `target_ref`
                             version
+
+  --move-cards              Do not create a card for a change, but move the
+                            existing card from `HAVE BUGS - FIXME` or `FIXED -
+                            Ready to Rebuild` to INBOX team
 </code></pre></div> <h4 id=update-rc-links>update-rc-links<a class=headerlink href=#update-rc-links title="Permanent link">&para;</a></h4> <p>Update links to RCs in the QA board Trello cards</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev release trello update-rc-links [OPTIONS] TARGET_REF
 </code></pre></div> <h3 id=upload>upload<a class=headerlink href=#upload title="Permanent link">&para;</a></h3> <p>Release a specific check to PyPI as it is on the repo HEAD.</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev release upload [OPTIONS] CHECK
 </code></pre></div> <p>Options:</p> <div class=highlight><pre><span></span><code>  -s, --sdist
