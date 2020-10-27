@@ -3,6 +3,7 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 from __future__ import unicode_literals
+from typing import Optional
 
 import mmh3
 
@@ -13,6 +14,7 @@ ARABIC_DECIMAL_SEPARATOR = '，'
 
 
 def compute_sql_signature(normalized_query):
+    # type: (str) -> Optional[str]
     """
     Given an already obfuscated & normalized SQL query, generate its 64-bit hex signature.
     """
@@ -24,6 +26,7 @@ def compute_sql_signature(normalized_query):
 
 
 def normalize_query_tag(query):
+    # type: (str) -> str
     """
     Normalize the SQL query value to be used as a tag on metrics.
 
