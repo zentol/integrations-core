@@ -154,7 +154,7 @@
     <span class="c1"># a target metric to all metric matching the label, example:</span>
     <span class="c1"># self.label_joins = {</span>
     <span class="c1">#     'kube_pod_info': {</span>
-    <span class="c1">#         'label_to_match': 'pod',</span>
+    <span class="c1">#         'labels_to_match': ['pod'],</span>
     <span class="c1">#         'labels_to_get': ['node', 'host_ip']</span>
     <span class="c1">#     }</span>
     <span class="c1"># }</span>
@@ -165,7 +165,10 @@
     <span class="c1"># label value, example:</span>
     <span class="c1"># self._label_mapping = {</span>
     <span class="c1">#     'pod': {</span>
-    <span class="c1">#         'dd-agent-9s1l1': [("node","yolo"),("host_ip","yey")]</span>
+    <span class="c1">#         'dd-agent-9s1l1': {</span>
+    <span class="c1">#             "node": "yolo",</span>
+    <span class="c1">#             "host_ip": "yey"</span>
+    <span class="c1">#         }</span>
     <span class="c1">#     }</span>
     <span class="c1"># }</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">'_label_mapping'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
