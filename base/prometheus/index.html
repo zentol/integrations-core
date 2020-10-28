@@ -207,6 +207,11 @@
     <span class="k">if</span> <span class="n">ignored_patterns</span><span class="p">:</span>
         <span class="n">config</span><span class="p">[</span><span class="s1">'_ignored_re'</span><span class="p">]</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span><span class="s1">'|'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ignored_patterns</span><span class="p">))</span>
 
+    <span class="c1"># Ignore metrics based on label keys or specific label values</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">'ignore_metrics_by_labels'</span><span class="p">]</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">'ignore_metrics_by_labels'</span><span class="p">,</span> <span class="n">default_instance</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'ignore_metrics_by_labels'</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="p">)</span>
+
     <span class="c1"># If you want to send the buckets as tagged values when dealing with histograms,</span>
     <span class="c1"># set send_histograms_buckets to True, set to False otherwise.</span>
     <span class="n">config</span><span class="p">[</span><span class="s1">'send_histograms_buckets'</span><span class="p">]</span> <span class="o">=</span> <span class="n">is_affirmative</span><span class="p">(</span>
@@ -579,6 +584,9 @@
     <span class="k">if</span> <span class="n">metric</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"gauge"</span><span class="p">,</span> <span class="s2">"counter"</span><span class="p">,</span> <span class="s2">"rate"</span><span class="p">]:</span>
         <span class="n">metric_name_with_namespace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric_name_with_namespace</span><span class="p">(</span><span class="n">metric_name</span><span class="p">,</span> <span class="n">scraper_config</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">metric</span><span class="o">.</span><span class="n">samples</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ignore_metrics_by_label</span><span class="p">(</span><span class="n">scraper_config</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
+                <span class="k">continue</span>
+
             <span class="n">val</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SAMPLE_VALUE</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_value_valid</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Metric value is not supported for metric </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SAMPLE_NAME</span><span class="p">])</span>
