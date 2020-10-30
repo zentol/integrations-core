@@ -69,7 +69,7 @@
             <span class=k>if</span> <span class=n>is_primitive</span><span class=p>(</span><span class=n>value</span><span class=p>):</span>
                 <span class=n>field_data</span><span class=p>[</span><span class=s1>'value'</span><span class=p>]</span> <span class=o>=</span> <span class=n>value</span>
             <span class=k>else</span><span class=p>:</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>logger</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>logger</span><span class=o>.</span><span class=n>debug</span><span class=p>(</span>
                     <span class=s1>'Skipping metadata submission of non-primitive type `</span><span class=si>%s</span><span class=s1>` for field `</span><span class=si>%s</span><span class=s1>` in section `</span><span class=si>%s</span><span class=s1>`'</span><span class=p>,</span>
                     <span class=nb>type</span><span class=p>(</span><span class=n>value</span><span class=p>)</span><span class=o>.</span><span class=vm>__name__</span><span class=p>,</span>
                     <span class=n>field</span><span class=p>,</span>
