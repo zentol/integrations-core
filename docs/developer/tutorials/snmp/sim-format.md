@@ -18,9 +18,9 @@ Lines must be formatted as follows:
 For the list of supported types, see the [`snmpsim` simulation data file format](https://github.com/etingof/snmpsim/blob/master/docs/source/documentation/managing-simulation-data.rst#file-format) documentation.
 
 !!! warning
-    Due to a limitation of `snmpsim`, contents of `.snmprec` files must be **sorted in lexicographic order**.
+    Due to a limitation of `snmpsim`, contents of `.snmprec` files must be **sorted in lexicographic order** of the OOID (first column).
 
-    Use `$ sort -V /path/to/profile.snmprec` to sort lines from the terminal.
+    Use `$ sort -t '|' -k1 -V /path/to/profile.snmprec` to sort lines from the terminal.
 
 ## Symbols
 
