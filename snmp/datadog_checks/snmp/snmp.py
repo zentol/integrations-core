@@ -424,6 +424,8 @@ class SnmpCheck(AgentCheck):
                 tags = self.extract_metric_tags(config.parsed_metric_tags, results)
                 tags.extend(config.tags)
                 self.report_metrics(config.parsed_metrics, results, tags)
+                if config.evaluate_bandwidth_use:
+                    self.report_bandwidth_use_metric(config.parsed_metrics, results, tags)
         except CheckException as e:
             error = str(e)
             self.warning(error)

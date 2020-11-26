@@ -174,6 +174,8 @@ class InstanceConfig:
 
         self._uptime_metric_added = False
 
+        self.evaluate_bandwidth_use = instance.get('evaluate_bandwidth_use', False)
+
     def resolve_oid(self, oid):
         # type: (OID) -> OIDMatch
         return self._resolver.resolve_oid(oid)
