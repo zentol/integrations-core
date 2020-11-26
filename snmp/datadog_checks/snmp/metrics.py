@@ -51,7 +51,7 @@ def as_metric_with_forced_type(value, forced_type, options):
         return {'type': 'gauge', 'value': int(str(value)[index])}
 
     # Use float for following types
-    float_value = _varbind_value_to_float(value)
+    float_value = varbind_value_to_float(value)
 
     if forced_type == 'gauge':
         return {'type': 'gauge', 'value': float_value}
@@ -71,7 +71,7 @@ def as_metric_with_forced_type(value, forced_type, options):
     return None
 
 
-def _varbind_value_to_float(value):
+def varbind_value_to_float(value):
     # type: (Any) -> float
 
     # Floats might be represented as OctetString

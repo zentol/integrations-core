@@ -23,7 +23,7 @@ from .compat import read_persistent_cache, write_persistent_cache
 from .config import InstanceConfig
 from .discovery import discover_instances
 from .exceptions import PySnmpError
-from .metrics import as_metric_with_forced_type, as_metric_with_inferred_type
+from .metrics import as_metric_with_forced_type, as_metric_with_inferred_type, varbind_value_to_float
 from .mibs import MIBLoader
 from .models import OID
 from .parsing import ColumnTag, IndexTag, ParsedMetric, ParsedTableMetric, SymbolTag
@@ -499,6 +499,81 @@ class SnmpCheck(AgentCheck):
                 val = result[0][1]
                 metric_tags = tags + metric.tags
                 self.submit_metric(name, val, metric.forced_type, metric_tags, metric.options)
+
+    def report_bandwidth_use_metric(
+        self,
+        metrics,  # type: List[ParsedMetric]
+        results,  # type: Dict[str, Dict[Tuple[str, ...], Any]]
+        tags,  # type: List[str]
+    ):
+        # type: (...) -> None
+        """
+        Evaluate and report input/output bandwidth usage to the aggregator, if necessary metrics are fetched.
+
+        Bandwidth usage is:
+
+        interface[In|Out]Octets(t+dt) - interface[In|Out]Octets(t)
+        ----------------------------------------------------------
+                        dt*interfaceSpeed
+
+        Given:
+        * ifHCInOctets: the total number of octets received on the interface.
+        * ifHCOutOctets: The total number of octets transmitted out of the interface.
+        * ifHighSpeed: An estimate of the interface's current bandwidth in Mb/s (10^6 bits
+                       per second). It is constant in time, can be overwritten by the system admin.
+                       It is the total available bandwidth.
+        Bandwidth usage is evaluated as: ifHC[In|Out]Octets/ifHighSpeed and reported as *rate*
+        """
+        # Verify ifHighSpeed is fetched
+        if next((x for x in metrics if x.name == 'ifHighSpeed'), None) is None or 'ifHighSpeed' not in results:
+            self.log.warning('Cannot evaluate bandwidth usage, missing metric ifHighSpeed')
+            return
+        # ======= Bandwidth usage =======
+        bandwidth_metrics = [
+            metric
+            for metric in [
+                next((x for x in metrics if x.name == 'ifHCInOctets'), None),
+                next((x for x in metrics if x.name == 'ifHCOutOctets'), None),
+            ]
+            if metric is not None and isinstance(metric, ParsedTableMetric)
+        ]
+
+        if len(bandwidth_metrics) < 1:
+            self.log.warning('No in/out octets metrics')
+            return
+
+        for metric in bandwidth_metrics:
+            if metric.name not in results:
+                self.log.debug('[SNMP Bandwidth usage] Missing metric %s', metric.name)
+                continue
+
+            for index, octets_value in iteritems(results[metric.name]):
+                metric_tags = tags + self.get_index_tags(index, results, metric.index_tags, metric.column_tags)
+                try:
+                    if_high_speed = varbind_value_to_float(results['ifHighSpeed'][index])
+                except KeyError:
+                    self.log.warning('[SNMP Bandwidth usage] `ifHighSpeed` metric, skipping this row. index=%s', index)
+                    continue
+
+                try:
+                    bits_value = varbind_value_to_float(octets_value) * 8
+                    bandwidth_usage = bits_value / (if_high_speed * (10 ** 6))
+                except TypeError:
+                    self.log.warning('Invalid type values, skipping this row. index=%s', index)
+                    continue
+                except ZeroDivisionError:
+                    self.log.warning('Zero value at ifHighSpeed, skipping this row. index=%s', index)
+                    continue
+                except ValueError:
+                    err_msg = (
+                        'Metric: {} has non float value: {}. Only float values can be submitted as metrics.'.format(
+                            repr(metric.name), repr(bandwidth_usage)
+                        )
+                    )
+                    self.warning(err_msg, exc_info=True)
+                    continue
+                metric_name = 'bandwidthInUsage' if metric.name == 'ifHCInOctets' else 'bandwidthOutUsage'
+                self.rate("snmp.{}.rate".format(metric_name), bandwidth_usage, tags=metric_tags)
 
     def get_index_tags(
         self,
