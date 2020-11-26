@@ -581,3 +581,24 @@ def test_batches(items, size, output):
 def test_batches_size_must_be_strictly_positive(size):
     with pytest.raises(ValueError):
         list(batches([1, 2, 3], size=size))
+
+
+def test_evaluate_bandwidth_usage():
+    config = InstanceConfig(
+        {
+            "ip_address": "127.0.0.123",
+            "community_string": "public",
+            "metrics": [{"OID": "1.2.3", "name": "foo"}],
+            "evaluate_bandwidth_use": True,
+        }
+    )
+
+    instance = common.generate_instance_config(common.SUPPORTED_METRIC_TYPES)
+
+    check = SnmpCheck('snmp', {}, [instance])
+    check._config = config
+    check.report_bandwidth_use_metric = mock.Mock()
+
+    check.check(instance)
+
+    assert check.report_bandwidth_use_metric.call_count == 1
