@@ -510,7 +510,8 @@ class SnmpCheck(AgentCheck):
     ):
         # type: (...) -> None
         """
-        Evaluate and report input/output bandwidth usage to the aggregator, if necessary metrics are fetched.
+        Evaluate and report input/output bandwidth usage. If any of `ifHCInOctets`, `ifHCOutOctets`  or `ifHighSpeed`
+        is missing then bandwidth will not be reported.
 
         Bandwidth usage is:
 
