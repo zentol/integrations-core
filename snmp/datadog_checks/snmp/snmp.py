@@ -423,9 +423,7 @@ class SnmpCheck(AgentCheck):
                 config.oid_config.update_scalar_oids(scalar_oids)
                 tags = self.extract_metric_tags(config.parsed_metric_tags, results)
                 tags.extend(config.tags)
-                self.report_metrics(config.parsed_metrics, results, tags)
-                if config.evaluate_bandwidth_use:
-                    self.report_bandwidth_use_metric(config.parsed_metrics, results, tags)
+                self.report_metrics(config, results, tags)
         except CheckException as e:
             error = str(e)
             self.warning(error)
@@ -471,7 +469,7 @@ class SnmpCheck(AgentCheck):
 
     def report_metrics(
         self,
-        metrics,  # type: List[ParsedMetric]
+        config,
         results,  # type: Dict[str, Dict[Tuple[str, ...], Any]]
         tags,  # type: List[str]
     ):
@@ -482,7 +480,7 @@ class SnmpCheck(AgentCheck):
 
         Submit the results to the aggregator.
         """
-        for metric in metrics:
+        for metric in config.parsed_metrics:
             name = metric.name
             if name not in results:
                 self.log.debug('Ignoring metric %s', name)
@@ -491,6 +489,8 @@ class SnmpCheck(AgentCheck):
                 for index, val in iteritems(results[name]):
                     metric_tags = tags + self.get_index_tags(index, results, metric.index_tags, metric.column_tags)
                     self.submit_metric(name, val, metric.forced_type, metric_tags, metric.options)
+                    if config.evaluate_bandwidth_use:
+                        self.submit_bandwith_use(name, val, metric_tags, results)
             else:
                 result = list(results[name].items())
                 if len(result) > 1:
@@ -501,6 +501,21 @@ class SnmpCheck(AgentCheck):
                 val = result[0][1]
                 metric_tags = tags + metric.tags
                 self.submit_metric(name, val, metric.forced_type, metric_tags, metric.options)
+
+    def submit_bandwidth_metrics(self, name, index, snmp_value, tags, results):
+        BANDWIDTCH_MAPPING = {  # can be move to a constant
+            'ifHCInOctets': 'bandwidthInUsage',
+            'ifHCOutOctets': 'bandwidthOutUsage',
+        }
+
+        if name not in BANDWIDTCH_MAPPING:
+            return
+        if_high_speed = results['ifHighSpeed'][index]
+
+        bandwidth_metric = BANDWIDTCH_MAPPING[name]
+        bandwidth_usage = snmp_value / (if_high_speed * (10 ** 6))
+
+        self.submit_metric('snmp.{}'.format(bandwidth_metric), bandwidth_usage, None, tags, {})
 
     def report_bandwidth_use_metric(
         self,
