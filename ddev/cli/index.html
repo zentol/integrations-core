@@ -159,6 +159,7 @@ api_key = &quot;***********&quot;
   -ne, --new-env         Execute setup and tear down actions
   -pm, --profile-memory  Whether to collect metrics about memory usage
   -j, --junit            Generate junit reports
+  -k, --filter TEXT      Only run tests matching given substring expression
 </code></pre></div> <h2 id=meta>meta<a class=headerlink href=#meta title="Permanent link">&para;</a></h2> <p>Anything here should be considered experimental.</p> <p>This <code>meta</code> namespace can be used for an arbitrary number of niche or beta features without bloating the root namespace.</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev meta [OPTIONS] COMMAND [ARGS]...
 </code></pre></div> <h3 id=catalog>catalog<a class=headerlink href=#catalog title="Permanent link">&para;</a></h3> <p>Create a catalog with information about integrations</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev meta catalog [OPTIONS] CHECKS...
 </code></pre></div> <p>Options:</p> <div class=highlight><pre><span></span><code>  -f, --file TEXT  Output to file (it will be overwritten), you can pass &quot;tmp&quot;
