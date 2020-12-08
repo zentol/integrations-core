@@ -1,4 +1,6 @@
 FROM node:alpine
+RUN mkdir /temp
+WORKDIR /temp
 RUN apk add git python3 --no-cache
 RUN pip3 install pyyaml
 RUN npm install -g ts-node
