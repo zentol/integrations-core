@@ -143,7 +143,7 @@ Additional helpful documentation, links, and articles:
 [8]: https://docs.datadoghq.com/help/
 [9]: https://www.datadoghq.com/blog/monitor-istio-with-datadog
 [10]: https://docs.datadoghq.com/agent/kubernetes/
-[11]: https://istio.io/docs/tasks/telemetry/logs/collecting-logs/
+[11]: https://istio.io/latest/docs/tasks/observability/logs/access-log
 [12]: https://docs.datadoghq.com/integrations/envoy/#log-collection
 [13]: https://docs.datadoghq.com/agent/guide/agent-commands/#start-stop-and-restart-the-agent
 [14]: https://www.datadoghq.com/blog/istio-metrics/
