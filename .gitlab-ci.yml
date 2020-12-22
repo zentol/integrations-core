@@ -123,7 +123,7 @@ tagger-image-builder:
       - .gitlab/tagger/**
       - datadog_checks_dev/**
     refs:
-      - master
+      - florian/fix-ci
   script:
     - docker build --tag $TAGGER_IMAGE -f .gitlab/tagger/Dockerfile ./datadog_checks_dev/
     - docker images $TAGGER_IMAGE
