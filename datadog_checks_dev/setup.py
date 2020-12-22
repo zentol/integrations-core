@@ -74,7 +74,7 @@ setup(
             'click>7',
             'colorama',
             'docker-compose>=1.25',
-            'in-toto>=0.4.2',
+            'in-toto>=0.4.2, <1.0.0',
             'jsonschema',
             'packaging',
             'pip-tools',
