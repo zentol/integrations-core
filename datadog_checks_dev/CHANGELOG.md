@@ -1,7 +1,7 @@
 # CHANGELOG - Datadog Checks Dev
 
 ## 6.0.0 / 2020-12-11
-
+* [xx]
 * [Added] Document new collect_default_jvm_metrics flag for JMXFetch integrations. See [#8153](https://github.com/DataDog/integrations-core/pull/8153).
 * [Added] Add support for tabular check output. See [#8129](https://github.com/DataDog/integrations-core/pull/8129).
 * [Added] Add test filter to env test. See [#8101](https://github.com/DataDog/integrations-core/pull/8101).
