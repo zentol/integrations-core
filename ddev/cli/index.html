@@ -333,6 +333,10 @@ INDEX       { entPhysicalIndex, entPhysicalChildIndex }
                            running
 
   -pa, --pytest-args TEXT  Additional arguments to pytest
+  --force-base-package     Force using latest released version of datadog-
+                           checks-base
+
+  --force-env-rebuild      Force creating a new env
 </code></pre></div> <h2 id=validate>validate<a class=headerlink href=#validate title="Permanent link">&para;</a></h2> <p>Verify certain aspects of the repo</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev validate [OPTIONS] COMMAND [ARGS]...
 </code></pre></div> <h3 id=agent-reqs>agent-reqs<a class=headerlink href=#agent-reqs title="Permanent link">&para;</a></h3> <p>Verify that the checks versions are in sync with the requirements-agent-release.txt file</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev validate agent-reqs [OPTIONS]
 </code></pre></div> <h3 id=ci_1>ci<a class=headerlink href=#ci_1 title="Permanent link">&para;</a></h3> <p>Validate CI infrastructure configuration.</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev validate ci [OPTIONS]
