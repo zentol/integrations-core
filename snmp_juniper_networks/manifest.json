@@ -1,0 +1,35 @@
+{
+  "display_name": "Juniper Networks",
+  "maintainer": "help@datadoghq.com",
+  "manifest_version": "1.0.0",
+  "name": "snmp_juniper_networks",
+  "metric_prefix": "snmp.",
+  "metric_to_check": "",
+  "creates_events": false,
+  "short_description": "Collect SNMP metrics from your Juniper Networks network devices.",
+  "guid": "03deb8f7-acd5-4233-ba00-a1775ec5097a",
+  "support": "core",
+  "supported_os": [
+    "linux",
+    "mac_os",
+    "windows"
+  ],
+  "public_title": "Datadog-Juniper Networks",
+  "categories": [ 
+    "monitoring", 
+    "notification", 
+    "network", 
+    "autodiscovery",
+    "snmp"
+  ],
+  "type": "check",
+  "is_public": false,
+  "integration_id": "snmp-juniper-networks",
+  "assets": {
+    "dashboards": {},
+    "saved_views": {},
+    "monitors": {},
+    "service_checks": "assets/service_checks.json",
+    "logs": {}
+  }
+}
