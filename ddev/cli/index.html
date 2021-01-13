@@ -333,8 +333,11 @@ INDEX       { entPhysicalIndex, entPhysicalChildIndex }
                            running
 
   -pa, --pytest-args TEXT  Additional arguments to pytest
-  --force-base-package     Force using latest released version of datadog-
-                           checks-base
+  --force-base-unpinned    Force using datadog-checks-base as specified by
+                           check dep
+
+  --force-base-min         Force using lowest viable release version of
+                           datadog-checks-base
 
   --force-env-rebuild      Force creating a new env
 </code></pre></div> <h2 id=validate>validate<a class=headerlink href=#validate title="Permanent link">&para;</a></h2> <p>Verify certain aspects of the repo</p> <p>Usage:</p> <div class=highlight><pre><span></span><code>ddev validate [OPTIONS] COMMAND [ARGS]...
