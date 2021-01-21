@@ -6,6 +6,7 @@ from contextlib import closing
 
 import psycopg2
 from six import iteritems
+from datadog import statsd
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.postgres.metrics_cache import PostgresMetricsCache
@@ -422,6 +423,8 @@ class PostgreSql(AgentCheck):
         metrics = self.statement_metrics.collect_per_statement_metrics(self.db)
         for metric_name, metric_value, metrics_tags in metrics:
             self.count(metric_name, metric_value, tags=list(set(metrics_tags + tags)))
+        # Emit a debugging metric for the number of tracked statements
+        statsd.histogram("datadog.integration.postgres.statements.count", len(metrics), tags=tags)
 
     def check(self, _):
         tags = copy.copy(self.config.tags)
