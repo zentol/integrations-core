@@ -84,6 +84,8 @@
 
 <span class=sd>    A default mixin configuration will be returned if there is no instance.</span>
 <span class=sd>    """</span>
+    <span class=k>if</span> <span class=s1>'openmetrics_endpoint'</span> <span class=ow>in</span> <span class=n>instance</span><span class=p>:</span>
+        <span class=k>raise</span> <span class=n>CheckException</span><span class=p>(</span><span class=s1>'The setting `openmetrics_endpoint` is only available for Agent version 7 or later'</span><span class=p>)</span>
 
     <span class=c1># We can choose to create a default mixin configuration for an empty instance</span>
     <span class=k>if</span> <span class=n>instance</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
