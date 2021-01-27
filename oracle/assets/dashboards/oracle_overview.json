@@ -778,7 +778,7 @@
         "prefix": null
       }
     ],
-    "layout_type": "free",
+    "layout_type": "ordered",
     "is_read_only": true,
     "notify_list": [],
     "id": 240
