@@ -41,7 +41,7 @@
     "monitors": {},
     "dashboards": {
       "postgresql": "assets/dashboards/postgresql_dashboard.json",
-      "postgresql_screenboard": "assets/dashboards/postgresql_screenboard_dashboard.json"
+      "postgresql_screenboard": "assets/dashboards/postgresql_msl_dashboard.json"
     },
     "saved_views": {
       "operations": "assets/saved_views/operations.json",
