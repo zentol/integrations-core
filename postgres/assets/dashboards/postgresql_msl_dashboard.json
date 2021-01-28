@@ -3,7 +3,7 @@
   "description": "This dashboard provides a high-level overview of your PostgreSQL databases, so you can track throughput, replication, locks, and other metrics from all your servers and spot potential issues. Further reading on PostgreSQL monitoring:\n\n- [Datadog's guide to key PostgreSQL metrics](https://www.datadoghq.com/blog/postgresql-monitoring/)\n\n- [Collecting metrics with PostgreSQL monitoring tools](https://www.datadoghq.com/blog/postgresql-monitoring-tools/)\n\n- [How to monitor PostgreSQL with Datadog](https://www.datadoghq.com/blog/collect-postgresql-data-with-datadog/)\n\n- [Datadog's PostgreSQL integration docs](https://docs.datadoghq.com/integrations/postgres/)\n\nClone this template dashboard to make changes and add your own graph widgets.",
   "widgets": [
     {
-      "id": 1,
+      "id": 0,
       "definition": {
         "type": "note",
         "content": "![PostgreSQL](https://p-qkfgo2.t2.n0.cdn.getcloudapp.com/items/mXu5z2wp/8cba4404-3e98-4764-9bcd-ae4448920c0b.png)\n\nThis dashboard provides a high-level overview of your PostgreSQL databases, so you can track throughput, replication, locks, and other metrics from all your servers and spot potential issues. \n\nFurther reading on PostgreSQL monitoring:\n\n- [Datadog's guide to key PostgreSQL metrics](https://www.datadoghq.com/blog/postgresql-monitoring/)\n\n- [Collecting metrics with PostgreSQL monitoring tools](https://www.datadoghq.com/blog/postgresql-monitoring-tools/)\n\n- [How to monitor PostgreSQL with Datadog](https://www.datadoghq.com/blog/collect-postgresql-data-with-datadog/)\n\n- [Datadog's PostgreSQL integration docs](https://docs.datadoghq.com/integrations/postgres/)\n\nYou can clone this dashboard, copy and paste widgets from other out-of-the-box dashboards, and create your own visualizations for your custom applications.\n",
@@ -17,7 +17,7 @@
       "layout": { "x": 0, "y": 0, "width": 4, "height": 5 }
     },
     {
-      "id": 2,
+      "id": 1,
       "definition": {
         "title": "Basic Activity Monitor",
         "reflow_type": "fixed",
@@ -25,7 +25,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 3,
+            "id": 11,
             "definition": {
               "title": "Rows fetched / returned",
               "title_size": "16",
@@ -44,7 +44,7 @@
             "layout": { "x": 0, "y": 0, "width": 2, "height": 2 }
           },
           {
-            "id": 4,
+            "id": 12,
             "definition": {
               "title": "Max connections in use",
               "title_size": "16",
@@ -81,7 +81,7 @@
             "layout": { "x": 2, "y": 0, "width": 2, "height": 2 }
           },
           {
-            "id": 5,
+            "id": 13,
             "definition": {
               "title": "Connections per database",
               "title_size": "16",
@@ -113,7 +113,7 @@
             "layout": { "x": 4, "y": 0, "width": 4, "height": 4 }
           },
           {
-            "id": 6,
+            "id": 14,
             "definition": {
               "type": "note",
               "content": "A PostgreSQL database cluster is not a collection of servers, but a collection of databases managed by a single server.",
@@ -131,7 +131,7 @@
       "layout": { "x": 4, "y": 0, "width": 8, "height": 5 }
     },
     {
-      "id": 7,
+      "id": 2,
       "definition": {
         "title": "Resource Utilization",
         "reflow_type": "fixed",
@@ -139,7 +139,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 8,
+            "id": 21,
             "definition": {
               "title": "Tables with most disk usage (top 5)",
               "title_size": "16",
@@ -154,7 +154,7 @@
             "layout": { "x": 0, "y": 0, "width": 3, "height": 2 }
           },
           {
-            "id": 9,
+            "id": 22,
             "definition": {
               "title": "Tables with most live rows (1)",
               "title_size": "16",
@@ -169,7 +169,7 @@
             "layout": { "x": 3, "y": 0, "width": 3, "height": 2 }
           },
           {
-            "id": 10,
+            "id": 23,
             "definition": {
               "title": "Dead rows (1)",
               "title_size": "16",
@@ -196,7 +196,7 @@
             "layout": { "x": 6, "y": 0, "width": 6, "height": 2 }
           },
           {
-            "id": 11,
+            "id": 24,
             "definition": {
               "title": "Most frequently scanned indexes (1)",
               "title_size": "16",
@@ -211,7 +211,7 @@
             "layout": { "x": 0, "y": 2, "width": 3, "height": 2 }
           },
           {
-            "id": 12,
+            "id": 25,
             "definition": {
               "title": "Least frequently scanned indexes (1)",
               "title_size": "16",
@@ -226,7 +226,7 @@
             "layout": { "x": 3, "y": 2, "width": 3, "height": 2 }
           },
           {
-            "id": 13,
+            "id": 26,
             "definition": {
               "title": "Temp bytes",
               "title_size": "16",
@@ -253,7 +253,7 @@
             "layout": { "x": 6, "y": 2, "width": 6, "height": 2 }
           },
           {
-            "id": 14,
+            "id": 27,
             "definition": {
               "type": "note",
               "content": "(1) Requires [relations parameter](https://docs.datadoghq.com/integrations/postgres/#metric-collection) setting in postgres yaml file.",
@@ -270,7 +270,7 @@
       }
     },
     {
-      "id": 15,
+      "id": 3,
       "definition": {
         "title": "Throughput",
         "reflow_type": "fixed",
@@ -278,7 +278,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 16,
+            "id": 31,
             "definition": {
               "title": "Sequential scans vs index scans (1)",
               "title_size": "16",
@@ -305,7 +305,7 @@
             "layout": { "x": 0, "y": 0, "width": 4, "height": 2 }
           },
           {
-            "id": 17,
+            "id": 32,
             "definition": {
               "title": "Rows updated / deleted / inserted (1)",
               "title_size": "16",
@@ -332,7 +332,7 @@
             "layout": { "x": 4, "y": 0, "width": 4, "height": 2 }
           },
           {
-            "id": 18,
+            "id": 33,
             "definition": {
               "title": "Sequential scans (green) vs. week before (gray) (1)",
               "title_size": "16",
@@ -364,7 +364,7 @@
             "layout": { "x": 0, "y": 2, "width": 4, "height": 2 }
           },
           {
-            "id": 19,
+            "id": 34,
             "definition": {
               "title": "Heap-only updates (1)",
               "title_size": "16",
@@ -391,7 +391,7 @@
             "layout": { "x": 4, "y": 2, "width": 4, "height": 2 }
           },
           {
-            "id": 20,
+            "id": 35,
             "definition": {
               "title": "Top function calls",
               "title_size": "16",
@@ -410,7 +410,7 @@
       "layout": { "x": 0, "y": 0, "width": 8, "height": 7 }
     },
     {
-      "id": 21,
+      "id": 4,
       "definition": {
         "title": "",
         "title_size": "16",
@@ -427,7 +427,7 @@
       "layout": { "x": 8, "y": 0, "width": 4, "height": 7 }
     },
     {
-      "id": 22,
+      "id": 5,
       "definition": {
         "title": "Locks",
         "reflow_type": "fixed",
@@ -435,7 +435,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 23,
+            "id": 51,
             "definition": {
               "title": "Locks by lock mode",
               "title_size": "16",
@@ -462,7 +462,7 @@
             "layout": { "x": 0, "y": 0, "width": 4, "height": 2 }
           },
           {
-            "id": 24,
+            "id": 52,
             "definition": {
               "title": "Deadlocks per database",
               "title_size": "16",
@@ -493,7 +493,7 @@
       "layout": { "x": 0, "y": 0, "width": 4, "height": 5 }
     },
     {
-      "id": 25,
+      "id": 6,
       "definition": {
         "title": "Replication",
         "reflow_type": "fixed",
@@ -501,7 +501,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 26,
+            "id": 61,
             "definition": {
               "title": "Number of hosts with replication delay (Available in version 9.1+)",
               "title_size": "16",
@@ -528,7 +528,7 @@
             "layout": { "x": 0, "y": 0, "width": 4, "height": 2 }
           },
           {
-            "id": 27,
+            "id": 62,
             "definition": {
               "title": "Max replication delay (Available in version 9.2+)",
               "title_size": "16",
@@ -559,7 +559,7 @@
       "layout": { "x": 4, "y": 0, "width": 4, "height": 5 }
     },
     {
-      "id": 28,
+      "id": 7,
       "definition": {
         "title": "Checkpoints",
         "reflow_type": "fixed",
@@ -567,7 +567,7 @@
         "layout_type": "ordered",
         "widgets": [
           {
-            "id": 29,
+            "id": 71,
             "definition": {
               "title": "Scheduled (purple) vs requested (orange) checkpoints",
               "title_size": "16",
