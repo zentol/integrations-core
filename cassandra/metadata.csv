@@ -28,9 +28,9 @@ cassandra.live_disk_space_used.count,gauge,10,byte,,"The disk space used by ""li
 cassandra.live_ss_table_count,gauge,10,file,,"Number of ""live"" (in use) SSTables.",0,cassandra,live sstables
 cassandra.load.count,gauge,10,byte,,The disk space used by live data on a node.,0,cassandra,load
 cassandra.max_partition_size,gauge,10,byte,,The size of the largest compacted partition.,0,cassandra,max partition
-cassandra.max_row_size,gauge,10,byte,,The size of the largest compacted row.,0,cassandra,max row
+cassandra.max_row_size,gauge,10,byte,,The size of the largest compacted row (alias of partition size).,0,cassandra,max row
 cassandra.mean_partition_size,gauge,10,byte,,The average size of compacted partition.,0,cassandra,mean partition
-cassandra.mean_row_size,gauge,10,byte,,The average size of compacted rows.,0,cassandra,mean row
+cassandra.mean_row_size,gauge,10,byte,,The average size of compacted rows (alias of partition size).,0,cassandra,mean row
 cassandra.net.down_endpoint_count,gauge,10,node,,The number of unhealthy nodes in the cluster. They represent each individual node's view of the cluster and thus should not be summed across reporting nodes.,-1,cassandra,down endpoint count
 cassandra.net.up_endpoint_count,gauge,10,node,,The number of healthy nodes in the cluster. They represent each individual node's view of the cluster and thus should not be summed across reporting nodes.,1,cassandra,up endpoint count
 cassandra.pending_compactions,gauge,10,task,,The number of pending compactions.,-1,cassandra,pending compactions
