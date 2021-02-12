@@ -160,6 +160,11 @@ class PostgresStatementSamples(object):
             )
 
     def _get_db(self):
+        # while psycopg2 is threadsafe (meaning in theory we should be able to use the same connection as the parent
+        # check), the parent doesn't use autocommit and instead calls commit() and rollback() explicitly, meaning
+        # it can cause strange clashing issues if we're trying to use the same connection from another thread here.
+        # since the statement sampler runs continuously it's best we have our own connection here with autocommit
+        # enabled
         if not self._db or self._db.closed:
             self._db = self._check._new_connection()
             self._db.set_session(autocommit=True)
