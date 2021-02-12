@@ -288,6 +288,32 @@ class PostgreSql(AgentCheck):
 
         cursor.close()
 
+    def _new_connection(self):
+        if self.config.host == 'localhost' and self.config.password == '':
+            # Use ident method
+            connection_string = "user=%s dbname=%s application_name=%s" % (
+                self.config.user,
+                self.config.dbname,
+                self.config.application_name,
+            )
+            if self.config.query_timeout:
+                connection_string += " options='-c statement_timeout=%s'" % self.config.query_timeout
+            return psycopg2.connect(connection_string)
+        else:
+            args = {
+                'host': self.config.host,
+                'user': self.config.user,
+                'password': self.config.password,
+                'database': self.config.dbname,
+                'sslmode': self.config.ssl_mode,
+                'application_name': self.config.application_name,
+            }
+            if self.config.port:
+                args['port'] = self.config.port
+            if self.config.query_timeout:
+                args['options'] = '-c statement_timeout=%s' % self.config.query_timeout
+            return psycopg2.connect(**args)
+
     def _connect(self):
         """Get and memoize connections to instances"""
         if self.db and self.db.closed:
@@ -299,30 +325,7 @@ class PostgreSql(AgentCheck):
                 # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
                 self.db.rollback()
         else:
-            if self.config.host == 'localhost' and self.config.password == '':
-                # Use ident method
-                connection_string = "user=%s dbname=%s application_name=%s" % (
-                    self.config.user,
-                    self.config.dbname,
-                    self.config.application_name,
-                )
-                if self.config.query_timeout:
-                    connection_string += " options='-c statement_timeout=%s'" % self.config.query_timeout
-                self.db = psycopg2.connect(connection_string)
-            else:
-                args = {
-                    'host': self.config.host,
-                    'user': self.config.user,
-                    'password': self.config.password,
-                    'database': self.config.dbname,
-                    'sslmode': self.config.ssl_mode,
-                    'application_name': self.config.application_name,
-                }
-                if self.config.port:
-                    args['port'] = self.config.port
-                if self.config.query_timeout:
-                    args['options'] = '-c statement_timeout=%s' % self.config.query_timeout
-                self.db = psycopg2.connect(**args)
+            self.db = self._new_connection()
 
     def _collect_custom_queries(self, tags):
         """

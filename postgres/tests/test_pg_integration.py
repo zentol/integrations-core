@@ -351,20 +351,6 @@ def test_statement_samples_collection_loop_inactive_stop(aggregator, integration
     aggregator.assert_metric("dd.postgres.statement_samples.collection_loop_inactive_stop")
 
 
-def test_statement_samples_closed_connection(aggregator, integration_check, dbm_instance):
-    dbm_instance['statement_samples']['run_sync'] = False
-    check = integration_check(dbm_instance)
-    check._connect()
-    check.check(dbm_instance)
-    check.db = None
-    while check.statement_samples._collection_loop_future.running():
-        time.sleep(0.1)
-    # make sure there were no unhandled exceptions
-    check.statement_samples._collection_loop_future.result()
-    aggregator.assert_metric_has_tag_prefix("dd.postgres.statement_samples.error",
-                                            "error:collection-loop-exit-db-closed")
-
-
 def test_statement_samples_invalid_activity_view(aggregator, integration_check, dbm_instance):
     dbm_instance['pg_stat_activity_view'] = "wrong_view"
 

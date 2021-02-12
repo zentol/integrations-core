@@ -48,10 +48,6 @@ PG_STAT_ACTIVITY_QUERY = re.sub(
 ).strip()
 
 
-class CheckDatabaseConnectionClosed(Exception):
-    pass
-
-
 class PostgresStatementSamples(object):
     """
     Collects statement samples and execution plans.
@@ -61,6 +57,7 @@ class PostgresStatementSamples(object):
 
     def __init__(self, check, config):
         self._check = check
+        self._db = None
         self._config = config
         self._log = get_check_logger()
         self._activity_last_query_start = None
@@ -121,8 +118,7 @@ class PostgresStatementSamples(object):
         query = PG_STAT_ACTIVITY_QUERY.format(
             pg_stat_activity_view=self._config.pg_stat_activity_view
         )
-        self._db().rollback()
-        with self._db().cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        with self._get_db().cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             params = (self._config.dbname,)
             if self._activity_last_query_start:
                 query = query + " AND query_start > %s"
@@ -163,10 +159,13 @@ class PostgresStatementSamples(object):
                 tags=self._tags + ["error:insufficient-privilege"],
             )
 
-    def _db(self):
-        if not self._check.db:
-            raise CheckDatabaseConnectionClosed()
-        return self._check.db
+    def _get_db(self):
+        if not self._db or self._db.closed:
+            self._db = self._check._new_connection()
+        if self._db.status != psycopg2.extensions.STATUS_READY:
+            # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
+            self._db.rollback()
+        return self._db
 
     def _collection_loop(self):
         try:
@@ -177,13 +176,6 @@ class PostgresStatementSamples(object):
                     self._check.count("dd.postgres.statement_samples.collection_loop_inactive_stop", 1, tags=self._tags)
                     break
                 self._collect_statement_samples()
-        except CheckDatabaseConnectionClosed:
-            self._log.debug("Exiting loop due to closed database connection")
-            self._check.count(
-                "dd.postgres.statement_samples.error",
-                1,
-                tags=self._tags + ["error:collection-loop-exit-db-closed"],
-            )
         except psycopg2.errors.DatabaseError as e:
             self._log.warning(
                 "Statement sampler database error: %s", e, exc_info=self._log.getEffectiveLevel() == logging.DEBUG
@@ -200,6 +192,15 @@ class PostgresStatementSamples(object):
                 1,
                 tags=self._tags + ["error:collection-loop-crash-{}".format(type(e))],
             )
+        finally:
+            self.close()
+
+    def close(self):
+        if self._db and not self._db.closed:
+            try:
+                self._db.close()
+            except Exception:
+                self._log.exception("failed to close DB connection")
 
     def _collect_statement_samples(self):
         self._rate_limiter.sleep()
@@ -236,7 +237,7 @@ class PostgresStatementSamples(object):
     def _run_explain(self, statement, obfuscated_statement):
         if not self._can_explain_statement(obfuscated_statement):
             return None
-        with self._db().cursor() as cursor:
+        with self._get_db().cursor() as cursor:
             try:
                 start_time = time.time()
                 self._log.debug("Running query: %s(%s)", self._explain_function, obfuscated_statement)
