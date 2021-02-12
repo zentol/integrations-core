@@ -162,6 +162,7 @@ class PostgresStatementSamples(object):
     def _get_db(self):
         if not self._db or self._db.closed:
             self._db = self._check._new_connection()
+            self._db.set_session(autocommit=True)
         if self._db.status != psycopg2.extensions.STATUS_READY:
             # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
             self._db.rollback()
