@@ -48,6 +48,10 @@ PG_STAT_ACTIVITY_QUERY = re.sub(
 ).strip()
 
 
+class CheckDatabaseConnectionClosed(Exception):
+    pass
+
+
 class PostgresStatementSamples(object):
     """
     Collects statement samples and execution plans.
@@ -117,8 +121,8 @@ class PostgresStatementSamples(object):
         query = PG_STAT_ACTIVITY_QUERY.format(
             pg_stat_activity_view=self._config.pg_stat_activity_view
         )
-        self._check.db.rollback()
-        with self._check.db.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+        self._db().rollback()
+        with self._db().cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             params = (self._config.dbname,)
             if self._activity_last_query_start:
                 query = query + " AND query_start > %s"
@@ -159,6 +163,11 @@ class PostgresStatementSamples(object):
                 tags=self._tags + ["error:insufficient-privilege"],
             )
 
+    def _db(self):
+        if not self._check.db:
+            raise CheckDatabaseConnectionClosed()
+        return self._check.db
+
     def _collection_loop(self):
         try:
             self._log.info("Starting statement sampler collection loop")
@@ -168,6 +177,13 @@ class PostgresStatementSamples(object):
                     self._check.count("dd.postgres.statement_samples.collection_loop_inactive_stop", 1, tags=self._tags)
                     break
                 self._collect_statement_samples()
+        except CheckDatabaseConnectionClosed:
+            self._log.debug("Exiting loop due to closed database connection")
+            self._check.count(
+                "dd.postgres.statement_samples.error",
+                1,
+                tags=self._tags + ["error:collection-loop-exit-db-closed"],
+            )
         except psycopg2.errors.DatabaseError as e:
             self._log.warning(
                 "Statement sampler database error: %s", e, exc_info=self._log.getEffectiveLevel() == logging.DEBUG
@@ -220,7 +236,7 @@ class PostgresStatementSamples(object):
     def _run_explain(self, statement, obfuscated_statement):
         if not self._can_explain_statement(obfuscated_statement):
             return None
-        with self._check.db.cursor() as cursor:
+        with self._db().cursor() as cursor:
             try:
                 start_time = time.time()
                 self._log.debug("Running query: %s(%s)", self._explain_function, obfuscated_statement)
