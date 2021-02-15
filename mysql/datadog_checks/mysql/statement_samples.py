@@ -599,8 +599,10 @@ class MySQLStatementSamples(object):
         rows = self._get_new_events_statements(events_statements_table, self._events_statements_row_limit)
         rows = self._filter_valid_statement_rows(rows)
         events = self._collect_plans_for_statements(rows)
-        submitted_count = statement_samples_client.submit_events(events)
-
+        submitted_count, failed_count = statement_samples_client.submit_events(events)
+        self._check.count(
+            "dd.mysql.statement_samples.error", failed_count, tags=self._tags + ["error:submit-events"]
+        )
         self._check.histogram("dd.mysql.collect_statement_samples.time", (time.time() - start_time) * 1000, tags=tags)
         self._check.count("dd.mysql.collect_statement_samples.events_submitted.count", submitted_count, tags=tags)
         self._check.gauge(

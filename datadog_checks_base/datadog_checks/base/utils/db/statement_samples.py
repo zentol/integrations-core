@@ -90,9 +90,11 @@ class StatementSamplesClient:
 
     def submit_events(self, events):
         """
-        Submit the execution plan events to the event intake
+        Submit the statement sample events to the event intake
+        :return: submitted_count, failed_count
         """
         submitted_count = 0
+        failed_count = 0
         for chunk in _chunks(events, 100):
             for http, url in self._endpoints:
                 try:
@@ -105,9 +107,11 @@ class StatementSamplesClient:
                     submitted_count += len(chunk)
                 except requests.HTTPError as e:
                     logger.warning("Failed to submit statement samples to %s: %s", url, e)
+                    failed_count += len(chunk)
                 except Exception:
                     logger.exception("Failed to submit statement samples to %s", url)
-        return submitted_count
+                    failed_count += len(chunk)
+        return submitted_count, failed_count
 
 
 class StubStatementSamplesClient:
@@ -115,7 +119,9 @@ class StubStatementSamplesClient:
         self._events = []
 
     def submit_events(self, events):
+        events = list(events)
         self._events.extend(events)
+        return len(events), 0
 
 
 statement_samples_client = StubStatementSamplesClient() if using_stub_datadog_agent else StatementSamplesClient()

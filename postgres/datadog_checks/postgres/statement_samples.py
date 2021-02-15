@@ -214,11 +214,14 @@ class PostgresStatementSamples(object):
         rows = self._get_new_pg_stat_activity()
         rows = self._filter_valid_statement_rows(rows)
         events = self._explain_pg_stat_activity(rows)
-        submitted_count = statement_samples_client.submit_events(events)
+        submitted_count, failed_count = statement_samples_client.submit_events(events)
         elapsed_ms = (time.time() - start_time) * 1000
         self._check.histogram("dd.postgres.collect_statement_samples.time", elapsed_ms, tags=self._tags)
         self._check.count(
             "dd.postgres.collect_statement_samples.events_submitted.count", submitted_count, tags=self._tags
+        )
+        self._check.count(
+            "dd.postgres.statement_samples.error", failed_count, tags=self._tags + ["error:submit-events"]
         )
         self._check.gauge(
             "dd.postgres.collect_statement_samples.seen_samples_cache.len",
