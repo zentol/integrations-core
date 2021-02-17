@@ -2,6 +2,7 @@
 # All rights reserved
 # Licensed under Simplified BSD License (see LICENSE)
 from __future__ import unicode_literals
+import copy
 
 import psycopg2
 import psycopg2.extras
@@ -37,6 +38,13 @@ PG_STAT_STATEMENTS_REQUIRED_COLUMNS = frozenset({'calls', 'query', 'total_time',
 
 PG_STAT_STATEMENTS_OPTIONAL_COLUMNS = frozenset({'queryid'})
 
+# Columns to apply as tags
+PG_STAT_STATEMENTS_TAG_COLUMNS = {
+    'datname': 'db',
+    'rolname': 'user',
+    'query': 'query',
+}
+
 # Monotonically increasing count columns to be converted to metrics
 PG_STAT_STATEMENTS_METRIC_COLUMNS = {
     'calls': 'postgresql.queries.count',
@@ -54,14 +62,90 @@ PG_STAT_STATEMENTS_METRIC_COLUMNS = {
     'temp_blks_written': 'postgresql.queries.temp_blks_written',
 }
 
-# Columns to apply as tags
-PG_STAT_STATEMENTS_TAG_COLUMNS = {
-    'datname': 'db',
-    'rolname': 'user',
-    'query': 'query',
+SYNTHETIC_METRIC_COLUMNS = {
+    'avg_time': 'postgresql.queries.avg_time',
 }
 
-DEFAULT_STATEMENT_METRIC_LIMITS = {k: (10000, 10000) for k in PG_STAT_STATEMENTS_METRIC_COLUMNS.keys()}
+METRIC_COLUMNS = copy.copy(PG_STAT_STATEMENTS_METRIC_COLUMNS)
+METRIC_COLUMNS.update(SYNTHETIC_METRIC_COLUMNS)
+
+# Limits to restrict collection to top K and bottom K queries for each metric
+DEFAULT_METRIC_LIMITS = {
+    'calls': (800, 0),
+    'total_time': (800, 0),
+    'rows': (800, 0),
+    'shared_blks_hit': (50, 0),
+    'shared_blks_read': (50, 0),
+    'shared_blks_dirtied': (50, 0),
+    'shared_blks_written': (50, 0),
+    'local_blks_hit': (50, 0),
+    'local_blks_read': (50, 0),
+    'local_blks_dirtied': (50, 0),
+    'local_blks_written': (50, 0),
+    'temp_blks_read': (50, 0),
+    'temp_blks_written': (50, 0),
+    # Synthetic column limits
+    'avg_time': (800, 0),
+    'shared_blks_ratio': (0, 100),
+}
+
+
+def compute_synthetic_rows(rows):
+    """
+    Given a list of rows, generate a new list of rows with "synthetic" column values derived from
+    the existing row values.
+    """
+    synthetic_rows = []
+    for row in rows:
+        new = copy.copy(row)
+        new['avg_time'] = new['total_time'] / new['calls'] if new['calls'] > 0 else 0
+        new['shared_blks_ratio'] = new['shared_blks_hit'] / (new['shared_blks_hit'] + new['shared_blks_read']) if new['shared_blks_hit'] + new['shared_blks_read'] > 0 else 0
+
+        synthetic_rows.append(new)
+    
+    return synthetic_rows
+
+
+def reduce_rows(rows, metrics, key):
+    """
+    Aggregate the rows into a set of unique rows identified by their "key" function.
+
+    Each new row will have a "total" column representing the total columns.
+    """
+    reduced_rows = {}
+    for row in rows:
+        k = key(row)
+
+        if k in reduced_rows:
+            reduced = reduced_rows[k]
+            reduced['total'] += 1
+            for metric in metrics:
+                reduced[metric] += row[metric]
+        else:
+            reduced = copy.copy(row)
+            reduced['total'] = 1
+            reduced_rows[k] = reduced
+    
+    return list(reduced_rows.values())
+
+
+def generate_aggregate_rows(rows, all_rows, metrics, key):
+    """
+    Generates the "catch-all" row for rows not limited.
+    """
+    aggregated = {}
+    for row in reduce_rows(rows=all_rows, metrics=metrics, key=key):
+        row['query'] = None  # Query is no longer relevant as this row is an aggregate row of many queries
+        aggregated[key(row)] = row
+
+    for row in rows:
+        k = key(row)
+        agg_row = aggregated.get(k)
+        for metric in metrics:
+            agg_row[metric] -= row[metric]
+        agg_row['total'] -= 1
+    
+    return list(aggregated.values())
 
 
 class PostgresStatementMetrics(object):
@@ -96,18 +180,11 @@ class PostgresStatementMetrics(object):
         self._execute_query(cursor, query, params=(self.config.dbname,))
         colnames = [desc[0] for desc in cursor.description]
         return colnames
-
-    def collect_per_statement_metrics(self, db):
-        try:
-            return self._collect_per_statement_metrics(db)
-        except Exception:
-            db.rollback()
-            self.log.exception('Unable to collect statement metrics due to an error')
-            return []
-
-    def _collect_per_statement_metrics(self, db):
-        metrics = []
-
+    
+    def _get_pg_stat_statements_rows(self, db):
+        """
+        Execute the query to fetch per-statement row aggregates from the database.
+        """
         available_columns = self._get_pg_stat_statements_columns(db)
         missing_columns = PG_STAT_STATEMENTS_REQUIRED_COLUMNS - set(available_columns)
         if len(missing_columns) > 0:
@@ -115,7 +192,7 @@ class PostgresStatementMetrics(object):
                 'Unable to collect statement metrics because required fields are unavailable: %s',
                 ', '.join(list(missing_columns)),
             )
-            return metrics
+            return []
 
         desired_columns = (
             list(PG_STAT_STATEMENTS_METRIC_COLUMNS.keys())
@@ -132,58 +209,90 @@ class PostgresStatementMetrics(object):
             ),
             params=(self.config.dbname,),
         )
-        if not rows:
+        return rows
+
+    def collect_per_statement_metrics(self, db):
+        try:
+            return self._collect_per_statement_metrics(db)
+        except Exception:
+            db.rollback()
+            self.log.exception('Unable to collect statement metrics due to an error')
+            return []
+
+    def _collect_per_statement_metrics(self, db):
+        metrics = []
+
+        all_rows = self._get_pg_stat_statements_rows(db)
+        if not all_rows:
             return metrics
 
         def row_keyfunc(row):
             # old versions of pg_stat_statements don't have a query ID so fall back to the query string itself
             queryid = row['queryid'] if 'queryid' in row else row['query']
             return (queryid, row['datname'], row['rolname'])
+        
+        def aggregate_row_keyfunc(row):
+            return (row['datname'], row['rolname'])
 
-        rows = self._state.compute_derivative_rows(rows, PG_STAT_STATEMENTS_METRIC_COLUMNS.keys(), key=row_keyfunc)
+        all_rows = self._state.compute_derivative_rows(all_rows, PG_STAT_STATEMENTS_METRIC_COLUMNS.keys(), key=row_keyfunc)
+        all_rows = compute_synthetic_rows(all_rows)
+
         rows = apply_row_limits(
-            rows, DEFAULT_STATEMENT_METRIC_LIMITS, tiebreaker_metric='calls', tiebreaker_reverse=True, key=row_keyfunc
+            all_rows, DEFAULT_METRIC_LIMITS, tiebreaker_metric='calls', tiebreaker_reverse=True, key=row_keyfunc
         )
 
+        # Produce the row aggregates to capture statement metrics that were dropped after applying limits
+        aggregate_rows = generate_aggregate_rows(rows, all_rows, METRIC_COLUMNS.keys(), key=aggregate_row_keyfunc)
+
+        # for row in rows + aggregate_rows:
         for row in rows:
+            row = self.prepare_row(row)
+            tags = self.get_row_tags(row)
+
+            for column, metric_name in METRIC_COLUMNS.items():
+                if column not in row:
+                    continue
+                value = row[column]
+                metrics.append((metric_name, value, tags))
+
+        return metrics
+
+    def prepare_row(self, row):
+        if row['query'] is not None:
             try:
                 normalized_query = datadog_agent.obfuscate_sql(row['query'])
-                if not normalized_query:
-                    self.log.warning("Obfuscation of query '%s' resulted in empty query", row['query'])
-                    continue
+                normalized_query = normalize_query_tag(normalized_query)
             except Exception as e:
                 # If query obfuscation fails, it is acceptable to log the raw query here because the
                 # pg_stat_statements table contains no parameters in the raw queries.
                 self.log.warning("Failed to obfuscate query '%s': %s", row['query'], e)
+                normalized_query = 'Obfuscation Error'
+
+            row['query'] = normalized_query
+        else:
+            row['query'] = 'Other Queries'
+
+        # All "Deep Database Monitoring" timing metrics are in nanoseconds
+        # Postgres tracks pg_stat* timing stats in milliseconds
+        row['total_time'] = milliseconds_to_nanoseconds(row['total_time'])
+        row['avg_time'] = milliseconds_to_nanoseconds(row['avg_time'])
+        return row
+    
+    def get_row_tags(self, row):
+        query_signature = compute_sql_signature(row['query'])
+        # All "Deep Database Monitoring" statement-level metrics are tagged with a `query_signature`
+        # which uniquely identifies the normalized query family. Where possible, this hash should
+        # match the hash of APM "resources" (https://docs.datadoghq.com/tracing/visualization/resource/)
+        # when the resource is a SQL query. Postgres' query normalization in the `pg_stat_statements` table
+        # preserves most of the original query, so we tag the `resource_hash` with the same value as the
+        # `query_signature`. The `resource_hash` tag should match the *actual* APM resource hash most of
+        # the time, but not always. So this is a best-effort approach to link these metrics to APM metrics.
+        tags = ['query_signature:' + query_signature, 'resource_hash:' + query_signature]
+
+        for column, tag_name in PG_STAT_STATEMENTS_TAG_COLUMNS.items():
+            if column not in row:
                 continue
+            value = row[column]
+            tags.append('{tag_name}:{value}'.format(tag_name=tag_name, value=value))
 
-            query_signature = compute_sql_signature(normalized_query)
-
-            # All "Deep Database Monitoring" statement-level metrics are tagged with a `query_signature`
-            # which uniquely identifies the normalized query family. Where possible, this hash should
-            # match the hash of APM "resources" (https://docs.datadoghq.com/tracing/visualization/resource/)
-            # when the resource is a SQL query. Postgres' query normalization in the `pg_stat_statements` table
-            # preserves most of the original query, so we tag the `resource_hash` with the same value as the
-            # `query_signature`. The `resource_hash` tag should match the *actual* APM resource hash most of
-            # the time, but not always. So this is a best-effort approach to link these metrics to APM metrics.
-            tags = ['query_signature:' + query_signature, 'resource_hash:' + query_signature]
-
-            for column, tag_name in PG_STAT_STATEMENTS_TAG_COLUMNS.items():
-                if column not in row:
-                    continue
-                value = row[column]
-                if column == 'query':
-                    value = normalize_query_tag(normalized_query)
-                tags.append('{tag_name}:{value}'.format(tag_name=tag_name, value=value))
-
-            for column, metric_name in PG_STAT_STATEMENTS_METRIC_COLUMNS.items():
-                if column not in row:
-                    continue
-                value = row[column]
-                if column == 'total_time':
-                    # All "Deep Database Monitoring" timing metrics are in nanoseconds
-                    # Postgres tracks pg_stat* timing stats in milliseconds
-                    value = milliseconds_to_nanoseconds(value)
-                metrics.append((metric_name, value, tags))
-
-        return metrics
+        return tags
