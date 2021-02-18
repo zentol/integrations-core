@@ -164,7 +164,7 @@
           {
             "id": 16,
             "definition": {
-              "background_color": "yellow",
+              "background_color": "transparent",
               "content": "If the cluster status is `yellow`, at least one replica shard is **unallocated or missing**. Search results will still be complete, but if more shards disappear, you may **lose** data.\n\nA `red` cluster status indicates that at least one `primary` shard is missing, and you are **missing** data, which means that searches will return partial results. You will also be blocked from indexing into that shard. Consider setting up an **alert** to trigger if status has been yellow for more than 5 min or if the status has been red for the past minute.",
               "font_size": "12",
               "has_padding": true,
