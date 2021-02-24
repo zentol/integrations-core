@@ -158,7 +158,7 @@ instances:
     #     tags:
     #     - test:mongodb
 
-    ## @param server - string - optional
+    ## @param server - string - optional - default: mongodb://<USER>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
     ## Specify the MongoDB URI, with database to use for reporting (defaults to "admin")
     ## E.g. mongodb://datadog:LnCbkX4uhpuLHSUrcayEoAZA@localhost:27016/admin
     ##

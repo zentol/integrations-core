@@ -28,17 +28,17 @@ instances:
     #
     # is_secure: true
 
-    ## @param host - string - optional - default: localhost
+    ## @param host - string - optional
     ## Hostname or IP address of your RiakCS node.
     #
     # host: <HOST>
 
-    ## @param port - integer - optional - default: 8080
+    ## @param port - integer - optional
     ## Port used by your RiakCS node.
     #
     # port: <PORT>
 
-    ## @param s3_root - string - optional - default: s3.amazonaws.com
+    ## @param s3_root - string - optional
     ## The S3 hostname.
     #
     # s3_root: <S3_ROOT>

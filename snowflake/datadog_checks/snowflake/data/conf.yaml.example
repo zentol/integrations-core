@@ -104,7 +104,7 @@ instances:
     #
     # ocsp_response_cache_filename: <OCSP_RESPONSE_CACHE_FILENAME>
 
-    ## @param authenticator - string - optional - default: snowflake
+    ## @param authenticator - string - optional
     ## Authenticator for Snowflake. The default `snowflake` uses the internal Snowflake authenticator.
     ## Use `oauth` to authenticate with OAuth, be sure to set the `token` option as well.
     #

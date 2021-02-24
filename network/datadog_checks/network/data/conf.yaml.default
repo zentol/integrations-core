@@ -38,7 +38,7 @@ instances:
     #   - lo
     #   - lo0
 
-    ## @param excluded_interface_re - string - optional
+    ## @param excluded_interface_re - string - optional - default: <NETWORK_INTERFACE_NAME>.*
     ## Completely ignore any network interface matching the given regex.
     #
     # excluded_interface_re: <NETWORK_INTERFACE_NAME>.*
@@ -67,7 +67,7 @@ instances:
     #
     # collect_count_metrics: false
 
-    ## @param conntrack_path - string - optional
+    ## @param conntrack_path - string - optional - default: /usr/sbin/conntrack
     ## Linux only.
     ## The location of the conntrack executable in order to get the stats from conntrack -S.
     ## It will be run with sudo by default, so an entry needs to be added to the sudoers file.
@@ -81,7 +81,7 @@ instances:
     #
     # use_sudo_conntrack: true
 
-    ## @param whitelist_conntrack_metrics - list of strings - optional - default: ['max', 'count']
+    ## @param whitelist_conntrack_metrics - list of strings - optional
     ## Linux only.
     ## Names of the conntrack metrics to whitelist for monitoring. The metric value is in the file
     ## /${proc}/sys/net/netfilter/nf_conntrack_${metric_name}.
@@ -93,7 +93,7 @@ instances:
     #   - <METRIC_NAME>
     #   - <METRIC_PREFIX>.*
 
-    ## @param blacklist_conntrack_metrics - list of strings - optional - default: []
+    ## @param blacklist_conntrack_metrics - list of strings - optional
     ## Linux only.
     ## Names of the conntrack metrics to blacklist for monitoring. The metric value is in the file
     ## /${proc}/sys/net/netfilter/nf_conntrack_${metric_name}.

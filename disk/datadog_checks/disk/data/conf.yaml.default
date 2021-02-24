@@ -183,7 +183,7 @@ instances:
     #
     # tag_by_label: true
 
-    ## @param blkid_cache_file - string - optional
+    ## @param blkid_cache_file - string - optional - default: /run/blkid/blkid.tab
     ## Instruct the check to read the labels from the blkid cache file instead of `blkid` executable.
     ## This parameter is used only if `tag_by_label` is true.
     ## Works on Linux only.

@@ -132,7 +132,7 @@ instances:
     #
     # executor_level_metrics: false
 
-    ## @param disable_legacy_cluster_tag - boolean - optional - default: false
+    ## @param disable_legacy_cluster_tag - boolean - optional - default: true
     ## Enable to stop submitting the tag `cluster_name`, which has been renamed to `spark_cluster`.
     #
     disable_legacy_cluster_tag: true

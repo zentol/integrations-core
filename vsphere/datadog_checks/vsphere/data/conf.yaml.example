@@ -64,7 +64,7 @@ instances:
     #
     # collection_type: realtime
 
-    ## @param collect_events - boolean - optional - default: depends on collection_type value
+    ## @param collect_events - boolean - optional - default: true
     ## Whether or not to pull events data from vCenter.
     ## If you have multiple configuration instances collecting data from the same vCenter server (i.e if you collect
     ## realtime and historical metrics), you usually want to collect events only once.
@@ -107,7 +107,7 @@ instances:
     #
     # tls_ignore_warning: false
 
-    ## @param resource_filters - list of mappings - optional - default: no filter
+    ## @param resource_filters - list of mappings - optional
     ## Each filter in the list is composed of three parameters.
     ## 'resource' is one of vm/host/datastore/datacenter/cluster on which to apply the filter
     ## 'patterns' is a list of matching regex, if any of those matches, the resource will be monitored.
@@ -163,7 +163,7 @@ instances:
     #     patterns:
     #     - <INVENTORY_PATH_REGEX>
 
-    ## @param metric_filters - mapping - optional - default: all metrics
+    ## @param metric_filters - mapping - optional
     ## For each resource type (vm, host, datastore, datacenter, cluster) collected,
     ## you can choose which metric you want to collect using a list of regex.
     ## If you do not specify a regex for the resource, all metrics will be collected.
@@ -272,7 +272,7 @@ instances:
     #
     # threads_count: 4
 
-    ## @param excluded_host_tags - list of strings - optional - default: []
+    ## @param excluded_host_tags - list of strings - optional
     ## The vSphere integration collects tags for every ESXi host or VM in your environment.
     ## Those tags can be `vcenter_server`, vsphere_type`, `vsphere_host`, `vsphere_folder`, `vsphere_cluster`
     ## `vsphere_compute`, `vsphere_datacenter`, `vsphere_datastore` and are attached to the vSphere metrics by default.
@@ -286,7 +286,7 @@ instances:
     # excluded_host_tags:
     #   - <HOST_TAG>
 
-    ## @param metrics_per_query - integer - optional - default: 500
+    ## @param metrics_per_query - integer - optional - default: 50
     ## This value is used to determine the number of metrics the check will retrieve in the same API call.
     ## If too many API calls are made by the check, consider increasing this value
     ## If payloads are too large, consider decreasing this value

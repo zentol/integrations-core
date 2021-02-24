@@ -50,7 +50,7 @@ instances:
     #
   - expvar_url: http://localhost:8080
 
-    ## @param namespace - string - optional - default: go_expvar
+    ## @param namespace - string - optional
     ## Define your namespace that is prefixed to all metrics collected by this check.
     #
     # namespace: <NAMESPACE>

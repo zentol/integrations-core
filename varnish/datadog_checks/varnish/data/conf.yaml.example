@@ -42,7 +42,7 @@ instances:
     #
     # name: <INSTANCE_NAME>
 
-    ## @param varnishadm - string - optional
+    ## @param varnishadm - string - optional - default: /usr/bin/varnishadm
     ## The path to the varnishadm binary signals the check to
     ## emit a service check status on backend health using `debug.health`.
     ## Similar to the varnishstat command this path can contain additional arguments

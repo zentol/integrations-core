@@ -22,7 +22,7 @@ init_config:
     #
     # shared_process_list_cache_duration: 120
 
-    ## @param procfs_path - string - optional
+    ## @param procfs_path - string - optional - default: /proc
     ## Used to override the default procfs path, e.g. for docker containers with the outside fs mounted at /host/proc
     ## DEPRECATED: please specify `procfs_path` globally in `datadog.conf` instead
     #

@@ -29,7 +29,7 @@ instances:
     #   - audit.app.create
     #   - app.crash
 
-    ## @param results_per_page - integer - optional - default: 100
+    ## @param results_per_page - integer - optional
     ## Maximum number of event results per request to the API. Maximum is 5000 for v3, and 100 for v2.
     #
     # results_per_page: <RESULTS_PER_PAGE>

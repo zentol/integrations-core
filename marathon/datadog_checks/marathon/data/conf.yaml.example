@@ -50,12 +50,12 @@ instances:
     #
   - url: https://<SERVER>:<PORT>
 
-    ## @param acs_url - string - optional
+    ## @param acs_url - string - optional - default: https://<SERVER>:<PORT>
     ## The base ACS endpoint url if an ACS token is required to access the marathon API.
     #
     # acs_url: https://<SERVER>:<PORT>
 
-    ## @param group - string - optional
+    ## @param group - string - optional - default: product
     ## Enter a Specific Application group name to get only it's related metrics.
     #
     # group: product

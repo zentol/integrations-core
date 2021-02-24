@@ -46,13 +46,13 @@ init_config:
 instances:
 
   -
-    ## @param istiod_endpoint - string - optional
+    ## @param istiod_endpoint - string - optional - default: http://istiod.istio-system:15014/metrics
     ## Collect mixer, galley, pilot, and citadel metrics available from the istiod deployment.
     ## Only available for Istio >= v1.5.
     #
     # istiod_endpoint: http://istiod.istio-system:15014/metrics
 
-    ## @param istio_mesh_endpoint - string - optional
+    ## @param istio_mesh_endpoint - string - optional - default: http://istio-proxy.istio-system:15090/stats/prometheus
     ## To enable Istio metrics you must specify the url exposing the API.
     ## Note for RHEL and SUSE users: due to compatibility issues, the check does not make use of
     ## the CPP extension to process Protocol buffer messages coming from the api. Depending
@@ -63,7 +63,7 @@ instances:
     #
     # istio_mesh_endpoint: http://istio-proxy.istio-system:15090/stats/prometheus
 
-    ## @param mixer_endpoint - string - optional
+    ## @param mixer_endpoint - string - optional - default: http://istio-telemetry.istio-system:15014/metrics
     ## Define the mixer endpoint in order to collect all Prometheus metrics on the Mixer process as well
     ## as gRPC metrics related to API calls and metrics on adapter dispatch.
     ## If using Istio < v1.1, replace port 15014 with port 9093. See the changes here:
@@ -71,19 +71,19 @@ instances:
     #
     # mixer_endpoint: http://istio-telemetry.istio-system:15014/metrics
 
-    ## @param pilot_endpoint - string - optional
+    ## @param pilot_endpoint - string - optional - default: http://istio-pilot.istio-system:15014/metrics
     ## Define the pilot endpoint in order to collect all Prometheus metrics on the Pilot process.
     ## Only available for Istio >= v1.1.
     #
     # pilot_endpoint: http://istio-pilot.istio-system:15014/metrics
 
-    ## @param galley_endpoint - string - optional
+    ## @param galley_endpoint - string - optional - default: http://istio-galley.istio-system:15014/metrics
     ## Define the galley endpoint in order to collect all Prometheus metrics on the Galley process.
     ## Only available for Istio >= v1.1.
     #
     # galley_endpoint: http://istio-galley.istio-system:15014/metrics
 
-    ## @param citadel_endpoint - string - optional
+    ## @param citadel_endpoint - string - optional - default: http://istio-citadel.istio-system:15014/metrics
     ## Define the citadel endpoint in order to collect all Prometheus metrics on the Citadel process.
     ## Only available for Istio >= v1.1.
     #

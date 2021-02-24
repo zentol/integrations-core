@@ -45,7 +45,7 @@ instances:
     #
     # password: <PASSWORD>
 
-    ## @param db - string - optional - default: default
+    ## @param db - string - optional
     ## The database to connect to.
     #
     # db: <DB>
