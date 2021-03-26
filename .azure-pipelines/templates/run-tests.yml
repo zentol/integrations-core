@@ -26,13 +26,13 @@ steps:
       displayName: 'Run Unit/Integration tests (forced install of minimum datadog_checks_base package)'
 
 - ${{ if and(eq(parameters.test_e2e, 'true'), eq(parameters.repo, 'core'))}}:
-  - script: ddev env test --base --new-env --junit ${{ parameters.check }}
+  - script: ddev env test --base --new-env -a datadog/agent-dev:kserrania-test-openssl-111k-py2py3-jmx --junit ${{ parameters.check }}
     displayName: 'Run E2E tests against latest base package'
     env:
       DD_API_KEY: $(DD_API_KEY)
 
 - ${{ if and(eq(parameters.test_e2e, 'true'), ne(parameters.repo, 'core'))}}:
-  - script: ddev env test --new-env --junit ${{ parameters.check }}
+  - script: ddev env test --new-env -a datadog/agent-dev:kserrania-test-openssl-111k-py2py3-jmx --junit ${{ parameters.check }}
     displayName: 'Run E2E tests'
     env:
       DD_API_KEY: $(DD_API_KEY)
