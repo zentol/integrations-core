@@ -146,7 +146,14 @@ def validate_readme(integration, repo, manifest, display_queue, files_failed, re
     readme_counter.add(readme_path)
 
     for line_no, line in lines:
-
+        if not line.isascii():
+            display_queue.append(
+                (
+                    lambda line_no=line_no, **kwargs: echo_failure(
+                        f"     Line {line_no} contains unicode characters.", **kwargs
+                    )
+                )
+            )
         if "## Overview" == line.strip():
             has_overview = True
 
