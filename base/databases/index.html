@@ -549,7 +549,17 @@
         <span class=n>rate</span><span class=p>(</span><span class=n>_</span><span class=p>,</span> <span class=n>total_time_to_temporal_percent</span><span class=p>(</span><span class=nb>float</span><span class=p>(</span><span class=n>value</span><span class=p>),</span> <span class=n>scale</span><span class=o>=</span><span class=n>scale</span><span class=p>),</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>)</span>
 
     <span class=k>return</span> <span class=n>temporal_percent</span>
-</code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.utils.db.transform.ColumnTransformers.time_elapsed class="doc doc-heading"> <code class="highlight language-python"><span class=n>time_elapsed</span><span class=p>(</span><span class=n>transformers</span><span class=p>,</span> <span class=n>column_name</span><span class=p>,</span> <span class=o>**</span><span class=n>modifiers</span><span class=p>)</span></code> <a href=#datadog_checks.base.utils.db.transform.ColumnTransformers.time_elapsed class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Send the number of seconds elapsed from a time in the past as a <code>gauge</code>.</p> <p>For example, if the result is an instance of <a href=https://docs.python.org/3/library/datetime.html#datetime.datetime>datetime.datetime</a> representing 5 seconds ago, then this would submit with a value of <code>5</code>.</p> <p>The optional modifier <code>format</code> indicates what format the result is in. By default it is <code>native</code>, assuming the underlying library provides timestamps as <code>datetime</code> objects. If it does not and passes them through directly as strings, you must provide the expected timestamp format using the <a href=https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes>supported codes</a>.</p> <div class="admonition note"> <p class=admonition-title>Note</p> <p>The code <code>%z</code> (lower case) is not supported on Windows.</p> </div> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>get_time_elapsed</span><span class=p>(</span><span class=n>transformers</span><span class=p>,</span> <span class=n>column_name</span><span class=p>,</span> <span class=o>**</span><span class=n>modifiers</span><span class=p>):</span>
+</code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.utils.db.transform.ColumnTransformers.time_elapsed class="doc doc-heading"> <code class="highlight language-python"><span class=n>time_elapsed</span><span class=p>(</span><span class=n>transformers</span><span class=p>,</span> <span class=n>column_name</span><span class=p>,</span> <span class=o>**</span><span class=n>modifiers</span><span class=p>)</span></code> <a href=#datadog_checks.base.utils.db.transform.ColumnTransformers.time_elapsed class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Send the number of seconds elapsed from a time in the past as a <code>gauge</code>.</p> <p>For example, if the result is an instance of <a href=https://docs.python.org/3/library/datetime.html#datetime.datetime>datetime.datetime</a> representing 5 seconds ago, then this would submit with a value of <code>5</code>.</p> <p>The optional modifier <code>format</code> indicates what format the result is in. By default it is <code>native</code>, assuming the underlying library provides timestamps as <code>datetime</code> objects.</p> <p>If the value is a UNIX timestamp you can set the <code>format</code> modifier to <code>unix_time</code>.</p> <p>If the value is a string representation of a date, you must provide the expected timestamp format using the <a href=https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes>supported codes</a>.</p> <p><strong>Examples:</strong></p> <div class=highlight><pre><span></span><code>    <span class=nt>columns</span><span class=p>:</span>
+ <span class=" -Error"> </span><span class="p p-Indicator">-</span> <span class=nt>name</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_since_x</span>
+    <span class=nt>type</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_elapsed</span>
+    <span class=nt>format</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">native</span>  <span class=c1># default value and can be omitted</span>
+  <span class="p p-Indicator">-</span> <span class=nt>name</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_since_y</span>
+    <span class=nt>type</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_elapsed</span>
+    <span class=nt>format</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">unix_time</span>
+  <span class="p p-Indicator">-</span> <span class=nt>name</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_since_z</span>
+    <span class=nt>type</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">time_elapsed</span>
+    <span class=nt>format</span><span class=p>:</span> <span class=s>&quot;%d/%m/%Y</span><span class=nv> </span><span class=s>%H:%M:%S&quot;</span>
+</code></pre></div> <div class="admonition note"> <p class=admonition-title>Note</p> <p>The code <code>%z</code> (lower case) is not supported on Windows.</p> </div> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>get_time_elapsed</span><span class=p>(</span><span class=n>transformers</span><span class=p>,</span> <span class=n>column_name</span><span class=p>,</span> <span class=o>**</span><span class=n>modifiers</span><span class=p>):</span>
     <span class=c1># type: (Dict[str, Callable], str, Any) -&gt; Callable[[Any, Any, Any], None]</span>
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Send the number of seconds elapsed from a time in the past as a `gauge`.</span>
@@ -559,10 +569,27 @@
 <span class=sd>    then this would submit with a value of `5`.</span>
 
 <span class=sd>    The optional modifier `format` indicates what format the result is in. By default it is `native`, assuming the</span>
-<span class=sd>    underlying library provides timestamps as `datetime` objects. If it does not and passes them through directly as</span>
-<span class=sd>    strings, you must provide the expected timestamp format using the</span>
+<span class=sd>    underlying library provides timestamps as `datetime` objects.</span>
+
+<span class=sd>    If the value is a UNIX timestamp you can set the `format` modifier to `unix_time`.</span>
+
+<span class=sd>    If the value is a string representation of a date, you must provide the expected timestamp format using the</span>
 <span class=sd>    [supported codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).</span>
 
+<span class=sd>    Example:</span>
+
+<span class=sd>    ```yaml</span>
+<span class=sd>        columns:</span>
+<span class=sd>      - name: time_since_x</span>
+<span class=sd>        type: time_elapsed</span>
+<span class=sd>        format: native  # default value and can be omitted</span>
+<span class=sd>      - name: time_since_y</span>
+<span class=sd>        type: time_elapsed</span>
+<span class=sd>        format: unix_time</span>
+<span class=sd>      - name: time_since_z</span>
+<span class=sd>        type: time_elapsed</span>
+<span class=sd>        format: &quot;%d/%m/%Y %H:%M:%S&quot;</span>
+<span class=sd>    ```</span>
 <span class=sd>    !!! note</span>
 <span class=sd>        The code `%z` (lower case) is not supported on Windows.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
@@ -577,6 +604,11 @@
         <span class=k>def</span> <span class=nf>time_elapsed</span><span class=p>(</span><span class=n>_</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>):</span>
             <span class=n>value</span> <span class=o>=</span> <span class=n>ensure_aware_datetime</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>
             <span class=n>gauge</span><span class=p>(</span><span class=n>_</span><span class=p>,</span> <span class=p>(</span><span class=n>datetime</span><span class=o>.</span><span class=n>now</span><span class=p>(</span><span class=n>value</span><span class=o>.</span><span class=n>tzinfo</span><span class=p>)</span> <span class=o>-</span> <span class=n>value</span><span class=p>)</span><span class=o>.</span><span class=n>total_seconds</span><span class=p>(),</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>)</span>
+
+    <span class=k>elif</span> <span class=n>time_format</span> <span class=o>==</span> <span class=s1>&#39;unix_time&#39;</span><span class=p>:</span>
+
+        <span class=k>def</span> <span class=nf>time_elapsed</span><span class=p>(</span><span class=n>_</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>):</span>
+            <span class=n>gauge</span><span class=p>(</span><span class=n>_</span><span class=p>,</span> <span class=n>time</span><span class=o>.</span><span class=n>time</span><span class=p>()</span> <span class=o>-</span> <span class=n>value</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>)</span>
 
     <span class=k>else</span><span class=p>:</span>
 
