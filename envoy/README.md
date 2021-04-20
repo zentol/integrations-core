@@ -2,7 +2,7 @@
 
 ## Overview
 
-This check collects distributed system observability metrics from [Envoy][1].
+This “check“ collects distributed system observability metrics from [Envoy][1].
 
 ## Setup
 
