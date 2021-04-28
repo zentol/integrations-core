@@ -2,6 +2,16 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 
+Hostname = {
+    'name': 'hostname',
+    'query': (
+        'SELECT HOST_NAME FROM SYSIBMADM.ENV_SYS_INFO'
+    ),
+    'columns': [
+        {'name': 'hostname', 'type': 'hostname'},
+    ],
+}
+
 DiskUsage = {
     'name': 'disk_usage',
     'query': (

@@ -59,6 +59,7 @@ class QueryManager(object):
         self.tags = tags or []
         self.error_handler = error_handler
         self.queries = [Query(payload) for payload in queries or []]  # type: List[Query]
+        self.hostname = None
         custom_queries = list(self.check.instance.get('custom_queries', []))  # type: List[str]
         use_global_custom_queries = self.check.instance.get('use_global_custom_queries', True)  # type: str
 
@@ -150,15 +151,23 @@ class QueryManager(object):
                         tags.append(transformer(None, value))
                     elif column_type == 'tag_list':
                         tags.extend(transformer(None, value))
+                    elif column_type == 'hostname':
+                        self.hostname = transformer(None, value)
                     else:
                         submission_queue.append((transformer, value))
 
                 for transformer, value in submission_queue:
-                    transformer(sources, value, tags=tags)
+                    if self.hostname:
+                        transformer(sources, tags=tags, hostname=self.hostname)
+                    else:
+                        transformer(sources, tags=tags)
 
                 for name, transformer in query_extras:
                     try:
-                        result = transformer(sources, tags=tags)
+                        if self.hostname:
+                            result = transformer(sources, tags=tags, hostname=self.hostname)
+                        else:
+                            result = transformer(sources, tags=tags)
                     except Exception as e:
                         logger.error('Error transforming %s: %s', name, e)
                         continue

@@ -53,6 +53,17 @@ def get_tag(transformers, column_name, **modifiers):
 
     return tag
 
+def get_hostname(transformers, column_name, **modifiers):
+    # type: (Dict[str, Callable], str, Any) -> str
+    """
+    Convert a column to a hostname that will set for the QueryManager and sent with all future submissions.
+    """
+    template = '{}'
+
+    def hostname(_, value, **kwargs):
+        return template.format(value)
+
+    return hostname
 
 def get_tag_list(transformers, column_name, **modifiers):
     # type: (Dict[str, Callable], str, Any) -> Callable[[Any, Any, Any], List[str]]
@@ -468,6 +479,7 @@ COLUMN_TRANSFORMERS = {
     'monotonic_gauge': get_monotonic_gauge,
     'tag': get_tag,
     'tag_list': get_tag_list,
+    'hostname': get_hostname,
     'match': get_match,
     'service_check': get_service_check,
     'time_elapsed': get_time_elapsed,

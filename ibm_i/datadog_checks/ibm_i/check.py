@@ -68,6 +68,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self.execute_query,
             tags=self.config.tags,
             queries=[
+                queries.Hostname,
                 queries.DiskUsage,
                 queries.CPUUsage,
                 queries.JobStatus,
