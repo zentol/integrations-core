@@ -62,65 +62,40 @@ Connect Airflow to DogStatsD (included in the Datadog Agent) by using the Airflo
      - name: airflow
        prefix: "airflow."
        mappings:
-         - match: "airflow.*_start"
-           name: "airflow.job.start"
-           tags:
-             job_name: "$1"
-         - match: "airflow.*_end"
-           name: "airflow.job.end"
+         - match: 'airflow\.(.*)_(start|end)'
+           match_type: "regex"
+           name: "airflow.job.$2"
            tags:
              job_name: "$1"
          - match: "airflow.*_heartbeat_failure"
-           name: airflow.job.heartbeat.failure
+           name: "airflow.job.heartbeat.failure"
            tags:
              job_name: "$1"
-         - match: "airflow.operator_failures_*"
-           name: "airflow.operator_failures"
-           tags:
-             operator_name: "$1"
-         - match: "airflow.operator_successes_*"
-           name: "airflow.operator_successes"
-           tags:
-             operator_name: "$1"
-         - match: 'airflow\.dag_processing\.last_runtime\.(.*)'
+         - match: 'airflow\.(operator_(?:failures|successes))_(.*)'
            match_type: "regex"
-           name: "airflow.dag_processing.last_runtime"
+           name: "airflow.$1"
            tags:
-             dag_file: "$1"
-         - match: 'airflow\.dag_processing\.last_run\.seconds_ago\.(.*)'
+             operator_name: "$2"
+         - match: 'airflow\.dag_processing\.(last_(?:runtime|duration|run\.seconds_ago))\.(.*)'
            match_type: "regex"
-           name: "airflow.dag_processing.last_run.seconds_ago"
+           name: "airflow.dag_processing.$1"
            tags:
-             dag_file: "$1"
+             dag_file: "$2"
          - match: 'airflow\.dag\.loading-duration\.(.*)'
            match_type: "regex"
            name: "airflow.dag.loading_duration"
            tags:
              dag_file: "$1"
-         - match: "airflow.dagrun.*.first_task_scheduling_delay"
+         - match: "airflow.dagrun\.(.*)\.first_task_scheduling_delay"
+           match_type: "regex"
            name: "airflow.dagrun.first_task_scheduling_delay"
            tags:
              dag_id: "$1"
-         - match: "airflow.pool.open_slots.*"
-           name: "airflow.pool.open_slots"
+         - match: 'airflow\.(pool\.\w+)\.(.*)'
+           match_type: "regex"
+           name: "airflow.$1"
            tags:
-             pool_name: "$1"
-         - match: "pool.queued_slots.*"
-           name: "airflow.pool.queued_slots"
-           tags:
-             pool_name: "$1"
-         - match: "pool.running_slots.*"
-           name: "airflow.pool.running_slots"
-           tags:
-             pool_name: "$1"
-         - match: "airflow.pool.used_slots.*"
-           name: "airflow.pool.used_slots"
-           tags:
-             pool_name: "$1"
-         - match: "airflow.pool.starving_tasks.*"
-           name: "airflow.pool.starving_tasks"
-           tags:
-             pool_name: "$1"
+             pool_name: "$2"
          - match: 'airflow\.dagrun\.dependency-check\.(.*)'
            match_type: "regex"
            name: "airflow.dagrun.dependency_check"
@@ -132,57 +107,42 @@ Connect Airflow to DogStatsD (included in the Datadog Agent) by using the Airflo
            tags:
              dag_id: "$1"
              task_id: "$2"
-         - match: 'airflow\.dag_processing\.last_duration\.(.*)'
+         - match: 'airflow\.dagrun\.duration\.(success|failed)\.(.*)'
            match_type: "regex"
-           name: "airflow.dag_processing.last_duration"
+           name: "airflow.dagrun.duration.$1"
            tags:
-             dag_file: "$1"
-         - match: 'airflow\.dagrun\.duration\.success\.(.*)'
-           match_type: "regex"
-           name: "airflow.dagrun.duration.success"
-           tags:
-             dag_id: "$1"
-         - match: 'airflow\.dagrun\.duration\.failed\.(.*)'
-           match_type: "regex"
-           name: "airflow.dagrun.duration.failed"
-           tags:
-             dag_id: "$1"
+             dag_id: "$2"
          - match: 'airflow\.dagrun\.schedule_delay\.(.*)'
            match_type: "regex"
            name: "airflow.dagrun.schedule_delay"
            tags:
              dag_id: "$1"
-         - match: 'scheduler.tasks.running'
-           name: "airflow.scheduler.tasks.running"
-         - match: 'scheduler.tasks.starving'
-           name: "airflow.scheduler.tasks.starving"
-         - match: sla_email_notification_failure
-           name: 'airflow.sla_email_notification_failure'
-         - match: 'airflow\.task_removed_from_dag\.(.*)'
+         - match: 'airflow\.(task_(?:removed|restored))_(?:from|to)_dag\.(.*)'
            match_type: "regex"
-           name: "airflow.dag.task_removed"
+           name: "airflow.dag.$1"
            tags:
-             dag_id: "$1"
-         - match: 'airflow\.task_restored_to_dag\.(.*)'
-           match_type: "regex"
-           name: "airflow.dag.task_restored"
-           tags:
-             dag_id: "$1"
+             dag_id: "$2"
          - match: "airflow.task_instance_created-*"
            name: "airflow.task.instance_created"
            tags:
              task_class: "$1"
-         - match: "ti.start.*.*"
+         - match: 'airflow\.(\w+)\.ti\.start\.(.*)\.(\w+)'
+           match_type: "regex"
            name: "airflow.ti.start"
            tags:
-             dagid: "$1"
-             taskid: "$2"
-         - match: "ti.finish.*.*.*"
+             dag_id: "$1"
+             task_id: "$2"
+         - match: 'airflow\.(\w+)\.ti\.finish\.(.*)\.([^.]*)\.(.*)'
+           match_type: "regex"
            name: "airflow.ti.finish"
            tags:
-             dagid: "$1"
-             taskid: "$2"
+             dag_id: "$1"
+             task_id: "$2"
              state: "$3"
+         - ## Catchall for metrics requiring no mappings
+           match: 'airflow\.(.*)'
+           match_type: "regex"
+           name: "airflow.$1"
    ```
 
 ##### Restart Datadog Agent and Airflow
