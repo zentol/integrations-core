@@ -340,6 +340,16 @@
     <span class=c1># Custom tags that will be sent with each metric</span>
     <span class=n>config</span><span class=p>[</span><span class=s1>&#39;custom_tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>,</span> <span class=p>[])</span>
 
+    <span class=c1># Some tags can be ignored to reduce the cardinality.</span>
+    <span class=c1># This can be useful for cost optimization in containerized environments</span>
+    <span class=c1># when the openmetrics check is configured to collect custom metrics.</span>
+    <span class=c1># Even when the Agent&#39;s Tagger is configured to add low-cardinality tags only,</span>
+    <span class=c1># some tags can still generate unwanted metric contexts (e.g pod annotations as tags).</span>
+    <span class=n>ignore_tags</span> <span class=o>=</span> <span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;ignore_tags&#39;</span><span class=p>,</span> <span class=n>default_instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;ignore_tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
+    <span class=k>if</span> <span class=n>ignore_tags</span><span class=p>:</span>
+        <span class=n>ignored_tags_re</span> <span class=o>=</span> <span class=nb>compile</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=nb>set</span><span class=p>(</span><span class=n>ignore_tags</span><span class=p>)))</span>
+        <span class=n>config</span><span class=p>[</span><span class=s1>&#39;custom_tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>[</span><span class=n>tag</span> <span class=k>for</span> <span class=n>tag</span> <span class=ow>in</span> <span class=n>config</span><span class=p>[</span><span class=s1>&#39;custom_tags&#39;</span><span class=p>]</span> <span class=k>if</span> <span class=ow>not</span> <span class=n>ignored_tags_re</span><span class=o>.</span><span class=n>search</span><span class=p>(</span><span class=n>tag</span><span class=p>)]</span>
+
     <span class=c1># Additional tags to be sent with each metric</span>
     <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_metric_tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>[]</span>
 
