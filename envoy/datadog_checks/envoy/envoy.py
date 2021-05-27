@@ -32,6 +32,8 @@ class Envoy(AgentCheck):
         if self.stats_url is None:
             raise ConfigurationError('Envoy configuration setting `stats_url` is required')
 
+        # New line
+
         included_metrics = set(
             re.sub(r'^envoy\\?\.', '', s, 1)
             for s in self.instance.get('included_metrics', self.instance.get('metric_whitelist', []))
