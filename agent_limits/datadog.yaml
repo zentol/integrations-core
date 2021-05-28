@@ -1,0 +1,4 @@
+telemetry:
+  enabled: true
+  checks:
+    - snmp

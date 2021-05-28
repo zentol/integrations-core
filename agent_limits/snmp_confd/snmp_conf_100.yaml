@@ -1,0 +1,403 @@
+init_config:
+  loader: core
+instances:
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:1']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:2']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:3']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:4']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:5']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:6']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:7']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:8']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:9']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:10']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:11']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:12']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:13']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:14']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:15']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:16']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:17']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:18']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:19']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:20']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:21']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:22']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:23']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:24']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:25']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:26']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:27']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:28']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:29']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:30']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:31']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:32']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:33']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:34']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:35']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:36']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:37']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:38']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:39']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:40']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:41']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:42']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:43']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:44']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:45']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:46']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:47']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:48']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:49']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:50']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:51']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:52']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:53']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:54']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:55']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:56']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:57']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:58']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:59']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:60']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:61']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:62']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:63']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:64']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:65']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:66']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:67']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:68']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:69']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:70']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:71']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:72']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:73']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:74']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:75']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:76']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:77']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:78']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:79']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:80']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:81']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:82']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:83']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:84']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:85']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:86']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:87']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:88']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:89']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:90']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:91']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:92']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:93']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:94']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:95']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:96']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:97']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:98']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:99']
+  - ip_address: 127.0.0.1
+    port: 161
+    community_string: public
+    tags: ['snmp_env:dev', 'snmp_instance:100']

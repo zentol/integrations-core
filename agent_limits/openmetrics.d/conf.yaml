@@ -1,0 +1,23 @@
+init_config:
+
+instances:
+
+    ## @param prometheus_url - string - required
+    ## The URL where your application metrics are exposed by Prometheus.
+    #
+  - prometheus_url: http://localhost:5000/telemetry
+
+    ## @param namespace - string - required
+    ## The namespace to be prepended to all metrics.
+    #
+    namespace: "datadog.agent"
+
+    ## @param metrics - list of strings - required
+    ## List of metrics to be fetched from the prometheus endpoint, if there's a
+    ## value it'll be renamed. This list should contain at least one metric
+    #
+    #     metrics:
+    #       - checks__execution_time: agent_checks_execution_time
+    #       - checks__runs: agent_checks_runs
+    metrics:
+      - "*"
