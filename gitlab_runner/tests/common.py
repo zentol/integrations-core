@@ -41,7 +41,7 @@ CONFIG = {
     'init_config': {'allowed_metrics': ALLOWED_METRICS},
     'instances': [
         {
-            'prometheus_endpoint': GITLAB_RUNNER_URL,
+            'prometheus_url': GITLAB_RUNNER_URL,
             'gitlab_url': '{}/ci'.format(GITLAB_MASTER_URL),
             'send_monotonic_counter': True,
             'disable_ssl_validation': True,
@@ -60,7 +60,7 @@ BAD_CONFIG = {
     'init_config': {'allowed_metrics': ALLOWED_METRICS},
     'instances': [
         {
-            'prometheus_endpoint': 'http://{}:1234/metrics'.format(HOST),
+            'prometheus_url': 'http://{}:1234/metrics'.format(HOST),
             'gitlab_url': 'http://{}:1234/ci'.format(HOST),
             'disable_ssl_validation': True,
             'tags': list(CUSTOM_TAGS),
