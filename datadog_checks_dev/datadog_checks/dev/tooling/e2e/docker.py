@@ -334,6 +334,8 @@ class DockerInterface(object):
             # Ensure consistent naming
             '--ulimit', 'nofile=10000:10000',
             '--add-host', 'host.docker.internal:host-gateway',
+            '--cpus=0.5',
+            '--memory=500m',
             '--name',
             self.container_name,
         ]
