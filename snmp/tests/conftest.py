@@ -60,6 +60,10 @@ def dd_environment():
                 instance_config = generate_container_instance_config(
                     SCALAR_OBJECTS + SCALAR_OBJECTS_WITH_TAGS + TABULAR_OBJECTS
                 )
+                new_e2e_metadata['docker_volumes'] = [
+                    '{}:/etc/datadog-agent/conf.d/snmp.d'.format(os.path.join(COMPOSE_DIR, 'confd')),
+                    '{}:/etc/datadog-agent/datadog.yaml'.format(create_datadog_conf_file(tmp_dir))
+                ]
             yield instance_config, new_e2e_metadata
 
 
@@ -87,48 +91,12 @@ def create_datadog_conf_file(tmp_dir):
     container_ip = get_container_ip(SNMP_CONTAINER_NAME)
     prefix = ".".join(container_ip.split('.')[:3])
     datadog_conf = {
-        'snmp_listener': {
-            'workers': 4,
-            'discovery_interval': 10,
-            'configs': [
-                {
-                    'network': '{}.0/29'.format(prefix),
-                    'port': PORT,
-                    'community': 'generic-router',
-                    'version': 2,
-                    'timeout': 1,
-                    'retries': 2,
-                    'tags': [
-                        "tag1:val1",
-                        "tag2:val2",
-                    ],
-                    'loader': 'core',
-                },
-                {
-                    'network': '{}.0/28'.format(prefix),
-                    'port': PORT,
-                    'community': 'apc_ups',
-                    'version': 2,
-                    'timeout': 1,
-                    'retries': 2,
-                },
-                {
-                    'network': '{}.0/27'.format(prefix),
-                    'port': PORT,
-                    'version': 3,
-                    'timeout': 1,
-                    'retries': 2,
-                    'user': 'datadogSHADES',
-                    'authentication_key': 'doggiepass',
-                    'authentication_protocol': 'sha',
-                    'privacy_key': 'doggiePRIVkey',
-                    'privacy_protocol': 'des',
-                    'context_name': 'public',
-                    'ignored_ip_addresses': {'{}.2'.format(prefix): True},
-                },
+        'telemetry': {
+            'enabled': True,
+            'checks': [
+                "snmp",
             ],
         },
-        'listeners': [{'name': 'snmp'}],
     }
     datadog_conf_file = os.path.join(tmp_dir, 'datadog.yaml')
     with open(datadog_conf_file, 'w') as file:

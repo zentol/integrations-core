@@ -2,6 +2,7 @@ version: '3.5'
 
 services:
   snmp:
+#    network_mode: host
     image: "datadog/docker-library:snmp"
     ports:
       - "1161:1161/udp"

@@ -305,12 +305,12 @@ class DockerInterface(object):
         if not self.windows_container:
             volumes.append('/proc:/host/proc')
 
-        if self.config:
+        # if self.config:
             # Mount the config directory, not the file, to ensure updates are propagated
             # https://github.com/moby/moby/issues/15793#issuecomment-135411504
-            volumes.append(
-                f'{self.config_dir}:{get_agent_conf_dir(self.check, self.agent_version, self.container_platform)}'
-            )
+            # volumes.append(
+            #     f'{self.config_dir}:{get_agent_conf_dir(self.check, self.agent_version, self.container_platform)}'
+            # )
 
         if not ON_WINDOWS:
             volumes.extend(self.metadata.get('docker_volumes', []))
@@ -332,6 +332,8 @@ class DockerInterface(object):
             # Keep it up
             '-d',
             # Ensure consistent naming
+            '--ulimit', 'nofile=10000:10000',
+            '--add-host', 'host.docker.internal:host-gateway',
             '--name',
             self.container_name,
         ]
