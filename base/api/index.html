@@ -448,7 +448,7 @@ AgentCheck.check()                          # no more instance argument for chec
 <span class=sd>    - hostname</span>
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=c1># metric types that intended to be called multiple times are ignored</span>
-    <span class=n>ignored_types</span> <span class=o>=</span> <span class=p>[</span><span class=bp>self</span><span class=o>.</span><span class=n>COUNT</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>MONOTONIC_COUNT</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>COUNTER</span><span class=p>]</span>
+    <span class=n>ignored_types</span> <span class=o>=</span> <span class=p>[</span><span class=bp>self</span><span class=o>.</span><span class=n>COUNT</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>COUNTER</span><span class=p>]</span>
     <span class=n>metric_stubs</span> <span class=o>=</span> <span class=p>[</span><span class=n>m</span> <span class=k>for</span> <span class=n>metrics</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>_metrics</span><span class=o>.</span><span class=n>values</span><span class=p>()</span> <span class=k>for</span> <span class=n>m</span> <span class=ow>in</span> <span class=n>metrics</span> <span class=k>if</span> <span class=n>m</span><span class=o>.</span><span class=n>type</span> <span class=ow>not</span> <span class=ow>in</span> <span class=n>ignored_types</span><span class=p>]</span>
 
     <span class=k>def</span> <span class=nf>stub_to_key_fn</span><span class=p>(</span><span class=n>stub</span><span class=p>):</span>
