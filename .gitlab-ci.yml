@@ -48,7 +48,7 @@ validate-log-integrations:
   tags: [ "runner:main", "size:large" ]
 
 flo-test:
-  stage: trigger
+  stage: validate
   image: $VALIDATE_AGENT_BUILD
   script:
     - echo "paul.coignet@datadoghq.com" | email2slackid
