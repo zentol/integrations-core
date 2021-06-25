@@ -80,11 +80,15 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def execute_query(self, query):
         # https://github.com/mkleehammer/pyodbc/wiki/Connection#execute
+        l = []
         with closing(self.connection.execute(query)) as cursor:
-
-            # https://github.com/mkleehammer/pyodbc/wiki/Cursor
             for row in cursor:
-                yield row
+                l.append(row)
+            # # https://github.com/mkleehammer/pyodbc/wiki/Cursor
+            # for row in cursor:
+            #     yield row
+
+        return l
 
     @property
     def connection(self):
@@ -142,6 +146,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 queries=query_list,
                 hostname=system_info.hostname,
                 error_handler=self.handle_query_error,
+                timeout=10,
             )
             self._query_manager.compile_queries()
 
