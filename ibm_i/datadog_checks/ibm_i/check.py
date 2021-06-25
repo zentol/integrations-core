@@ -80,15 +80,10 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def execute_query(self, query):
         # https://github.com/mkleehammer/pyodbc/wiki/Connection#execute
-        l = []
         with closing(self.connection.execute(query)) as cursor:
             for row in cursor:
-                l.append(row)
+                yield row
             # # https://github.com/mkleehammer/pyodbc/wiki/Cursor
-            # for row in cursor:
-            #     yield row
-
-        return l
 
     @property
     def connection(self):
