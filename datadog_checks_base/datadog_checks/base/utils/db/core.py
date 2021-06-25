@@ -7,6 +7,9 @@ from typing import Callable, Iterable, List, Sequence, Union
 
 from datadog_checks.base import AgentCheck
 
+import datadog_checks.base.utils.process_timeout as process_timeout
+from datadog_checks.base.utils.timeout import TimeoutException
+
 from ...config import is_affirmative
 from ..containers import iter_unique
 from .query import Query
@@ -93,6 +96,115 @@ class QueryManager(object):
         for query in self.queries:
             query.compile(column_transformers, EXTRA_TRANSFORMERS.copy())
 
+    def batch_fetch(self):
+        rows_per_query = {}
+        errors = []
+        telemetry_per_query = {}
+
+        for query in self.queries:
+            query_name = query.name
+            try:
+                query_start = datetime.now()
+                rows_per_query[query_name] = self.execute_query(query.query)
+                query_duration = datetime.now() - query_start
+                telemetry_per_query[query_name] = query_duration.total_seconds()
+            except Exception as e:
+                errors.append((query_name, str(e)))
+                continue
+
+        return rows_per_query, telemetry_per_query, errors
+
+    def batch_execute(self, extra_tags=None):
+        """This method is what you call every check run."""
+        logger = self.check.log
+        if extra_tags:
+            global_tags = list(extra_tags)
+            global_tags.extend(self.tags)
+        else:
+            global_tags = self.tags
+
+        try:
+            rows_per_query, telemetry_per_query, errors = process_timeout.timeout(30)(self.batch_fetch)()
+        except TimeoutException:
+            logger.error("Timed out while querying the remote system.")
+            raise
+        for e in errors:
+            if self.error_handler:
+                logger.error('Error querying %s: %s', e[0], self.error_handler(e[1]))
+            else:
+                logger.error('Error querying %s: %s', e[0], e[1])
+
+        for query in self.queries:
+            query_name = query.name
+            query_columns = query.columns
+            query_extras = query.extras
+            query_tags = query.tags
+            num_columns = len(query_columns)
+
+            rows = rows_per_query.get(query_name, [])
+            telemetry_tags = list(global_tags) + ["check_id:{}".format(self.check.check_id), "query_id:{}".format(query_name)]
+            if query_name in telemetry_per_query:
+                self.check.gauge("query_manager.check.query_duration", telemetry_per_query[query_name], telemetry_tags, hostname=self.hostname)
+
+            transformation_start = datetime.now()
+            for row in rows:
+                if not row:
+                    logger.debug('Query %s returned an empty result', query_name)
+                    continue
+
+                if num_columns != len(row):
+                    logger.error(
+                        'Query %s expected %d column%s, got %d',
+                        query_name,
+                        num_columns,
+                        's' if num_columns > 1 else '',
+                        len(row),
+                    )
+                    continue
+
+                sources = {}
+                submission_queue = []
+
+                tags = list(global_tags)
+                tags.extend(query_tags)
+
+                for (column_name, transformer), value in zip(query_columns, row):
+                    # Columns can be ignored via configuration
+                    if not column_name:
+                        continue
+
+                    sources[column_name] = value
+
+                    column_type, transformer = transformer
+
+                    # The transformer can be None for `source` types. Those such columns do not submit
+                    # anything but are collected into the row values for other columns to reference.
+                    if transformer is None:
+                        continue
+                    elif column_type == 'tag':
+                        tags.append(transformer(None, value))
+                    elif column_type == 'tag_list':
+                        tags.extend(transformer(None, value))
+                    else:
+                        submission_queue.append((transformer, value))
+
+                for transformer, value in submission_queue:
+                    transformer(sources, value, tags=tags, hostname=self.hostname)
+
+                for name, transformer in query_extras:
+                    try:
+                        result = transformer(sources, tags=tags, hostname=self.hostname)
+                    except Exception as e:
+                        logger.error('Error transforming %s: %s', name, e)
+                        continue
+                    else:
+                        if result is not None:
+                            sources[name] = result
+
+            transformation_duration = datetime.now() - transformation_start
+            self.check.gauge("query_manager.check.transformation_duration", transformation_duration.total_seconds(), telemetry_tags, hostname=self.hostname)
+
+
     def execute(self, extra_tags=None):
         """This method is what you call every check run."""
         logger = self.check.log
@@ -111,8 +223,11 @@ class QueryManager(object):
 
             telemetry_tags = list(global_tags) + ["check_id:{}".format(self.check.check_id), "query_id:{}".format(query_name)]
             try:
+                logger.debug("Starting query %s", query_name)
                 query_start = datetime.now()
+                logger.debug("Executing query %s", query_name)
                 rows = self.execute_query(query.query)
+                logger.debug("Done with query %s", query_name)
                 query_duration = datetime.now() - query_start
                 self.check.gauge("query_manager.check.query_duration", query_duration.total_seconds(), telemetry_tags, hostname=self.hostname)
             except Exception as e:
@@ -186,7 +301,17 @@ class QueryManager(object):
         Called by `execute`, this triggers query execution to check for errors immediately in a way that is compatible
         with any library. If there are no errors, this is guaranteed to return an iterator over the result set.
         """
+        # try:
+        #     rows = self._timeout_func(self.executor)(query)
+        # except process_timeout.ResultNotAvailableException:
+        #     self.check.log.error("ResultNotAvailableException")
+        #     raise
+        # except TimeoutException:
+        #     self.check.log.error("TimeoutException")
+        #     raise
+
         rows = self.executor(query)
+
         if rows is None:
             return iter([])
         else:

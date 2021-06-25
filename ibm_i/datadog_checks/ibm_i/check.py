@@ -38,12 +38,14 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 self.connection.close()
             self._connection = None
 
+
     def check(self, _):
         check_start = datetime.now()
         self._current_errors = 0
+        self.log.debug(self.connection)
 
         try:
-            self.query_manager.execute()
+            self.query_manager.batch_execute()
             check_status = AgentCheck.OK
         except AttributeError:
             self.warning('Could not set up query manager, skipping check run')
@@ -78,13 +80,18 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 hostname=self._query_manager.hostname,
             )
 
+    def handler(signum, frame):
+        raise Exception("Timed out")
+
     def execute_query(self, query):
+        l = []
         # https://github.com/mkleehammer/pyodbc/wiki/Connection#execute
         with closing(self.connection.execute(query)) as cursor:
-
             # https://github.com/mkleehammer/pyodbc/wiki/Cursor
             for row in cursor:
-                yield row
+                l.append(row)
+
+        return l
 
     @property
     def connection(self):
