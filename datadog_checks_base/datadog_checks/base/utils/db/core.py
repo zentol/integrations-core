@@ -194,7 +194,11 @@ class QueryManager(object):
         """
         try:
             rows = self._timeout_func(self.executor)(query)
+        except process_timeout.ResultNotAvailableException:
+            self.check.log.error("ResultNotAvailableException")
+            return iter([])
         except TimeoutException:
+            self.check.log.error("TimeoutException")
             return iter([])
 
         if rows is None:
