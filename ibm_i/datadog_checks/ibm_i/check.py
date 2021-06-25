@@ -10,6 +10,9 @@ import pyodbc
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
 
+import datadog_checks.base.utils.process_timeout as process_timeout
+from datadog_checks.base.utils.timeout import TimeoutException
+
 from . import queries
 from .config_models import ConfigMixin
 
@@ -26,6 +29,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._query_manager = None
         self._current_errors = 0
         self.check_initializations.append(self.set_up_query_manager)
+        self._timeout_func = process_timeout.timeout(60)
 
     def handle_query_error(self, error):
         self._current_errors += 1
@@ -43,8 +47,14 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._current_errors = 0
 
         try:
-            self.query_manager.execute()
+            self._timeout_func(self.query_manager.execute)()
             check_status = AgentCheck.OK
+        except process_timeout.ResultNotAvailableException:
+            self.log.error("ResultNotAvailableException")
+            check_status = AgentCheck.CRITICAL
+        except TimeoutException:
+            self.log.error("TimeoutException")
+            check_status = AgentCheck.CRITICAL
         except AttributeError:
             self.warning('Could not set up query manager, skipping check run')
             check_status = None
@@ -146,7 +156,6 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 queries=query_list,
                 hostname=system_info.hostname,
                 error_handler=self.handle_query_error,
-                timeout=10,
             )
             self._query_manager.compile_queries()
 

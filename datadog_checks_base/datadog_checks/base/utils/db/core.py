@@ -7,9 +7,6 @@ from typing import Callable, Iterable, List, Sequence, Union
 
 from datadog_checks.base import AgentCheck
 
-import datadog_checks.base.utils.process_timeout as process_timeout
-from datadog_checks.base.utils.timeout import TimeoutException
-
 from ...config import is_affirmative
 from ..containers import iter_unique
 from .query import Query
@@ -49,7 +46,6 @@ class QueryManager(object):
         tags=None,  # type: List[str]
         error_handler=None,  # type: Callable[[str], str]
         hostname=None,  # type: str
-        timeout=None,
     ):  # type: (...) -> QueryManager
         """
         - **check** (_AgentCheck_) - an instance of a Check
@@ -66,8 +62,6 @@ class QueryManager(object):
         self.error_handler = error_handler
         self.queries = [Query(payload) for payload in queries or []]  # type: List[Query]
         self.hostname = hostname  # type: str
-        self.timeout = timeout
-        self._timeout_func = process_timeout.timeout(self.timeout)
         custom_queries = list(self.check.instance.get('custom_queries', []))  # type: List[str]
         use_global_custom_queries = self.check.instance.get('use_global_custom_queries', True)  # type: str
 
@@ -117,8 +111,11 @@ class QueryManager(object):
 
             telemetry_tags = list(global_tags) + ["check_id:{}".format(self.check.check_id), "query_id:{}".format(query_name)]
             try:
+                logger.debug("Starting query %s", query_name)
                 query_start = datetime.now()
+                logger.debug("Executing query %s", query_name)
                 rows = self.execute_query(query.query)
+                logger.debug("Done with query %s", query_name)
                 query_duration = datetime.now() - query_start
                 self.check.gauge("query_manager.check.query_duration", query_duration.total_seconds(), telemetry_tags, hostname=self.hostname)
             except Exception as e:
@@ -192,14 +189,7 @@ class QueryManager(object):
         Called by `execute`, this triggers query execution to check for errors immediately in a way that is compatible
         with any library. If there are no errors, this is guaranteed to return an iterator over the result set.
         """
-        try:
-            rows = self._timeout_func(self.executor)(query)
-        except process_timeout.ResultNotAvailableException:
-            self.check.log.error("ResultNotAvailableException")
-            return iter([])
-        except TimeoutException:
-            self.check.log.error("TimeoutException")
-            return iter([])
+        rows = self.executor(query)
 
         if rows is None:
             return iter([])
