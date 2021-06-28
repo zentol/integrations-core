@@ -42,7 +42,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def check(self, _):
         check_start = datetime.now()
         self._current_errors = 0
-        self.log.debug(self.connection)
+        self.fetch_system_info()
 
         try:
             self.query_manager.batch_execute()
@@ -79,9 +79,6 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 check_duration_tags,
                 hostname=self._query_manager.hostname,
             )
-
-    def handler(signum, frame):
-        raise Exception("Timed out")
 
     def execute_query(self, query):
         l = []
