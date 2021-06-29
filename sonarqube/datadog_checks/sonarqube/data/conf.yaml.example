@@ -85,6 +85,8 @@ init_config:
 #
 instances:
 
+    ## This is the python instance.
+    ## It enables the python check and do cool stuff.
   -
     ## @param web_endpoint - string - optional
     ## The SonarQube web endpoint which should expose its API at `/api`. For example:
@@ -144,6 +146,9 @@ instances:
     #
     # components: {}
 
+    ## This is the jmx instance
+    ## and the description is on multiple lines
+  -
     ## @param host - string - optional
     ## JMX hostname to connect to.
     #
