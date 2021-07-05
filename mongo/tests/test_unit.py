@@ -278,7 +278,7 @@ def test_collector_submit_payload(check, aggregator):
 
     metrics_to_collect = {
         'foo.bar1': GAUGE,
-        'foo.x.y.z': RATE,
+        'foo.x.y.z': [RATE, (GAUGE, 'foo.x.y.z.gauge')],
         'foo.R': RATE,
     }
     payload = {'foo': {'bar1': 1, 'x': {'y': {'z': 1}, 'y2': 1}, 'R': 1}}
@@ -286,6 +286,7 @@ def test_collector_submit_payload(check, aggregator):
     tags = ['foo:1', 'bar:1']
     aggregator.assert_metric('mongodb.foo.sharedps', 1, tags, metric_type=aggregator.RATE)
     aggregator.assert_metric('mongodb.foo.x.y.zps', 1, tags, metric_type=aggregator.RATE)
+    aggregator.assert_metric('mongodb.foo.x.y.z.gauge', 1, tags, metric_type=aggregator.GAUGE)
     aggregator.assert_metric('mongodb.foo.bar1', 1, tags, metric_type=aggregator.GAUGE)
     aggregator.assert_all_metrics_covered()
 

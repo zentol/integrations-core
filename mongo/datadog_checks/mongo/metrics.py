@@ -264,8 +264,8 @@ WIREDTIGER_METRICS = {
     "wiredTiger.cache.maximum bytes configured": GAUGE,
     "wiredTiger.cache.maximum page size at eviction": GAUGE,
     "wiredTiger.cache.modified pages evicted": GAUGE,
-    "wiredTiger.cache.pages read into cache": GAUGE,
-    "wiredTiger.cache.pages written from cache": GAUGE,
+    "wiredTiger.cache.pages read into cache": [GAUGE, (RATE, 'wiredtiger.cache.pages_read_into_cache.')],
+    "wiredTiger.cache.pages written from cache": [GAUGE, (RATE, 'wiredtiger.cache.pages_written_from_cache.')],
     "wiredTiger.cache.pages currently held in the cache": (GAUGE, "wiredTiger.cache.pages_currently_held_in_cache"),
     "wiredTiger.cache.pages evicted because they exceeded the in-memory maximum": (
         RATE,

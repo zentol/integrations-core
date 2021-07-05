@@ -95,16 +95,24 @@ class MongoCollector(object):
                         metric_name, type(value)
                     )
                 )
+            m_to_collect = metrics_to_collect[metric_name]
+            if isinstance(m_to_collect, list):
+                for metric_to_submit in m_to_collect:
+                    self._submit_metric(metric_to_submit, metric_name, prefix, value, tags)
+            else:
+                self._submit_metric(m_to_collect, metric_name, prefix, value, tags)
 
+    def _submit_metric(self, metric_to_collect, metric_name, prefix, value, tags):
             # Submit the metric
             submit_method = (
-                metrics_to_collect[metric_name][0]
-                if isinstance(metrics_to_collect[metric_name], tuple)
-                else metrics_to_collect[metric_name]
+                metric_to_collect[0]
+                if isinstance(metric_to_collect, tuple)
+                else metric_to_collect
             )
+            assert Exception("lel")
             metric_name_alias = (
-                metrics_to_collect[metric_name][1]
-                if isinstance(metrics_to_collect[metric_name], tuple)
+                metric_to_collect[1]
+                if isinstance(metric_to_collect, tuple)
                 else metric_name
             )
             metric_name_alias = self._normalize(metric_name_alias, submit_method, prefix)
