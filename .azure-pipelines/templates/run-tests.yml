@@ -1,6 +1,7 @@
 parameters:
   test_run: ''
   check: ''
+  debug: false
   test: false
   test_e2e: false
   ddtrace_flag: ''
@@ -17,9 +18,13 @@ steps:
     env:
       CODECOV_TOKEN: $(CODECOV_TOKEN)
 
-- ${{ if and(eq(parameters.test, 'true'), not(eq(parameters.coverage, 'true'))) }}:
+- ${{ if and(eq(parameters.test, 'true'), not(eq(parameters.coverage, 'true')), not(eq(parameters.debug, 'true'))) }}:
     - script: ddev test --junit ${{ parameters.ddtrace_flag }} ${{ parameters.check }}
       displayName: 'Run Unit/Integration tests (no coverage)'
+
+- ${{ if and(eq(parameters.test, 'true'), not(eq(parameters.coverage, 'true')), eq(parameters.debug, 'true')) }}:
+    - script: ddev test --junit -d -v ${{ parameters.ddtrace_flag }} ${{ parameters.check }}
+      displayName: 'Run Unit/Integration tests (no coverage) with debug'
 
 # Nightly base package check
 - ${{ if and(eq(parameters.test, 'true'), eq(parameters.force_base_package, 'true')) }}:

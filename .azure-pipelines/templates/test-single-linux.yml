@@ -1,6 +1,7 @@
 parameters:
   job_name: ''
   check: ''
+  debug: false
   display: ''
   test: true
   test_e2e: true
@@ -64,6 +65,7 @@ jobs:
     parameters:
       test_run: '${{ coalesce(parameters.job_name, parameters.check) }}.linux'
       check: ${{ parameters.check }}
+      debug: ${{ parameters.debug }}
       test: ${{ parameters.test }}
       test_e2e: ${{ parameters.test_e2e }}
       ddtrace_flag: ${{ parameters.ddtrace_flag }}
