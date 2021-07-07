@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, NamedTuple, Tuple
 
 import pyodbc
+import threading
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
@@ -25,7 +26,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._connection = None
         self._query_manager = None
         self._current_errors = 0
-        self.check_initializations.append(self.set_up_query_manager)
+        # self.check_initializations.append(self.set_up_query_manager)
 
     def handle_query_error(self, error):
         self._current_errors += 1
@@ -39,46 +40,62 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self._connection = None
 
     def check(self, _):
-        check_start = datetime.now()
-        self._current_errors = 0
+        def thread_check(check):
+            check_start = datetime.now()
+            check._current_errors = 0
 
-        try:
-            self.query_manager.execute()
-            check_status = AgentCheck.OK
-        except AttributeError:
-            self.warning('Could not set up query manager, skipping check run')
-            check_status = None
-        except Exception as e:
-            self._delete_connection(e)
-            check_status = AgentCheck.CRITICAL
+            try:
+                check.query_manager.execute()
+                check_status = AgentCheck.OK
+            except AttributeError:
+                check.warning('Could not set up query manager, skipping check run')
+                check_status = None
+            except Exception as e:
+                check._delete_connection(e)
+                check_status = AgentCheck.CRITICAL
 
-        if self._current_errors:
-            self._delete_connection("query error")
-            check_status = AgentCheck.CRITICAL
+            if check._current_errors:
+                check._delete_connection("query error")
+                check_status = AgentCheck.CRITICAL
 
-        if check_status is not None:
-            self.service_check(
-                self.SERVICE_CHECK_NAME,
-                check_status,
-                tags=self.config.tags,
-                hostname=self._query_manager.hostname,
-            )
+            if check_status is not None:
+                check.service_check(
+                    check.SERVICE_CHECK_NAME,
+                    check_status,
+                    tags=check.config.tags,
+                    hostname=check._query_manager.hostname,
+                )
 
-        check_end = datetime.now()
-        check_duration = check_end - check_start
-        self.log.debug("Check duration: %s", check_duration)
+            check_end = datetime.now()
+            check_duration = check_end - check_start
+            check.log.debug("Check duration: %s", check_duration)
 
-        if check_status is not None:
-            # The list() conversion is needed as self.config.tags is a tuple
-            check_duration_tags = list(self.config.tags) + ["check_id:{}".format(self.check_id)]
-            self.gauge(
-                "ibm_i.check.duration",
-                check_duration.total_seconds(),
-                check_duration_tags,
-                hostname=self._query_manager.hostname,
-            )
+            if check_status is not None:
+                # The list() conversion is needed as self.config.tags is a tuple
+                check_duration_tags = list(check.config.tags) + ["check_id:{}".format(check.check_id)]
+                check.gauge(
+                    "ibm_i.check.duration",
+                    check_duration.total_seconds(),
+                    check_duration_tags,
+                    hostname=self._query_manager.hostname,
+                )
+
+        t = threading.Thread(target=thread_check, args=(self,))
+        print("Starting check thread")
+        t.start()
+        t.join(20)
+
+        print("Finished joining check thread")
+
+        if t.is_alive():
+            print("Thread still alive, quitting")
+        else:
+            print("Thread dead")
+
+        return
 
     def execute_query(self, query):
+        print("Executing query {}".format(query))
         # https://github.com/mkleehammer/pyodbc/wiki/Connection#execute
         with closing(self.connection.execute(query)) as cursor:
 
