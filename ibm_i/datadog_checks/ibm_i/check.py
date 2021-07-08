@@ -23,76 +23,103 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def __init__(self, name, init_config, instances):
         super(IbmICheck, self).__init__(name, init_config, instances)
 
-        self._connection = None
+        self.connection = None
         self._query_manager = None
         self._current_errors = 0
         # self.check_initializations.append(self.set_up_query_manager)
 
-    def handle_query_error(self, error):
-        self._current_errors += 1
+    def handle_query_error(self, thread, error):
+        thread.current_errors += 1
         return error
 
-    def _delete_connection(self, e):
-        if self._connection:
-            self.warning('An error occurred, resetting IBM i connection: %s', e)
-            with suppress(Exception):
-                self.connection.close()
-            self._connection = None
-
     def check(self, _):
-        def thread_check(check):
-            check_start = datetime.now()
-            check._current_errors = 0
+        # From https://stackoverflow.com/questions/323972/is-there-any-way-to-kill-a-thread
+        class CheckThread(threading.Thread):
+            """Thread class with a stop() method. The thread itself has to check
+            regularly for the stopped() condition."""
 
-            try:
-                check.query_manager.execute()
-                check_status = AgentCheck.OK
-            except AttributeError:
-                check.warning('Could not set up query manager, skipping check run')
+            def __init__(self, check=None, *args, **kwargs):
+                super(CheckThread, self).__init__(*args, **kwargs)
+                self.check = check
+                self.current_errors = 0
+                self._stop_event = threading.Event()
+
+            def stop(self):
+                self._stop_event.set()
+
+            def stopped(self):
+                return self._stop_event.is_set()
+
+            def run(self):
+                check_start = datetime.now()
                 check_status = None
-            except Exception as e:
-                check._delete_connection(e)
-                check_status = AgentCheck.CRITICAL
 
-            if check._current_errors:
-                check._delete_connection("query error")
-                check_status = AgentCheck.CRITICAL
+                connection = self.check._create_connection()
+                if not self.stopped():
+                    self.check.connection = connection
+                else:
+                    self.check.log.debug("Check stopped, not writing connection")
 
-            if check_status is not None:
-                check.service_check(
-                    check.SERVICE_CHECK_NAME,
-                    check_status,
-                    tags=check.config.tags,
-                    hostname=check._query_manager.hostname,
-                )
+                try:
+                    if not self.stopped():
+                        self.check.query_manager.thread_execute(self)
+                        check_status = AgentCheck.OK
+                except AttributeError:
+                    if not self.stopped():
+                        self.check.warning('Could not set up query manager, skipping check run')
+                        check_status = None
+                except Exception as e:
+                    if not self.stopped():
+                        self.check._delete_connection(e)
+                        check_status = AgentCheck.CRITICAL
+                    else:
+                        self.check.log.debug("Check stopped, not deleting connection")
 
-            check_end = datetime.now()
-            check_duration = check_end - check_start
-            check.log.debug("Check duration: %s", check_duration)
+                if not self.stopped():
+                    if self.current_errors:
+                        self.check._delete_connection("query error")
+                        check_status = AgentCheck.CRITICAL
 
-            if check_status is not None:
-                # The list() conversion is needed as self.config.tags is a tuple
-                check_duration_tags = list(check.config.tags) + ["check_id:{}".format(check.check_id)]
-                check.gauge(
-                    "ibm_i.check.duration",
-                    check_duration.total_seconds(),
-                    check_duration_tags,
-                    hostname=self._query_manager.hostname,
-                )
+                    if check_status is not None:
+                        self.check.service_check(
+                            self.check.SERVICE_CHECK_NAME,
+                            check_status,
+                            tags=self.check.config.tags,
+                            hostname=self.check._query_manager.hostname,
+                        )
 
-        t = threading.Thread(target=thread_check, args=(self,))
-        print("Starting check thread")
+                    check_end = datetime.now()
+                    check_duration = check_end - check_start
+                    self.check.log.debug("Check duration: %s", check_duration)
+
+                    if check_status is not None:
+                        # The list() conversion is needed as self.config.tags is a tuple
+                        check_duration_tags = list(self.check.config.tags) + ["check_id:{}".format(self.check.check_id)]
+                        self.check.gauge(
+                            "ibm_i.check.duration",
+                            check_duration.total_seconds(),
+                            check_duration_tags,
+                            hostname=self.check._query_manager.hostname,
+                        )
+
+                else:
+                    self.check.log.info("Check stopped")
+
+
+        t = CheckThread(self)
+        self.log.info("Starting check thread")
         t.start()
         t.join(20)
+        t.stop()
 
-        print("Finished joining check thread")
+        self.log.info("Finished joining check thread")
 
         if t.is_alive():
-            print("Thread still alive, quitting")
+            self.log.info("Thread still alive, deleting connection")
+            self._delete_connection("Thread timed out")
+            self.log.info("Connection deleted")
         else:
-            print("Thread dead")
-
-        return
+            self.log.info("Thread dead")
 
     def execute_query(self, query):
         print("Executing query {}".format(query))
@@ -103,28 +130,34 @@ class IbmICheck(AgentCheck, ConfigMixin):
             for row in cursor:
                 yield row
 
-    @property
-    def connection(self):
-        if self._connection is None:
-            # https://www.connectionstrings.com/as-400/
-            # https://www.ibm.com/support/pages/odbc-driver-ibm-i-access-client-solutions
-            connection_string = self.config.connection_string
-            if not connection_string:
-                connection_string = f'Driver={{{self.config.driver.strip("{}")}}};'
+    def _create_connection(self):
+        if self.connection:
+            return self.connection
 
-                if self.config.system:
-                    connection_string += f'System={self.config.system};'
+        # https://www.connectionstrings.com/as-400/
+        # https://www.ibm.com/support/pages/odbc-driver-ibm-i-access-client-solutions
+        connection_string = self.config.connection_string
+        if not connection_string:
+            connection_string = f'Driver={{{self.config.driver.strip("{}")}}};'
 
-                if self.config.username:
-                    connection_string += f'UID={self.config.username};'
+            if self.config.system:
+                connection_string += f'System={self.config.system};'
 
-                if self.config.password:
-                    connection_string += f'PWD={self.config.password};'
-                    self.register_secret(self.config.password)
+            if self.config.username:
+                connection_string += f'UID={self.config.username};'
 
-            self._connection = pyodbc.connect(connection_string)
+            if self.config.password:
+                connection_string += f'PWD={self.config.password};'
+                self.register_secret(self.config.password)
 
-        return self._connection
+        return pyodbc.connect(connection_string)
+
+    def _delete_connection(self, e):
+        if self.connection:
+            self.warning('An error occurred, resetting IBM i connection: %s', e)
+            with suppress(Exception):
+                self.connection.close()
+            self.connection = None
 
     @property
     def query_manager(self):

@@ -93,6 +93,102 @@ class QueryManager(object):
         for query in self.queries:
             query.compile(column_transformers, EXTRA_TRANSFORMERS.copy())
 
+    def thread_execute(self, thread, extra_tags=None):
+        """This method is what you call every check run."""
+        logger = self.check.log
+        if extra_tags:
+            global_tags = list(extra_tags)
+            global_tags.extend(self.tags)
+        else:
+            global_tags = self.tags
+
+        for query in self.queries:
+            if thread.stopped():
+                logger.info("Got stop signal, stopping queries")
+                return
+
+            query_name = query.name
+            query_columns = query.columns
+            query_extras = query.extras
+            query_tags = query.tags
+            num_columns = len(query_columns)
+
+            telemetry_tags = list(global_tags) + ["check_id:{}".format(self.check.check_id), "query_id:{}".format(query_name)]
+            try:
+                query_start = datetime.now()
+                rows = self.execute_query(query.query)
+                query_duration = datetime.now() - query_start
+                self.check.gauge("query_manager.check.query_duration", query_duration.total_seconds(), telemetry_tags, hostname=self.hostname)
+            except Exception as e:
+                if self.error_handler:
+                    logger.error('Error querying %s: %s', query_name, self.error_handler(thread, str(e)))
+                else:
+                    logger.error('Error querying %s: %s', query_name, e)
+
+                continue
+
+            if thread.stopped():
+                logger.info("Got stop signal, stopping transformation")
+                return
+
+            transformation_start = datetime.now()
+            for row in rows:
+                if not row:
+                    logger.debug('Query %s returned an empty result', query_name)
+                    continue
+
+                if num_columns != len(row):
+                    logger.error(
+                        'Query %s expected %d column%s, got %d',
+                        query_name,
+                        num_columns,
+                        's' if num_columns > 1 else '',
+                        len(row),
+                    )
+                    continue
+
+                sources = {}
+                submission_queue = []
+
+                tags = list(global_tags)
+                tags.extend(query_tags)
+
+                for (column_name, transformer), value in zip(query_columns, row):
+                    # Columns can be ignored via configuration
+                    if not column_name:
+                        continue
+
+                    sources[column_name] = value
+
+                    column_type, transformer = transformer
+
+                    # The transformer can be None for `source` types. Those such columns do not submit
+                    # anything but are collected into the row values for other columns to reference.
+                    if transformer is None:
+                        continue
+                    elif column_type == 'tag':
+                        tags.append(transformer(None, value))
+                    elif column_type == 'tag_list':
+                        tags.extend(transformer(None, value))
+                    else:
+                        submission_queue.append((transformer, value))
+
+                for transformer, value in submission_queue:
+                    transformer(sources, value, tags=tags, hostname=self.hostname)
+
+                for name, transformer in query_extras:
+                    try:
+                        result = transformer(sources, tags=tags, hostname=self.hostname)
+                    except Exception as e:
+                        logger.error('Error transforming %s: %s', name, e)
+                        continue
+                    else:
+                        if result is not None:
+                            sources[name] = result
+
+            transformation_duration = datetime.now() - transformation_start
+            self.check.gauge("query_manager.check.transformation_duration", transformation_duration.total_seconds(), telemetry_tags, hostname=self.hostname)
+
     def execute(self, extra_tags=None):
         """This method is what you call every check run."""
         logger = self.check.log
