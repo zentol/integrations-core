@@ -5,7 +5,9 @@ from contextlib import closing, suppress
 from datetime import datetime
 from typing import List, NamedTuple, Tuple
 
-import pyodbc
+import os
+import subprocess
+import select
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
@@ -22,21 +24,17 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def __init__(self, name, init_config, instances):
         super(IbmICheck, self).__init__(name, init_config, instances)
 
-        self._connection = None
+        self._connection_string = None
+        self._subprocess = None
+        self._subprocess_stderr = None
+        self._subprocess_stdout = None
+        self._subprocess_stdin = None
         self._query_manager = None
-        self._current_errors = 0
-        self.check_initializations.append(self.set_up_query_manager)
+        # self.check_initializations.append(self.set_up_query_manager)
 
     def handle_query_error(self, error):
         self._current_errors += 1
         return error
-
-    def _delete_connection(self, e):
-        if self._connection:
-            self.warning('An error occurred, resetting IBM i connection: %s', e)
-            with suppress(Exception):
-                self.connection.close()
-            self._connection = None
 
     def check(self, _):
         check_start = datetime.now()
@@ -49,11 +47,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self.warning('Could not set up query manager, skipping check run')
             check_status = None
         except Exception as e:
-            self._delete_connection(e)
-            check_status = AgentCheck.CRITICAL
-
-        if self._current_errors:
-            self._delete_connection("query error")
+            self._delete_connection_subprocess()
             check_status = AgentCheck.CRITICAL
 
         if check_status is not None:
@@ -78,17 +72,80 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 hostname=self._query_manager.hostname,
             )
 
-    def execute_query(self, query):
-        # https://github.com/mkleehammer/pyodbc/wiki/Connection#execute
-        with closing(self.connection.execute(query)) as cursor:
+    def _create_connection_subprocess(self):
+        (r1, w1) = os.pipe()  # for process -> subprocess stdin writes
+        (r2, w2) = os.pipe()  # for subprocess -> process stdout writes
+        (r3, w3) = os.pipe()  # for subprocess -> process stderr writes
 
-            # https://github.com/mkleehammer/pyodbc/wiki/Cursor
-            for row in cursor:
-                yield row
+        self._subprocess = subprocess.Popen(
+                ["/opt/datadog-agent/embedded/bin/python3",
+                 "-c", "from datadog_checks.ibm_i.query_script import query; query()"],
+                stdin=r1,
+                stdout=w2,
+                stderr=w3,
+                text=True,
+            )
+
+        self._subprocess_stdin = os.fdopen(w1, 'w', buffering=1)
+        self._subprocess_stdout = os.fdopen(r2)
+        self._subprocess_stderr = os.fdopen(r3)
+
+        self._subprocess_stdin.write(self.connection_string + '\n')
+
+    def _delete_connection_subprocess(self):
+        if self._subprocess:
+            self._subprocess.kill()
+        self._subprocess = None
+        
+        if self._subprocess_stdin:
+            self._subprocess_stdin.close()
+        self._subprocess_stdin = None
+        
+        if self._subprocess_stdout:
+            self._subprocess_stdout.close()
+        self._subprocess_stdout = None
+
+        if self._subprocess_stderr:
+            self._subprocess_stderr.close()
+        self._subprocess_stderr = None
+
+    def execute_query(self, query):
+        if not self._subprocess:
+            self._create_connection_subprocess()
+
+        # Write query
+        self._subprocess_stdin.write("{}\n".format(query))
+
+        poll_stdout = select.poll()
+        poll_stdout.register(self._subprocess_stdout, select.POLLIN)
+        poll_stderr = select.poll()
+        poll_stderr.register(self._subprocess_stderr, select.POLLIN)
+
+        line = None
+        query_start = datetime.now()
+
+        while (datetime.now() - query_start).total_seconds() <= 20:
+            if poll_stdout.poll(100):
+                line = self._subprocess_stdout.readline().strip()
+                if line == "ENDOFQUERY":
+                    break
+                yield [el for el in line.split('|')]
+
+        e = None
+        while poll_stderr.poll(0):
+            e = self._subprocess_stderr.readline()
+
+        if e:
+            self._delete_connection_subprocess()
+            raise Exception(e)
+
+        if line != "ENDOFQUERY":
+            self._delete_connection_subprocess()
+            raise Exception("Timed out")
 
     @property
-    def connection(self):
-        if self._connection is None:
+    def connection_string(self):
+        if self._connection_string is None:
             # https://www.connectionstrings.com/as-400/
             # https://www.ibm.com/support/pages/odbc-driver-ibm-i-access-client-solutions
             connection_string = self.config.connection_string
@@ -105,9 +162,9 @@ class IbmICheck(AgentCheck, ConfigMixin):
                     connection_string += f'PWD={self.config.password};'
                     self.register_secret(self.config.password)
 
-            self._connection = pyodbc.connect(connection_string)
+            self._connection_string = connection_string
 
-        return self._connection
+        return self._connection_string
 
     @property
     def query_manager(self):
@@ -141,7 +198,6 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 tags=self.config.tags,
                 queries=query_list,
                 hostname=system_info.hostname,
-                error_handler=self.handle_query_error,
             )
             self._query_manager.compile_queries()
 
@@ -168,7 +224,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         try:
             return self.system_info_query()
         except Exception as e:
-            self._delete_connection(e)
+            self._delete_connection_subprocess()
 
     def system_info_query(self):
         query = "SELECT HOST_NAME, OS_VERSION, OS_RELEASE FROM SYSIBMADM.ENV_SYS_INFO"
