@@ -119,7 +119,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self._subprocess_stderr.close()
         self._subprocess_stderr = None
 
-    def execute_query(self, query):
+    def execute_query(self, query, disconnect_on_error=True):
         if not self._subprocess:
             self._create_connection_subprocess()
 
@@ -151,12 +151,16 @@ class IbmICheck(AgentCheck, ConfigMixin):
             # We couldn't read anything
             pass
 
+        # disconnect_on_error can be set to False for queries we
+        # expect to fail and where we don't want to disconnect.
         if e:
-            self._delete_connection_subprocess(e)
+            if disconnect_on_error:
+                self._delete_connection_subprocess(e)
             raise Exception(e)
 
         if not done:
-            self._delete_connection_subprocess("Timed out")
+            if disconnect_on_error:
+                self._delete_connection_subprocess("Timed out")
             raise Exception("Timed out")
 
     @property
@@ -228,8 +232,8 @@ class IbmICheck(AgentCheck, ConfigMixin):
             # We do need the query to be executed, which is why we do an operation on it.
             # We use the list operation because we know it will work as long as the query doesn't
             # raise an error (if we were to use next, we'd have to take care of the case where
-            # the generator rasies a StopIteration exception because the query is valid but returns 0 rows).
-            list(self.execute_query(query))  # type: List[Tuple[str]]
+            # the generator raises a StopIteration exception because the query is valid but returns 0 rows).
+            list(self.execute_query(query, disconnect_on_error=False))  # type: List[Tuple[str]]
         except Exception as e:
             self.log.debug("Couldn't find IBM MQ data, turning off IBM MQ queries: %s", e)
             return False
