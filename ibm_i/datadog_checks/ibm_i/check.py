@@ -31,7 +31,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._subprocess_stdout = None
         self._subprocess_stdin = None
         self._query_manager = None
-        # self.check_initializations.append(self.set_up_query_manager)
+        self.check_initializations.append(self.set_up_query_manager)
 
     def handle_query_error(self, error):
         self._current_errors += 1
@@ -143,12 +143,14 @@ class IbmICheck(AgentCheck, ConfigMixin):
                         break
                     yield [el for el in stripped_line.split('|')]
             except TypeError:
+                # We couldn't read anything
                 continue
 
         e = None
         try:
             e = self._subprocess_stderr.read().strip()
         except TypeError:
+            # We couldn't read anything
             pass
 
         if e:
