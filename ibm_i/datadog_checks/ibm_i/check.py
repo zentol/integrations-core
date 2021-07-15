@@ -44,7 +44,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self.warning('Could not set up query manager, skipping check run')
             check_status = None
         except Exception as e:
-            self._delete_connection_subprocess()
+            self._delete_connection_subprocess(e)
             check_status = AgentCheck.CRITICAL
 
         if check_status is not None:
@@ -100,7 +100,9 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         self._subprocess_stdin.write("{}{}".format(self.connection_string, os.linesep))
 
-    def _delete_connection_subprocess(self):
+    def _delete_connection_subprocess(self, error):
+        self.log.error("Error while querying remote IBM i system, resetting connection: {}".format(error))
+
         if self._subprocess:
             self._subprocess.kill()
         self._subprocess = None
@@ -150,11 +152,11 @@ class IbmICheck(AgentCheck, ConfigMixin):
             pass
 
         if e:
-            self._delete_connection_subprocess()
+            self._delete_connection_subprocess(e)
             raise Exception(e)
 
         if not done:
-            self._delete_connection_subprocess()
+            self._delete_connection_subprocess("Timed out")
             raise Exception("Timed out")
 
     @property
@@ -238,7 +240,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         try:
             return self.system_info_query()
         except Exception as e:
-            self._delete_connection_subprocess()
+            self._delete_connection_subprocess(e)
 
     def system_info_query(self):
         query = "SELECT HOST_NAME, OS_VERSION, OS_RELEASE FROM SYSIBMADM.ENV_SYS_INFO"
