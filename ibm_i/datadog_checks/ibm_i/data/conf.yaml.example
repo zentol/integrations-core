@@ -49,6 +49,11 @@ instances:
     #
     # severity_threshold: 50
 
+    ## @param query_timeout - integer - optional - default: 30
+    ## The timeout (in seconds) applied to each query made on the IBM i system.
+    #
+    # query_timeout: 30
+
     ## @param tags - list of strings - optional
     ## A list of tags to attach to every metric and service check emitted by this instance.
     ##

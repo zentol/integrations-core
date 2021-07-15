@@ -45,4 +45,10 @@ files:
       value:
         type: integer
         example: 50
+    - name: query_timeout
+      description: |
+        The timeout (in seconds) applied to each query made on the IBM i system.
+      value:
+        type: integer
+        example: 30
     - template: instances/default

@@ -132,7 +132,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         done = False
         query_start = datetime.now()
 
-        while not done and (datetime.now() - query_start).total_seconds() <= 20:
+        while not done and (datetime.now() - query_start).total_seconds() <= self.config.query_timeout:
             time.sleep(0.1)
             try:
                 lines = self._subprocess_stdout.read().strip().split(os.linesep)

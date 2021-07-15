@@ -28,6 +28,7 @@ class InstanceConfig(BaseModel):
     tags: Optional[Sequence[str]]
     username: Optional[str]
     severity_threshold: Optional[int]
+    query_timeout: Optional[int]
 
     @root_validator(pre=True)
     def _initial_validation(cls, values):
