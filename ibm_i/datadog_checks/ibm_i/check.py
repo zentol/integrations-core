@@ -33,10 +33,6 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._query_manager = None
         self.check_initializations.append(self.set_up_query_manager)
 
-    def handle_query_error(self, error):
-        self._current_errors += 1
-        return error
-
     def check(self, _):
         check_start = datetime.now()
         self._current_errors = 0
@@ -88,15 +84,14 @@ class IbmICheck(AgentCheck, ConfigMixin):
             )
 
         self._subprocess_stdin = os.fdopen(w1, 'w', buffering=1)
-        self._subprocess_stdout = os.fdopen(r2)
 
+        self._subprocess_stdout = os.fdopen(r2)
         # Set stdout reader as non-blocking, we don't want to
         # block .read() calls to be able to time out.
         fl = fcntl.fcntl(self._subprocess_stdout.fileno(), fcntl.F_GETFL)
         fcntl.fcntl(self._subprocess_stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         self._subprocess_stderr = os.fdopen(r3)
-
         # Set stderr reader as non-blocking, we don't want to
         # wait until EOF is sent, we only want to read whatever is there when
         # we try to return errors.
@@ -133,6 +128,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         query_start = datetime.now()
 
         while not done and (datetime.now() - query_start).total_seconds() <= self.config.query_timeout:
+            # Sleep for a bit to wait for results & avoid being a busy loop
             time.sleep(0.1)
             try:
                 lines = self._subprocess_stdout.read().strip().split(os.linesep)
