@@ -27,9 +27,6 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         self._connection_string = None
         self._subprocess = None
-        self._subprocess_stderr = None
-        self._subprocess_stdout = None
-        self._subprocess_stdin = None
         self._query_manager = None
         self.check_initializations.append(self.set_up_query_manager)
 
@@ -69,62 +66,51 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 hostname=self._query_manager.hostname,
             )
 
-    def _create_connection_subprocess(self):
-        (r1, w1) = os.pipe()  # for process -> subprocess stdin writes
-        (r2, w2) = os.pipe()  # for subprocess -> process stdout writes
-        (r3, w3) = os.pipe()  # for subprocess -> process stderr writes
+    def cancel(self):
+        # When the check gets cancelled, clean up the connection subprocess.
+        self._delete_connection_subprocess(show_error=False)
 
+    def _create_connection_subprocess(self):
         self._subprocess = subprocess.Popen(
                 ["/opt/datadog-agent/embedded/bin/python3",
                  "-c", "from datadog_checks.ibm_i.query_script import query; query()"],
-                stdin=r1,
-                stdout=w2,
-                stderr=w3,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
             )
 
-        self._subprocess_stdin = os.fdopen(w1, 'w', buffering=1)
-
-        self._subprocess_stdout = os.fdopen(r2)
         # Set stdout reader as non-blocking, we don't want to
         # block .read() calls to be able to time out.
-        fl = fcntl.fcntl(self._subprocess_stdout.fileno(), fcntl.F_GETFL)
-        fcntl.fcntl(self._subprocess_stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+        fl = fcntl.fcntl(self._subprocess.stdout.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(self._subprocess.stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        self._subprocess_stderr = os.fdopen(r3)
         # Set stderr reader as non-blocking, we don't want to
         # wait until EOF is sent, we only want to read whatever is there when
         # we try to return errors.
-        fl = fcntl.fcntl(self._subprocess_stderr.fileno(), fcntl.F_GETFL)
-        fcntl.fcntl(self._subprocess_stderr, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+        fl = fcntl.fcntl(self._subprocess.stderr.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(self._subprocess.stderr, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        self._subprocess_stdin.write("{}{}".format(self.connection_string, os.linesep))
+        print(self.connection_string, file=self._subprocess.stdin, flush=True)
 
-    def _delete_connection_subprocess(self, error):
-        self.log.error("Error while querying remote IBM i system, resetting connection: {}".format(error))
+    def _delete_connection_subprocess(self, error, show_error=True):
+        if show_error:
+            self.log.error("Error while querying remote IBM i system, resetting connection: {}".format(error))
 
         if self._subprocess:
-            self._subprocess.kill()
+            while not self._subprocess.returncode:
+                self._subprocess.kill()
+                self._subprocess.wait()
+        
         self._subprocess = None
-        
-        if self._subprocess_stdin:
-            self._subprocess_stdin.close()
-        self._subprocess_stdin = None
-        
-        if self._subprocess_stdout:
-            self._subprocess_stdout.close()
-        self._subprocess_stdout = None
 
-        if self._subprocess_stderr:
-            self._subprocess_stderr.close()
-        self._subprocess_stderr = None
 
     def execute_query(self, query, disconnect_on_error=True):
         if not self._subprocess:
             self._create_connection_subprocess()
 
         # Write query
-        self._subprocess_stdin.write("{}{}".format(query, os.linesep))
+        print(query, file=self._subprocess.stdin, flush=True)
 
         done = False
         query_start = datetime.now()
@@ -133,7 +119,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
             # Sleep for a bit to wait for results & avoid being a busy loop
             time.sleep(0.1)
             try:
-                lines = self._subprocess_stdout.read().strip().split(os.linesep)
+                lines = self._subprocess.stdout.read().strip().split(os.linesep)
                 for line in lines:
                     stripped_line = line.strip()
                     if stripped_line == "ENDOFQUERY":
@@ -146,7 +132,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         e = None
         try:
-            e = self._subprocess_stderr.read().strip()
+            e = self._subprocess.stderr.read().strip()
         except TypeError:
             # We couldn't read anything
             pass
@@ -243,8 +229,9 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def fetch_system_info(self):
         try:
             return self.system_info_query()
-        except Exception as e:
-            self._delete_connection_subprocess(e)
+        except Exception:
+            # In case of errors, the connection will have already been cleaned by execute_query.
+            pass
 
     def system_info_query(self):
         query = "SELECT HOST_NAME, OS_VERSION, OS_RELEASE FROM SYSIBMADM.ENV_SYS_INFO"
