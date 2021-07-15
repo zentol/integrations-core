@@ -17,8 +17,7 @@ def query():
                     for row in c:
                         print("|".join(str(el) for el in row), flush=True)
             except pyodbc.Error as e:
-                print("{}\n".format(e), file=sys.stderr, flush=True)
-
+                print("{}".format(e), file=sys.stderr, flush=True)
             print('ENDOFQUERY', flush=True)
 
 

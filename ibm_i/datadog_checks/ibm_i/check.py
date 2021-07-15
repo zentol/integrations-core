@@ -7,7 +7,8 @@ from typing import List, NamedTuple, Tuple
 
 import os
 import subprocess
-import select
+import fcntl
+import time
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
@@ -88,9 +89,21 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         self._subprocess_stdin = os.fdopen(w1, 'w', buffering=1)
         self._subprocess_stdout = os.fdopen(r2)
+
+        # Set stdout reader as non-blocking, we don't want to
+        # block .read() calls to be able to time out.
+        fl = fcntl.fcntl(self._subprocess_stdout.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(self._subprocess_stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
         self._subprocess_stderr = os.fdopen(r3)
 
-        self._subprocess_stdin.write(self.connection_string + '\n')
+        # Set stderr reader as non-blocking, we don't want to
+        # wait until EOF is sent, we only want to read whatever is there when
+        # we try to return errors.
+        fl = fcntl.fcntl(self._subprocess_stderr.fileno(), fcntl.F_GETFL)
+        fcntl.fcntl(self._subprocess_stderr, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+        self._subprocess_stdin.write("{}{}".format(self.connection_string, os.linesep))
 
     def _delete_connection_subprocess(self):
         if self._subprocess:
@@ -114,32 +127,35 @@ class IbmICheck(AgentCheck, ConfigMixin):
             self._create_connection_subprocess()
 
         # Write query
-        self._subprocess_stdin.write("{}\n".format(query))
+        self._subprocess_stdin.write("{}{}".format(query, os.linesep))
 
-        poll_stdout = select.poll()
-        poll_stdout.register(self._subprocess_stdout, select.POLLIN)
-        poll_stderr = select.poll()
-        poll_stderr.register(self._subprocess_stderr, select.POLLIN)
-
-        line = None
+        done = False
         query_start = datetime.now()
 
-        while (datetime.now() - query_start).total_seconds() <= 20:
-            if poll_stdout.poll(100):
-                line = self._subprocess_stdout.readline().strip()
-                if line == "ENDOFQUERY":
-                    break
-                yield [el for el in line.split('|')]
+        while not done and (datetime.now() - query_start).total_seconds() <= 20:
+            time.sleep(0.1)
+            try:
+                lines = self._subprocess_stdout.read().strip().split(os.linesep)
+                for line in lines:
+                    stripped_line = line.strip()
+                    if stripped_line == "ENDOFQUERY":
+                        done = True
+                        break
+                    yield [el for el in stripped_line.split('|')]
+            except TypeError:
+                continue
 
         e = None
-        while poll_stderr.poll(0):
-            e = self._subprocess_stderr.readline()
+        try:
+            e = self._subprocess_stderr.read().strip()
+        except TypeError:
+            pass
 
         if e:
             self._delete_connection_subprocess()
             raise Exception(e)
 
-        if line != "ENDOFQUERY":
+        if not done:
             self._delete_connection_subprocess()
             raise Exception("Timed out")
 
