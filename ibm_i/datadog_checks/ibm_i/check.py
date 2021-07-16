@@ -141,7 +141,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         while not done and (datetime.now() - query_start).total_seconds() <= self.config.query_timeout:
             # Sleep for a bit to wait for results & avoid being a busy loop
-            time.sleep(0.1)
+            time.sleep(0.2)
             try:
                 # To avoid blocking never use a pipe's file descriptor iterator. See https://bugs.python.org/issue3907
                 for line in iter(self.connection_subprocess.stdout.readline, ''):
