@@ -77,6 +77,12 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._current_errors += 1
         return error
 
+    @property
+    def connection_subprocess(self):
+        if self._subprocess is None:
+            self._create_connection_subprocess()
+        return self._subprocess
+
     def _create_connection_subprocess(self):
         self._subprocess = subprocess.Popen(
             # TODO: Change to sys.executable once we're based on Agent 7.30.0
@@ -120,12 +126,9 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._subprocess = None
 
     def execute_query(self, query, disconnect_on_error=True):
-        if not self._subprocess:
-            self._create_connection_subprocess()
-
         try:
             # Write query
-            print(query, file=self._subprocess.stdin, flush=True)
+            print(query, file=self.connection_subprocess.stdin, flush=True)
         except BrokenPipeError as e:
             # The stdin pipe is broken, usually due to the Agent
             # killing the subprocess when stopping.
@@ -140,8 +143,8 @@ class IbmICheck(AgentCheck, ConfigMixin):
             # Sleep for a bit to wait for results & avoid being a busy loop
             time.sleep(0.1)
             try:
-                lines = self._subprocess.stdout.read().strip().split(os.linesep)
-                for line in lines:
+                # To avoid blocking never use a pipe's file descriptor iterator. See https://bugs.python.org/issue3907
+                for line in iter(self.connection_subprocess.stdout.readline, ''):
                     stripped_line = line.strip()
                     if stripped_line == "":
                         # Empty line, skip
@@ -162,7 +165,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         e = None
         try:
-            e = self._subprocess.stderr.read().strip()
+            e = self.connection_subprocess.stderr.read().strip()
         except TypeError:
             # We couldn't read anything
             pass
