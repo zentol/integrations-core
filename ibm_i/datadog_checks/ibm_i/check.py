@@ -68,7 +68,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def cancel(self):
         # When the check gets cancelled, clean up the connection subprocess.
-        self._delete_connection_subprocess(show_error=False)
+        self._delete_connection_subprocess()
 
     def _create_connection_subprocess(self):
         self._subprocess = subprocess.Popen(
@@ -92,26 +92,36 @@ class IbmICheck(AgentCheck, ConfigMixin):
         fl = fcntl.fcntl(self._subprocess.stderr.fileno(), fcntl.F_GETFL)
         fcntl.fcntl(self._subprocess.stderr, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
-        print(self.connection_string, file=self._subprocess.stdin, flush=True)
+        try:
+            print(self.connection_string, file=self._subprocess.stdin, flush=True)
+        except BrokenPipeError as e:
+            # The stdin pipe is broken, usually due to the Agent
+            # killing the subprocess when stopping.
+            # Clean up then return.
+            self._delete_connection_subprocess(e)
 
-    def _delete_connection_subprocess(self, error, show_error=True):
-        if show_error:
-            self.log.error("Error while querying remote IBM i system, resetting connection: {}".format(error))
-
+    def _delete_connection_subprocess(self, message):
         if self._subprocess:
+            self.log.debug("Deleting connection: {}".format(message))
             while not self._subprocess.returncode:
                 self._subprocess.kill()
                 self._subprocess.wait()
         
         self._subprocess = None
 
-
     def execute_query(self, query, disconnect_on_error=True):
         if not self._subprocess:
             self._create_connection_subprocess()
 
-        # Write query
-        print(query, file=self._subprocess.stdin, flush=True)
+        try:
+            # Write query
+            print(query, file=self._subprocess.stdin, flush=True)
+        except BrokenPipeError as e:
+            # The stdin pipe is broken, usually due to the Agent
+            # killing the subprocess when stopping.
+            # Clean up then return.
+            self._delete_connection_subprocess(e)
+            return
 
         done = False
         query_start = datetime.now()
@@ -133,6 +143,12 @@ class IbmICheck(AgentCheck, ConfigMixin):
             except TypeError:
                 # We couldn't read anything
                 continue
+            except BrokenPipeError as e:
+                # The stdout pipe is broken, usually due to the Agent
+                # killing the subprocess when stopping.
+                # Clean up then return.
+                self._delete_connection_subprocess(e)
+                return
 
         e = None
         try:
@@ -140,6 +156,12 @@ class IbmICheck(AgentCheck, ConfigMixin):
         except TypeError:
             # We couldn't read anything
             pass
+        except BrokenPipeError as e:
+            # The stderr pipe is broken, usually due to the Agent
+            # killing the subprocess when stopping.
+            # Clean up then return.
+            self._delete_connection_subprocess(e)
+            return
 
         # disconnect_on_error can be set to False for queries we
         # expect to fail and where we don't want to disconnect.
