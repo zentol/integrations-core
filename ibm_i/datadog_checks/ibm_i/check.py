@@ -122,6 +122,9 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 lines = self._subprocess.stdout.read().strip().split(os.linesep)
                 for line in lines:
                     stripped_line = line.strip()
+                    if stripped_line == "":
+                        # Empty line, skip
+                        continue
                     if stripped_line == "ENDOFQUERY":
                         done = True
                         break
