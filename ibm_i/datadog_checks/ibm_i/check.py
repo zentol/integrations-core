@@ -1,14 +1,12 @@
 # (C) Datadog, Inc. 2021-present
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
-from contextlib import closing, suppress
-from datetime import datetime
-from typing import List, NamedTuple, Tuple
-
+import fcntl
 import os
 import subprocess
-import fcntl
 import time
+from datetime import datetime
+from typing import List, NamedTuple, Tuple
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
@@ -28,6 +26,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         self._connection_string = None
         self._subprocess = None
         self._query_manager = None
+        self._current_errors = 0
         self.check_initializations.append(self.set_up_query_manager)
 
     def check(self, _):
@@ -42,6 +41,10 @@ class IbmICheck(AgentCheck, ConfigMixin):
             check_status = None
         except Exception as e:
             self._delete_connection_subprocess(e)
+            check_status = AgentCheck.CRITICAL
+
+        # At least one query failed, set the service check as failing
+        if self._current_errors:
             check_status = AgentCheck.CRITICAL
 
         if check_status is not None:
@@ -70,11 +73,18 @@ class IbmICheck(AgentCheck, ConfigMixin):
         # When the check gets cancelled, clean up the connection subprocess.
         self._delete_connection_subprocess()
 
+    def handle_query_error(self, error):
+        self._current_errors += 1
+        return error
+
     def _create_connection_subprocess(self):
         self._subprocess = subprocess.Popen(
             # TODO: Change to sys.executable once we're based on Agent 7.30.0
-            ["/opt/datadog-agent/embedded/bin/python3",
-                "-c", "from datadog_checks.ibm_i.query_script import query; query()"],
+            [
+                "/opt/datadog-agent/embedded/bin/python3",
+                "-c",
+                "from datadog_checks.ibm_i.query_script import query; query()",
+            ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -102,11 +112,11 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def _delete_connection_subprocess(self, message):
         if self._subprocess:
-            self.log.debug("Deleting connection: {}".format(message))
+            self.log.debug("Deleting connection: %s", message)
             while not self._subprocess.returncode:
                 self._subprocess.kill()
                 self._subprocess.wait()
-        
+
         self._subprocess = None
 
     def execute_query(self, query, disconnect_on_error=True):
@@ -230,6 +240,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 tags=self.config.tags,
                 queries=query_list,
                 hostname=system_info.hostname,
+                error_handler=self.handle_query_error,
             )
             self._query_manager.compile_queries()
 

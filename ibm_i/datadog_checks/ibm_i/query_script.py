@@ -1,6 +1,6 @@
-import select
-import pyodbc
 import sys
+
+import pyodbc
 
 
 def query():
