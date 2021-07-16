@@ -72,6 +72,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def _create_connection_subprocess(self):
         self._subprocess = subprocess.Popen(
+                # TODO: Change to sys.executable once we're based on Agent 7.30.0
                 ["/opt/datadog-agent/embedded/bin/python3",
                  "-c", "from datadog_checks.ibm_i.query_script import query; query()"],
                 stdin=subprocess.PIPE,
