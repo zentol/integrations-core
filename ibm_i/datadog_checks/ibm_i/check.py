@@ -157,8 +157,8 @@ class IbmICheck(AgentCheck, ConfigMixin):
                     # as the string "None" by the subprocess. To prevent getting warnings such as:
                     # "Metric: 'ibm_i.pool.defined_size' has non float value: 'None'. Only float values can be submitted as metrics."
                     # we convert "None" strings back to None values.
-                    # - For gauge values, this removes the warning, as self.gauge won't try to use it
-                    # - For tags, this is a noop as they're converted again into strings
+                    # - For gauge values, this removes the warning, as self.gauge won't try to use None,
+                    # - For tags, this is a noop as the value will be converted again into the "None" string.
                     yield [el if el != "None" else None for el in stripped_line.split('|')]
             except TypeError:
                 # We couldn't read anything
