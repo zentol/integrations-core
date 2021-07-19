@@ -10,6 +10,7 @@ from typing import List, NamedTuple, Tuple
 
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryManager
+from datadog_checks.base.utils.serialization import json
 
 from . import queries
 from .config_models import ConfigMixin
@@ -152,14 +153,13 @@ class IbmICheck(AgentCheck, ConfigMixin):
                     if stripped_line == "ENDOFQUERY":
                         done = True
                         break
-                    # Some fields we send as gauges can be None, because they are optional in IBM i.
-                    # However, given that we're dealing with strings here, these None values are sent
-                    # as the string "None" by the subprocess. To prevent getting warnings such as:
-                    # "Metric: 'ibm_i.pool.defined_size' has non float value: 'None'. Only float values can be submitted as metrics."
-                    # we convert "None" strings back to None values.
-                    # - For gauge values, this removes the warning, as self.gauge won't try to use None,
-                    # - For tags, this is a noop as the value will be converted again into the "None" string.
-                    yield [el if el != "None" else None for el in stripped_line.split('|')]
+                    try:
+                        yield json.loads(stripped_line)
+                    except Exception as e:
+                        # We didn't manage to parse the line provided by the subprocess
+                        # Remove subprocess to restart on a clean state and raise.
+                        self._delete_connection_subprocess(e)
+                        raise
             except TypeError:
                 # We couldn't read anything
                 continue
