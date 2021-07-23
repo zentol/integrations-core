@@ -50,15 +50,15 @@ CPUUsage = {
     ],
 }
 
-InactiveJobStatus = {
+JobqJobStatus = {
     'name': 'inactive_job_status',
     'query': (
         # TODO: try to move the JOB_NAME split logic to Python
         "SELECT SUBSTR(JOB_NAME,1,POSSTR(JOB_NAME,'/')-1) AS JOB_ID, "
         "SUBSTR(JOB_NAME,POSSTR(JOB_NAME,'/')+1,POSSTR(SUBSTR(JOB_NAME,POSSTR(JOB_NAME,'/')+1),'/')-1) AS JOB_USER, "
         "SUBSTR(SUBSTR(JOB_NAME,POSSTR(JOB_NAME,'/')+1),POSSTR(SUBSTR(JOB_NAME,POSSTR(JOB_NAME,'/')+1),'/')+1) AS JOB_NAME, "  # noqa:E501
-        "JOB_SUBSYSTEM, JOB_STATUS, 1 "
-        "FROM TABLE(QSYS2.JOB_INFO('*ALL', '*ALL', '*ALL', '*ALL', '*ALL')) WHERE JOB_STATUS != 'ACTIVE'"
+        "JOB_SUBSYSTEM, 'JOBQ', JOB_QUEUE_LIBRARY, JOB_QUEUE_NAME, JOB_QUEUE_STATUS, 1 "
+        "FROM TABLE(QSYS2.JOB_INFO('*JOBQ', '*ALL', '*ALL', '*ALL', '*ALL'))"
     ),
     'columns': [
         {'name': 'job_id', 'type': 'tag'},
@@ -66,6 +66,9 @@ InactiveJobStatus = {
         {'name': 'job_name', 'type': 'tag'},
         {'name': 'subsystem_name', 'type': 'tag'},
         {'name': 'job_status', 'type': 'tag'},
+        {'name': 'job_queue_library', 'type': 'tag'},
+        {'name': 'job_queue_name', 'type': 'tag'},
+        {'name': 'job_queue_status', 'type': 'tag'},
         {'name': 'ibm_i.job.status', 'type': 'gauge'},
     ],
 }
