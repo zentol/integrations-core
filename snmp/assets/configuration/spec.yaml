@@ -1,0 +1,41 @@
+name: SNMP
+files:
+- name: snmp.yaml
+  options:
+  - template: init_config
+    options:
+    - name: loader
+      required: false
+      description: |
+          Check loader to use for all instances. Available loaders:
+          - core: (recommended) will use new corecheck SNMP integration (faster and lower mem usage)
+          - python: will use legacy python SNMP integration
+      value:
+        example: core
+        type: string
+
+    - name: oid_batch_size
+      required: false
+      description: |
+          The number of OIDs handled by each batch. Increasing this number improves performance but
+          uses more resources.
+      value:
+        example: 10
+        type: integer
+      
+    - name: global_metrics
+      required: false
+      description: |
+          Specify global_metrics you want to monitor by using MIBS for Counter and Gauge.
+          global_metrics are applied to all instances where use_global_metrics is set to true at the instance level.
+
+          Single scalar metrics and table metrics can be defined in this section.
+          Details on how to define metrics can be found here:
+          https://datadoghq.dev/integrations-core/tutorials/snmp/profile-format/#metrics
+      value:
+        type: array
+        items:
+          type: string
+        
+      
+    
