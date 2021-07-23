@@ -2,6 +2,8 @@ import sys
 
 import pyodbc
 
+from contextlib import closing
+
 from datadog_checks.base.utils.serialization import json
 
 
@@ -20,12 +22,15 @@ def query():
         else:
             query = string.strip()
             try:
-                with connection.execute(query) as c:
-                    for row in c:
-                        print(
-                            json.dumps([item if item is None else str(item) for item in row]).decode("utf-8"),
-                            flush=True,
-                        )
+                rows = []
+                with closing(connection.execute(query)) as c:
+                    rows = c.fetchall()
+
+                for row in rows:
+                    print(
+                        json.dumps([item if item is None else str(item) for item in row]).decode("utf-8"),
+                        flush=True,
+                    )
             except Exception as e:
                 print("{}".format(e), file=sys.stderr, flush=True)
             print('ENDOFQUERY', flush=True)
