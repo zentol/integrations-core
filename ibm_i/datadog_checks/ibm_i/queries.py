@@ -68,7 +68,7 @@ def get_cpu_usage(timeout):
 
 def get_jobq_job_status(timeout):
     return {
-        'name': 'inactive_job_status',
+        'name': 'jobq_job_status',
         'query': {
             'text': (
                 # TODO: try to move the JOB_NAME split logic to Python
