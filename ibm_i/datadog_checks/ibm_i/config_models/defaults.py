@@ -53,7 +53,7 @@ def instance_severity_threshold(field, value):
 
 
 def instance_job_query_timeout(field, value):
-    return 120
+    return 600
 
 
 def instance_system_mq_query_timeout(field, value):
