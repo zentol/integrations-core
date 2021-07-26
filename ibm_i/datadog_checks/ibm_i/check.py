@@ -129,7 +129,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def execute_query(self, query, disconnect_on_error=True):
         try:
             # Write query
-            print(query, file=self.connection_subprocess.stdin, flush=True)
+            print(query['text'], file=self.connection_subprocess.stdin, flush=True)
         except BrokenPipeError as e:
             # The stdin pipe is broken, usually due to the Agent
             # killing the subprocess when stopping.
@@ -140,7 +140,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
         done = False
         query_start = datetime.now()
 
-        while not done and (datetime.now() - query_start).total_seconds() <= self.config.query_timeout:
+        while not done and (datetime.now() - query_start).total_seconds() <= query['timeout']:
             # Sleep for a bit to wait for results & avoid being a busy loop
             time.sleep(0.2)
             try:
@@ -192,8 +192,8 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
         if not done:
             if disconnect_on_error:
-                self._delete_connection_subprocess("Timed out")
-            raise Exception("Timed out")
+                self._delete_connection_subprocess("Timed out after {} seconds".format(query['timeout']))
+            raise Exception("Timed out after {} seconds".format(query['timeout']))
 
     @property
     def connection_string(self):
@@ -228,21 +228,21 @@ class IbmICheck(AgentCheck, ConfigMixin):
         system_info = self.fetch_system_info()
         if system_info:
             query_list = [
-                queries.BaseDiskUsage,
-                queries.CPUUsage,
-                queries.JobqJobStatus,
-                queries.ActiveJobStatus,
-                queries.JobMemoryUsage,
-                queries.MemoryInfo,
-                queries.JobQueueInfo,
-                queries.get_message_queue_info(self.config.severity_threshold),
+                queries.get_base_disk_usage(self.config.query_timeout),
+                queries.get_cpu_usage(self.config.query_timeout),
+                queries.get_jobq_job_status(self.config.job_query_timeout),
+                queries.get_active_job_status(self.config.job_query_timeout),
+                queries.get_job_memory_usage(self.config.job_query_timeout),
+                queries.get_memory_info(self.config.query_timeout),
+                queries.get_job_queue_info(self.config.query_timeout),
+                queries.get_message_queue_info(self.config.system_mq_query_timeout, self.config.severity_threshold),
             ]
             if system_info.os_version > 7 or (system_info.os_version == 7 and system_info.os_release >= 3):
-                query_list.append(queries.DiskUsage)
-                query_list.append(queries.SubsystemInfo)
+                query_list.append(queries.get_disk_usage(self.config.query_timeout))
+                query_list.append(queries.get_subsystem_info(self.config.query_timeout))
 
             if self.config.fetch_ibm_mq_metrics and self.ibm_mq_check():
-                query_list.append(queries.IBMMQInfo)
+                query_list.append(queries.get_ibm_mq_info(self.config.query_timeout))
 
             self._query_manager = QueryManager(
                 self,
@@ -257,7 +257,10 @@ class IbmICheck(AgentCheck, ConfigMixin):
     def ibm_mq_check(self):
         # Try to get data from the IBM MQ tables. If they're not present,
         # an exception is raised, and we return that IBM MQ is not available.
-        query = "SELECT QNAME, COUNT(*) FROM TABLE(MQREADALL()) GROUP BY QNAME"
+        query = {
+            'text': "SELECT QNAME, COUNT(*) FROM TABLE(MQREADALL()) GROUP BY QNAME",
+            'timeout': self.config.query_timeout,
+        }
         try:
             # self.execute_query(query) yields a generator, therefore the SQL query is actually run
             # only when needed (eg. when looping through it, transforming it
@@ -281,7 +284,10 @@ class IbmICheck(AgentCheck, ConfigMixin):
             pass
 
     def system_info_query(self):
-        query = "SELECT HOST_NAME, OS_VERSION, OS_RELEASE FROM SYSIBMADM.ENV_SYS_INFO"
+        query = {
+            'text': "SELECT HOST_NAME, OS_VERSION, OS_RELEASE FROM SYSIBMADM.ENV_SYS_INFO",
+            'timeout': self.config.query_timeout,
+        }
         results = list(self.execute_query(query))  # type: List[Tuple[str]]
         if len(results) == 0:
             self.log.error("Couldn't find system info on the remote system.")

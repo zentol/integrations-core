@@ -75,7 +75,7 @@ def test_set_up_query_manager_7_2(instance):
     ), mock.patch('datadog_checks.ibm_i.IbmICheck.ibm_mq_check', return_value=True):
         check.set_up_query_manager()
     assert check._query_manager is not None
-    assert len(check._query_manager.queries) == 10
+    assert len(check._query_manager.queries) == 9
 
 
 def test_set_up_query_manager_7_2_no_ibm_mq(instance):
@@ -87,7 +87,7 @@ def test_set_up_query_manager_7_2_no_ibm_mq(instance):
     ), mock.patch('datadog_checks.ibm_i.IbmICheck.ibm_mq_check', return_value=False):
         check.set_up_query_manager()
     assert check._query_manager is not None
-    assert len(check._query_manager.queries) == 9
+    assert len(check._query_manager.queries) == 8
 
 
 def test_set_up_query_manager_7_4(instance):
@@ -99,7 +99,7 @@ def test_set_up_query_manager_7_4(instance):
     ), mock.patch('datadog_checks.ibm_i.IbmICheck.ibm_mq_check', return_value=True):
         check.set_up_query_manager()
     assert check._query_manager is not None
-    assert len(check._query_manager.queries) == 12
+    assert len(check._query_manager.queries) == 11
 
 
 def test_set_up_query_manager_7_4_no_ibm_mq(instance):
@@ -111,7 +111,7 @@ def test_set_up_query_manager_7_4_no_ibm_mq(instance):
     ), mock.patch('datadog_checks.ibm_i.IbmICheck.ibm_mq_check', return_value=False):
         check.set_up_query_manager()
     assert check._query_manager is not None
-    assert len(check._query_manager.queries) == 11
+    assert len(check._query_manager.queries) == 10
 
 
 def test_check_no_query_manager(aggregator, instance):
