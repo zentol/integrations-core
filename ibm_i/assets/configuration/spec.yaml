@@ -59,7 +59,7 @@ files:
         example: 60
     - name: query_timeout
       description: |
-        The default timeout (in seconds) applied to queries made on the IBM i system.
+        The timeout (in seconds) applied to queries made on the IBM i system.
       value:
         type: integer
         example: 30
