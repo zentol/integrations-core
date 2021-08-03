@@ -9,7 +9,7 @@ from packaging.specifiers import SpecifierSet
 
 from ...fs import read_file_lines, write_file_lines
 from ..constants import get_agent_requirements
-from ..dependencies import read_check_dependencies
+from ..dependencies import read_agent_dependencies, read_check_dependencies
 from .console import CONTEXT_SETTINGS, abort, echo_failure, echo_info
 
 
@@ -77,6 +77,20 @@ def pin(package, version, marker):
         abort('No dependency definitions to update')
 
     echo_info(f'Files updated: {files_updated}')
+
+@dep.command(
+    context_settings=CONTEXT_SETTINGS, short_help="Update all dependencies in the Agent's static environment"
+)
+def update():
+    """Update all dependencies in the Agent's static environment"""
+
+
+    all_agent_dependencies, errors = read_agent_dependencies()
+
+    if errors:
+        for error in errors:
+            echo_failure(error)
+        abort()
 
 
 @dep.command(
