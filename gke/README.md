@@ -94,6 +94,34 @@ You can deploy the Agent with a [Helm chart][8] or directly with a [DaemonSet][9
 <!-- xxz tab xxx -->
 <!-- xxz tabs xxx -->
 
+##### Log collection
+
+Google Kubernetes Engine logs are collected with Stackdriver and sent to a Google Cloud Pub/Sub with an HTTP push forwarder. If you haven't already, [set up a Cloud Pub/Sub with an HTTP push forwarder][12].
+
+Once this is done, export your GKE logs from Stackdriver to the PubSub:
+
+1. Go to the Stackdriver page and filter Google Kubernetes Engine logs.
+
+2. Click **Create Sink** and name the sink accordingly.
+
+3. Choose "Cloud Pub/Sub" as the destination and select the Pub/Sub that was created for that purpose. **Note**: The Pub/Sub can be located in a different project.
+
+4. Click **Create** and wait for the confirmation message.
+
+## Data Collected
+
+### Metrics
+
+See `metadata.csv` for a list of metrics provided by this integration.
+
+### Events
+
+The Google Kubernetes Engine integration does not include any events.
+
+### Service Checks
+
+The Google Kubernetes Engine integration does not include any service checks.
+
 ## Further Reading
 
 - [Announcing support for GKE Autopilot][11]
@@ -105,3 +133,4 @@ You can deploy the Agent with a [Helm chart][8] or directly with a [DaemonSet][9
 [5]: /integrations/google_cloud_platform/
 [6]: https://app.datadoghq.com/screen/integration/gce
 [11]: https://www.datadoghq.com/blog/gke-autopilot-monitoring/
+[12]: /integrations/google_cloud_platform/?tab=datadogussite#log-collection
