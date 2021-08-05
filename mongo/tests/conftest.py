@@ -45,7 +45,7 @@ def dd_environment():
             WaitFor(create_shard_user, attempts=60, wait=5),
         ],
     ):
-        yield common.INSTANCE_BASIC, {'custom_hosts': get_custom_hosts()}
+        yield instance_custom_queries(), {'custom_hosts': get_custom_hosts()}
 
 
 def get_custom_hosts():
@@ -111,6 +111,23 @@ def instance_custom_queries():
                 {'field_name': '_id', 'name': 'cluster_id', 'type': 'tag'},
             ],
             'metric_prefix': 'dd.custom.mongo.aggregate',
+            'tags': ['tag1:val1', 'tag2:val2'],
+        },
+        {
+            'query': {
+                'aggregate': 1,
+                'pipeline': [
+                    {'$currentOp': {'allUsers': True}},
+                ],
+                'cursor': {'batchSize': 1},
+            },
+            'database': 'admin',
+            'fields': [
+                {'field_name': 'secs_running', 'name': 'secs_running', 'type': 'gauge'},
+                {'field_name': 'appName', 'name': 'app_name', 'type': 'tag'},
+                {'field_name': 'ns', 'name': 'mongo_op_namespace', 'type': 'tag'},
+            ],
+            'metric_prefix': 'dd.mongodb.custom.queries_slower_than_60sec',
             'tags': ['tag1:val1', 'tag2:val2'],
         },
     ]
