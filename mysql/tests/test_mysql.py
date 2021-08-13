@@ -547,3 +547,35 @@ def test_custom_queries(aggregator, instance_custom_queries, dd_run_check):
 
     aggregator.assert_metric('alice.age', value=25, tags=tags.METRIC_TAGS)
     aggregator.assert_metric('bob.age', value=20, tags=tags.METRIC_TAGS)
+
+
+@pytest.mark.parametrize(
+    'query_timeout,query_duration,metrics_expected',
+    [
+        (None, 6000, False),  # default case
+        (1000, 0, True),
+        (1000, 3000, False),
+        (0, 5500, True),  # 0=disabled
+    ],
+)
+def test_query_timeout_custom_queries(
+    query_timeout, query_duration, metrics_expected, aggregator, instance_basic, dd_run_check
+):
+    if query_timeout is not None:
+        instance_basic['query_timeout'] = query_timeout
+    instance_basic['custom_queries'] = [
+        {
+            'query': 'SELECT 1 FROM performance_schema.events_statements_current WHERE SLEEP({})'.format(round(query_duration / 1000, 2)),
+            'columns': [
+                {'name': 'custom.metric', 'type': 'gauge'},
+                # {'name': 'custom.metric_sleep', 'type': 'gauge'},
+            ],
+        },
+    ]
+    mysql_check = MySql(common.CHECK_NAME, {}, [instance_basic])
+    dd_run_check(mysql_check)
+
+    if metrics_expected:
+        aggregator.assert_metric('custom.metric')
+    else:
+        assert aggregator.metrics('custom.metric') == []
