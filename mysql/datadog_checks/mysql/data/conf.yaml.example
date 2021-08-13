@@ -69,6 +69,11 @@ instances:
     #
     # connect_timeout: 10
 
+    ## @param query_timeout - number - optional - default: 5000
+    ## Maximum execution time of SELECT statements in milliseconds executed by the agent.
+    #
+    # query_timeout: 5000
+
     ## @param ssl - mapping - optional
     ## Use this section to configure a TLS connection between the Agent and MySQL.
     ##
@@ -383,7 +388,7 @@ instances:
 ## port / path / channel_path - required - Set port if type is tcp or udp.
 ##                                         Set path if type is file.
 ##                                         Set channel_path if type is windows_event.
-## source  - required - Attribute that defines which integration sent the logs.
+## source  - required - Attribute that defines which Integration sent the logs.
 ## encoding - optional - For file specifies the file encoding, default is utf-8, other
 ##                       possible values are utf-16-le and utf-16-be.
 ## service - optional - The name of the service that generates the log.
