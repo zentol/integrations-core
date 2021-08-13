@@ -119,6 +119,12 @@ class MySql(AgentCheck):
                 self.version = get_version(db)
                 self._send_metadata()
 
+                # set a query timeout; this session variable is only supported on versions higher than 5.7:
+                # https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_max_execution_time
+                if self.version.version_compatible((5, 7, 0)):
+                    with closing(db.cursor()) as cursor:
+                        cursor.execute('SET @@SESSION.max_execution_time = %s', self._config.query_timeout)
+
                 self.is_mariadb = self.version.flavor == "MariaDB"
                 if self._get_is_aurora(db):
                     tags = tags + self._get_runtime_aurora_tags(db)
