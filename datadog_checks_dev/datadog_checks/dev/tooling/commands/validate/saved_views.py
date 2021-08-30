@@ -2,11 +2,13 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 import json
+import os
 
 import click
 
+from ...annotations import annotate_error, annotate_display_queue
 from ...testing import process_checks_option
-from ...utils import complete_valid_checks, get_assets_from_manifest, load_saved_views
+from ...utils import complete_valid_checks, get_assets_from_manifest, get_manifest_file, load_saved_views
 from ..console import CONTEXT_SETTINGS, abort, echo_failure, echo_info, echo_success
 
 REQUIRED_HEADERS = {'name', 'page', 'query', 'type'}
@@ -50,16 +52,18 @@ def saved_views(check):
     echo_info(f"Validating saved views for {len(integrations)} checks ...")
 
     for integration in integrations:
+        display_queue = []
         saved_views, _ = get_assets_from_manifest(integration, 'saved_views')
-
+        manifest_file = get_manifest_file(integration)
         for saved_view in saved_views:
-
+            saved_view_filename = os.path.basename(saved_view)
             # all saved views must be json
             try:
                 view = load_saved_views(saved_view)
             except json.JSONDecodeError as e:
                 errors = True
                 echo_failure(f"{integration} saved view is not valid json: {e}")
+                annotate_error(saved_view, f" invalid json: {e}")
                 continue
 
             all_keys = set(view.keys())
@@ -68,7 +72,7 @@ def saved_views(check):
             if not REQUIRED_HEADERS.issubset(all_keys):
                 missing_headers = REQUIRED_HEADERS.difference(all_keys)
                 errors = True
-                echo_failure(f"{integration} saved view does not have the required headers: missing {missing_headers}")
+                echo_failure(f"{saved_view_filename} saved view does not have the required headers: missing {missing_headers}")
                 continue
 
             # Check that all optional headers are valid

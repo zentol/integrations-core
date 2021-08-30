@@ -43,6 +43,14 @@ jobs:
       run: |
         ddev validate legacy-signature
 
+    - name: Run recommended monitors validation
+      run: |
+        ddev validate recommended-monitors
+
+    - name: Run saved views validation
+      run: |
+        ddev validate saved-views
+
     - name: Run service checks validation
       run: |
         ddev validate service-checks
