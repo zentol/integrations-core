@@ -42,26 +42,34 @@ def bob_conn(dbm_instance):
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
 @pytest.mark.parametrize(
-    "query",
+    "database,query,params,match_query",
     [
-        "SELECT * FROM INFORMATION_SCHEMA.TABLES;",
+        [
+            "datadog_test",
+            "SELECT * FROM things where id = ?",
+            (1,),
+            "(@P1 INT)SELECT * FROM things where id = @P1"
+        ],
+        [
+            "master",
+            "SELECT * FROM datadog_test.dbo.things where id = ?",
+            (1,),
+            "(@P1 INT)SELECT * FROM datadog_test.dbo.things where id = @P1"
+        ],
     ],
 )
-def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, query):
+def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, database, query, params, match_query):
     check = SQLServer(CHECK_NAME, {}, [dbm_instance])
 
     with bob_conn.cursor() as cursor:
-        cursor.execute("USE DATADOG_TEST;")
-
-    TEST_QUERY = "SELECT * FROM things where id = ?"
-    EXPECTED_MATCH_QUERY = "(@P1 INT)SELECT * FROM things where id = @P1"
+        cursor.execute("USE {}".format(database))
 
     def _run_test_queries():
         with bob_conn.cursor() as cursor:
             # do two executions of the same query with different parameters to validate that they are correctly
             # aggregated into the same query
-            cursor.execute(TEST_QUERY, (1,))
-            cursor.execute(TEST_QUERY, (2,))
+            cursor.execute(query, params)
+            cursor.execute(query, params)
 
     _run_test_queries()
     dd_run_check(check)
@@ -74,11 +82,12 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, que
     payload = dbm_metrics[0]
     sqlserver_rows = payload.get('sqlserver_rows', [])
     assert sqlserver_rows, "should have collected some sqlserver query metrics rows"
-    matching_rows = [r for r in sqlserver_rows if r['text'] == EXPECTED_MATCH_QUERY]
+    matching_rows = [r for r in sqlserver_rows if r['text'] == match_query]
     assert len(matching_rows) == 1, "expected exactly one matching metrics row"
     row = matching_rows[0]
-    assert row['execution_count'] == 2, "expected exactly two executions"
-    assert row['query_signature'], "row must have query signature"
+    assert row['execution_count'] == 2, "wrong execution count"
+    assert row['query_signature'], "missing query signature"
+    assert row['database_name'] == database, "incorrect database_name"
 
     dbm_samples = aggregator.get_event_platform_events("dbm-samples")
     assert len(dbm_samples) > 0, "should have collected some samples"

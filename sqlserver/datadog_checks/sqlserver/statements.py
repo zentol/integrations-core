@@ -68,7 +68,7 @@ def _row_key(row):
     :param row: a normalized row from pg_stat_statements
     :return: a tuple uniquely identifying this row
     """
-    return row['query_signature'],
+    return row['database_name'], row['query_signature'],
 
 
 class SqlserverStatementMetrics(DBMAsyncJob):
@@ -116,7 +116,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             with self.check.connection.get_managed_cursor() as cursor:
                 cursor.execute(STATEMENT_METRICS_QUERY)
                 columns = [i[0] for i in cursor.description]
-                # no dict cursor here
+                # construct row dicts manually as there's no DictCursor for pyodbc
                 rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
                 self.log.debug("loaded sql server statement metrics len(rows)=%s", len(rows))
                 return rows
@@ -178,15 +178,16 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             if query_cache_key in self._full_statement_text_cache:
                 continue
             self._full_statement_text_cache[query_cache_key] = True
+            tags = self.check.tags + ["db:{}".format(row['database_name'])]
             yield {
                 "timestamp": time.time() * 1000,
                 "host": self._check.resolved_hostname,
                 "ddagentversion": datadog_agent.get_version(),
                 "ddsource": "sqlserver",
-                "ddtags": ",".join(self.check.tags),
+                "ddtags": ",".join(tags),
                 "dbm_type": "fqt",
                 "db": {
-                    "instance": "TODO",
+                    "instance": row['database_name'],
                     "query_signature": row['query_signature'],
                     "statement": row['text'],
                 },

@@ -23,11 +23,11 @@ GRANT CONNECT ANY DATABASE to bob;
 
 -- Create test database for integration tests
 -- only bob has read/write access to this database
-CREATE DATABASE DATADOG_TEST;
+CREATE DATABASE datadog_test;
 GO
-USE DATADOG_TEST;
-CREATE TABLE DATADOG_TEST.dbo.things (id int, name varchar(255));
-INSERT INTO DATADOG_TEST.dbo.things VALUES (1, 'foo'), (2, 'bar');
+USE datadog_test;
+CREATE TABLE datadog_test.dbo.things (id int, name varchar(255));
+INSERT INTO datadog_test.dbo.things VALUES (1, 'foo'), (2, 'bar');
 CREATE USER bob FOR LOGIN bob;
 GO
 
