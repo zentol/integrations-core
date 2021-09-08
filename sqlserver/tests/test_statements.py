@@ -46,6 +46,12 @@ def bob_conn(dbm_instance):
     [
         [
             "datadog_test",
+            "SELECT * FROM things",
+            (),
+            "SELECT * FROM things"
+        ],
+        [
+            "datadog_test",
             "SELECT * FROM things where id = ?",
             (1,),
             "(@P1 INT)SELECT * FROM things where id = @P1"
@@ -55,6 +61,12 @@ def bob_conn(dbm_instance):
             "SELECT * FROM datadog_test.dbo.things where id = ?",
             (1,),
             "(@P1 INT)SELECT * FROM datadog_test.dbo.things where id = @P1"
+        ],
+        [
+            "datadog_test",
+            "SELECT * FROM things where id = ? and name = ?",
+            (1, "hello"),
+            "(@P1 INT,@P2 NVARCHAR(10))SELECT * FROM things where id = @P1 and name = @P2"
         ],
     ],
 )
@@ -66,8 +78,6 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, dat
 
     def _run_test_queries():
         with bob_conn.cursor() as cursor:
-            # do two executions of the same query with different parameters to validate that they are correctly
-            # aggregated into the same query
             cursor.execute(query, params)
             cursor.execute(query, params)
 
