@@ -97,7 +97,7 @@ class SQLServer(AgentCheck):
         self.check_initializations.append(self.initialize_connection)
 
         # DBM
-        self.dbm_enabled = self.instance.get('dbm_enabled', False)
+        self.dbm_enabled = self.instance.get('dbm', False)
         self.statement_samples_config = self.instance.get('query_samples', {}) or {}
         self.statement_metrics_config = self.instance.get('query_metrics', {}) or {}
         self.statement_metrics = SqlserverStatementMetrics(self)

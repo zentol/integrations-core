@@ -62,6 +62,17 @@ def instance_docker():
 
 
 @pytest.fixture
+def datadog_conn_docker(instance_docker):
+    # Make DB connection
+    conn_str = 'DRIVER={};Server={};Database=master;UID={};PWD={};'.format(
+        instance_docker['driver'], instance_docker['host'], instance_docker['username'], instance_docker['password']
+    )
+    conn = pyodbc.connect(conn_str, timeout=30)
+    yield conn
+    conn.close()
+
+
+@pytest.fixture
 def instance_e2e():
     return deepcopy(INSTANCE_E2E)
 
@@ -104,6 +115,7 @@ def instance_autodiscovery():
     return deepcopy(instance)
 
 
+
 @pytest.fixture(scope='session')
 def dd_environment():
     if pyodbc is None:
@@ -137,5 +149,6 @@ def dd_environment():
         compose_file=compose_file,
         conditions=conditions,
         mount_logs=True,
+        build=True
     ):
         yield FULL_E2E_CONFIG
