@@ -5,6 +5,7 @@ from __future__ import division
 
 import re
 import time
+from cachetools import TTLCache
 from collections import defaultdict
 from itertools import chain
 
@@ -103,6 +104,12 @@ class SQLServer(AgentCheck):
         self.statement_metrics = SqlserverStatementMetrics(self)
         self.statement_samples = SqlserverStatementSamples(self)
 
+        self.static_info_cache = TTLCache(
+            maxsize=100,
+            # cache these for a full day
+            ttl=60*60*24
+        )
+
     def config_checks(self):
         if self.autodiscovery and self.instance.get('database'):
             self.log.warning(
@@ -119,6 +126,17 @@ class SQLServer(AgentCheck):
         if self._resolved_hostname is None and self.dbm_enabled:
             self._resolved_hostname = resolve_db_host(self.instance.get('host'))
         return self._resolved_hostname
+
+    def load_static_information(self):
+        if 'version' not in self.static_info_cache:
+            with self.connection.open_managed_default_connection():
+                with self.connection.get_managed_cursor() as cursor:
+                    cursor.execute("select @@version")
+                    results = cursor.fetchall()
+                    if results and len(results) > 0 and len(results[0]) > 0 and results[0][0]:
+                        self.static_info_cache["version"] = results[0][0]
+                    else:
+                        self.log.warning("failed to load version static information due to empty results")
 
     def initialize_connection(self):
         self.connection = Connection(self.init_config, self.instance, self.handle_service_check)
@@ -467,6 +485,7 @@ class SQLServer(AgentCheck):
 
     def check(self, _):
         if self.do_check:
+            self.load_static_information()
             if self.proc:
                 self.do_stored_procedure_check()
             else:

@@ -44,6 +44,7 @@ SQL_SERVER_METRICS_COLUMNS = [
 # from sys.dm_exec_query_stats cross apply sys.dm_exec_sql_text(sql_handle)
 # group by text, sql_handle, plan_handle, dbid;
 
+# TODO: aggregate by both database and userid
 STATEMENT_METRICS_QUERY = """\
 with qstats as (
     select text, value as dbid, {}
@@ -164,7 +165,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                 'min_collection_interval': self.collection_interval,
                 'tags': self.check.tags,
                 'sqlserver_rows': rows,
-                'sqlserver_version': "TODO",
+                'sqlserver_version': self.check.static_info_cache.get("version", ""),
                 'ddagentversion': datadog_agent.get_version(),
             }
             self._check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))

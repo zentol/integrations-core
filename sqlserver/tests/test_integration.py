@@ -331,6 +331,17 @@ def test_custom_queries(aggregator, dd_run_check, instance_docker):
         aggregator.assert_metric('sqlserver.num', value=value, tags=custom_tags + ['query:another_custom_one'])
 
 
+@not_windows_ci
+@pytest.mark.integration
+@pytest.mark.usefixtures('dd_environment')
+def test_load_static_information(aggregator, dd_run_check, instance_docker):
+    instance = copy(instance_docker)
+    check = SQLServer(CHECK_NAME, {}, [instance])
+    dd_run_check(check)
+    assert 'version' in check.static_info_cache, "missing version static information"
+    assert check.static_info_cache['version'], "empty version in static information"
+
+
 @windows_ci
 @pytest.mark.integration
 def test_check_windows_defaults(aggregator, dd_run_check, init_config, instance_sql2017_defaults):
