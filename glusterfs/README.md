@@ -7,7 +7,7 @@ This GlusterFS integration is compatible with both Red Hat vendored and open-sou
 
 ## Setup
 
-Follow the instructions below to install and configure this check for an Agent running on a host. For containerized environments, see the [Autodiscovery Integration Templates][2] for guidance on applying these instructions.
+Follow the instructions below to install and configure this check for an Agent running on a host.
 
 ### Installation
 
