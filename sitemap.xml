@@ -21,6 +21,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://datadoghq.dev/integrations-core/architecture/ibm_i/</loc>
+         <lastmod>2020-02-02</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://datadoghq.dev/integrations-core/architecture/snmp/</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
