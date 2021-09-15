@@ -36,6 +36,13 @@ def test_format_filter_like():
     formatted_filters = sampler.formatted_filters
     assert formatted_filters == " WHERE ( a LIKE '%foo' )"
 
+@requires_windows
+@pytest.mark.unit
+def test_format_filter_and():
+    filters = [{'Name': [('!=', '_total'), ('!=', 'model')]}]
+    sampler = WMISampler(logger=None, class_name='MyClass', property_names='my.prop', filters=filters)
+    formatted_filters = sampler.formatted_filters
+    assert formatted_filters == " WHERE ( a < '3' )"
 
 @requires_windows
 @pytest.mark.unit
