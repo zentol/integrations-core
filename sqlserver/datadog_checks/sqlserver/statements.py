@@ -1,11 +1,10 @@
-import copy
 import time
 
 from cachetools import TTLCache
 from datadog_checks.base import is_affirmative
 from datadog_checks.base.utils.db.sql import compute_sql_signature
 from datadog_checks.base.utils.db.statement_metrics import StatementMetrics
-from datadog_checks.base.utils.db.utils import DBMAsyncJob, default_json_event_encoding
+from datadog_checks.base.utils.db.utils import DBMAsyncJob, RateLimitingTTLCache, default_json_event_encoding
 from datadog_checks.base.utils.serialization import json
 
 try:
@@ -47,15 +46,15 @@ SQL_SERVER_METRICS_COLUMNS = [
 # TODO: aggregate by both database and userid
 STATEMENT_METRICS_QUERY = """\
 with qstats as (
-    select text, value as dbid, {}
+    select text, query_hash, query_plan_hash, value as dbid, {}
     from sys.dm_exec_query_stats
         cross apply sys.dm_exec_sql_text(sql_handle)
         cross apply sys.dm_exec_plan_attributes(plan_handle)
     where 
         attribute = 'dbid'
-    group by text, sql_handle, value
+    group by text, sql_handle, query_hash, query_plan_hash, value
 ) 
-select name as database_name, text, {}
+select text, query_hash, query_plan_hash, name as database_name, {}
     from qstats S
     join sys.databases D on S.dbid = D.database_id;
 """.format(
@@ -108,6 +107,21 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             ),
         )
 
+        # TODO: add plan cache
+        # explained_statements_ratelimiter: limit how often we try to re-explain the same query
+        self._explained_statements_ratelimiter = RateLimitingTTLCache(
+            maxsize=int(self.check.instance.get('explained_queries_cache_maxsize', 5000)),
+            ttl=60 * 60 / int(self.check.instance.get('explained_queries_per_hour_per_query', 60)),
+        )
+
+        # seen_samples_ratelimiter: limit the ingestion rate per (query_signature, plan_signature)
+        self._seen_samples_ratelimiter = RateLimitingTTLCache(
+            # assuming ~100 bytes per entry (query & plan signature, key hash, 4 pointers (ordered dict), expiry time)
+            # total size: 10k * 100 = 1 Mb
+            maxsize=int(self.check.instance.get('seen_samples_cache_maxsize', 10000)),
+            ttl=60 * 60 / int(self.check.instance.get('samples_per_hour_per_query', 15)),
+        )
+
     def _close_db_conn(self):
         pass
 
@@ -146,10 +160,28 @@ class SqlserverStatementMetrics(DBMAsyncJob):
         rows = self._state.compute_derivative_rows(rows, metric_columns, key=_row_key)
         return rows
 
+    @staticmethod
+    def _to_metrics_payload_row(row):
+        row = {k: v for k, v in row.items() if k not in {'query_hash', 'query_plan_hash'}}
+        row['text'] = row['text'][0:200]
+        return row
+
+    def _to_metrics_payload(self, rows):
+        return {
+            'host': self.check.resolved_hostname,
+            'timestamp': time.time() * 1000,
+            'min_collection_interval': self.collection_interval,
+            'tags': self.check.tags,
+            'sqlserver_rows': [self._to_metrics_payload_row(r) for r in rows],
+            'sqlserver_version': self.check.static_info_cache.get("version", ""),
+            'ddagentversion': datadog_agent.get_version(),
+        }
+
     def collect_per_statement_metrics(self):
         # exclude the default "db" tag from statement metrics & FQT events because this data is collected from
         # all databases on the host. For metrics the "db" tag is added during ingestion based on which database
         # each query came from.
+        # returns the rows
         try:
             rows = self._collect_metrics_rows()
             if not rows:
@@ -157,18 +189,9 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             for event in self._rows_to_fqt_events(rows):
                 self._check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
             # truncate query text to the maximum length supported by metrics tags
-            for row in rows:
-                row['text'] = row['text'][0:200]
-            payload = {
-                'host': self.check.resolved_hostname,
-                'timestamp': time.time() * 1000,
-                'min_collection_interval': self.collection_interval,
-                'tags': self.check.tags,
-                'sqlserver_rows': rows,
-                'sqlserver_version': self.check.static_info_cache.get("version", ""),
-                'ddagentversion': datadog_agent.get_version(),
-            }
+            payload = self._to_metrics_payload(rows)
             self._check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))
+            return rows
         except Exception:
             self.log.exception('Unable to collect statement metrics due to an error')
             return []
@@ -196,4 +219,39 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             }
 
     def run_job(self):
-        self.collect_per_statement_metrics()
+        rows = self.collect_per_statement_metrics()
+        # self._collect_plans(rows)
+
+    def _load_plans(self, query_hash):
+        # loads all the plans for the given query_hash in the given DB
+        return None
+
+    def _collect_plans(self, rows):
+        for row in rows:
+            for plan_hash, plan in self._load_plans(row['query_hash']):
+                statement_plan_sig = (row['query_signature'], plan_signature)
+                if self._seen_samples_ratelimiter.acquire(statement_plan_sig):
+                    event = {
+                        "host": self._db_hostname,
+                        "ddagentversion": datadog_agent.get_version(),
+                        "ddsource": "postgres",
+                        "ddtags": ",".join(self.check.tags),
+                        "timestamp": time.time() * 1000,
+                        "db": {
+                            "instance": row.get('datname', None),
+                            "plan": {
+                                "definition": obfuscated_plan,
+                                "signature": plan_signature,
+                                "collection_errors": collection_errors,
+                            },
+                            "query_signature": query_signature,
+                            "resource_hash": query_signature,
+                            "application": row.get('application_name', None),
+                            "user": row['usename'],
+                            "statement": obfuscated_statement,
+                            "query_truncated": self._get_truncation_state(
+                                self._get_track_activity_query_size(), row['query']
+                            ).value,
+                        },
+                        'postgres': {k: v for k, v in row.items() if k not in pg_stat_activity_sample_exclude_keys},
+                    }

@@ -14,7 +14,6 @@ import six
 from datadog_checks.base import AgentCheck, ConfigurationError
 from datadog_checks.base.config import is_affirmative
 from datadog_checks.base.utils.db import QueryManager
-from datadog_checks.sqlserver.statement_samples import SqlserverStatementSamples
 from datadog_checks.sqlserver.statements import SqlserverStatementMetrics
 from datadog_checks.base.utils.db.utils import resolve_db_host
 
@@ -63,7 +62,6 @@ if adodbapi is None and pyodbc is None:
 
 set_default_driver_conf()
 
-
 class SQLServer(AgentCheck):
     __NAMESPACE__ = 'sqlserver'
 
@@ -102,7 +100,6 @@ class SQLServer(AgentCheck):
         self.statement_samples_config = self.instance.get('query_samples', {}) or {}
         self.statement_metrics_config = self.instance.get('query_metrics', {}) or {}
         self.statement_metrics = SqlserverStatementMetrics(self)
-        self.statement_samples = SqlserverStatementSamples(self)
 
         self.static_info_cache = TTLCache(
             maxsize=100,
@@ -496,7 +493,6 @@ class SQLServer(AgentCheck):
                         self.connection.check_database_conns(db_name)
             if self.dbm_enabled:
                 self.statement_metrics.run_job_loop(self.tags)
-                # self.statement_samples.run_job_loop(tags)
 
         else:
             self.log.debug("Skipping check")

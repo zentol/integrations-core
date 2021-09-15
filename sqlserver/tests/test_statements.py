@@ -106,6 +106,13 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, dat
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
 def test_basic_statement_metrics_query(datadog_conn_docker):
+    test_query = "select * from sys.databases"
+
+    # run this test query to guarantee there's at least one application query in the query plan cache
+    with datadog_conn_docker.cursor() as cursor:
+        cursor.execute(test_query)
+        cursor.fetchall()
+
     # this test ensures that we're able to run the basic STATEMENT_METRICS_QUERY without error
     # the dm_exec_plan_attributes table-valued function used in this query contains a "sql_variant" data type
     # which is not supported by pyodbc, so we need to explicitly cast the field into the type we expect to see
@@ -114,4 +121,38 @@ def test_basic_statement_metrics_query(datadog_conn_docker):
     with datadog_conn_docker.cursor() as cursor:
         logging.debug("running statement_metrics_query: %s", STATEMENT_METRICS_QUERY)
         cursor.execute(STATEMENT_METRICS_QUERY)
+
+        columns = [i[0] for i in cursor.description]
+        # construct row dicts manually as there's no DictCursor for pyodbc
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        matching = [r for r in rows if r['text'] == test_query]
+        assert matching, "the test query should be visible in the query stats"
+        row = matching[0]
+
+        cursor.execute(
+            "select count(*) from sys.dm_exec_query_stats where query_hash = ? and query_plan_hash = ?",
+            row['query_hash'],
+            row['query_plan_hash']
+        )
+
+        assert cursor.fetchall()[0][0] == 1, "failed to read back the same query stats using the query and plan hash"
+
+@not_windows_ci
+@pytest.mark.integration
+@pytest.mark.usefixtures('dd_environment')
+def test_load_plans(datadog_conn_docker):
+    test_query = "select * from sys.databases"
+
+    # run this test query to guarantee there's at least one application query in the query plan cache
+    with datadog_conn_docker.cursor() as cursor:
+        cursor.execute(test_query)
         cursor.fetchall()
+
+    with datadog_conn_docker.cursor() as cursor:
+        logging.debug("running statement_metrics_query: %s", STATEMENT_METRICS_QUERY)
+        cursor.execute(STATEMENT_METRICS_QUERY)
+        columns = [i[0] for i in cursor.description]
+        # construct row dicts manually as there's no DictCursor for pyodbc
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        import pdb
+        pdb.set_trace()
