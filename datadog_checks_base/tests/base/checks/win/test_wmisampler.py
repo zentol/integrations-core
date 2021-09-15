@@ -46,6 +46,14 @@ def test_format_filter_and():
 
 @requires_windows
 @pytest.mark.unit
+def test_format_filter_and2():
+    filters = [(('Name', ('!=', '_total')), ('Name', ('!=', 'model')))]
+    sampler = WMISampler(logger=None, class_name='MyClass', property_names='my.prop', filters=filters)
+    formatted_filters = sampler.formatted_filters
+    assert formatted_filters == " WHERE ( a < '3' )"
+
+@requires_windows
+@pytest.mark.unit
 def test_format_filter_list_expected():
     filters = [{'a': ['<', 3]}]
     sampler = WMISampler(logger=None, class_name='MyClass', property_names='my.prop', filters=filters)
