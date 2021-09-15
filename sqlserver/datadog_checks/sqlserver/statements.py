@@ -62,13 +62,20 @@ select text, query_hash, query_plan_hash, name as database_name, {}
     ', '.join(SQL_SERVER_METRICS_COLUMNS)
 )
 
+PLAN_LOOKUP_QUERY = """\
+select query_plan from sys.dm_exec_query_stats
+    cross apply sys.dm_exec_query_plan(plan_handle)
+where
+    query_hash = ? and query_plan_hash = ?
+"""
+
 
 def _row_key(row):
     """
     :param row: a normalized row from pg_stat_statements
     :return: a tuple uniquely identifying this row
     """
-    return row['database_name'], row['query_signature'],
+    return row['database_name'], row['query_signature'], row['query_hash'], row['query_plan_hash']
 
 
 class SqlserverStatementMetrics(DBMAsyncJob):
@@ -107,15 +114,10 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             ),
         )
 
-        # TODO: add plan cache
-        # explained_statements_ratelimiter: limit how often we try to re-explain the same query
-        self._explained_statements_ratelimiter = RateLimitingTTLCache(
-            maxsize=int(self.check.instance.get('explained_queries_cache_maxsize', 5000)),
-            ttl=60 * 60 / int(self.check.instance.get('explained_queries_per_hour_per_query', 60)),
-        )
-
         # seen_samples_ratelimiter: limit the ingestion rate per (query_signature, plan_signature)
-        self._seen_samples_ratelimiter = RateLimitingTTLCache(
+        # TODO: maybe we can far relax this rate? Since nothing is changing, there is no "activity" info for these
+        # plans, we only really need them once per hour
+        self._seen_plans_ratelimiter = RateLimitingTTLCache(
             # assuming ~100 bytes per entry (query & plan signature, key hash, 4 pointers (ordered dict), expiry time)
             # total size: 10k * 100 = 1 Mb
             maxsize=int(self.check.instance.get('seen_samples_cache_maxsize', 10000)),
@@ -148,6 +150,8 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                 continue
             row['text'] = obfuscated_statement
             row['query_signature'] = compute_sql_signature(obfuscated_statement)
+            row['query_hash'] = row['query_hash'].hex()
+            row['query_plan_hash'] = row['query_plan_hash'].hex()
             normalized_rows.append(row)
         return normalized_rows
 
@@ -162,7 +166,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
 
     @staticmethod
     def _to_metrics_payload_row(row):
-        row = {k: v for k, v in row.items() if k not in {'query_hash', 'query_plan_hash'}}
+        row = {k: v for k, v in row.items()}
         row['text'] = row['text'][0:200]
         return row
 
@@ -191,7 +195,9 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             # truncate query text to the maximum length supported by metrics tags
             payload = self._to_metrics_payload(rows)
             self._check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))
-            return rows
+            for event in self._collect_plans(rows):
+                self._check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
+
         except Exception:
             self.log.exception('Unable to collect statement metrics due to an error')
             return []
@@ -215,43 +221,51 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                     "query_signature": row['query_signature'],
                     "statement": row['text'],
                 },
-                # "sqlserver": {},
+                "sqlserver": {},
             }
 
     def run_job(self):
-        rows = self.collect_per_statement_metrics()
-        # self._collect_plans(rows)
+        self.collect_per_statement_metrics()
 
-    def _load_plans(self, query_hash):
-        # loads all the plans for the given query_hash in the given DB
-        return None
+    def _load_plan(self, query_hash, query_plan_hash):
+        # loads the plan
+        self.log.debug("collecting plan")
+
+        with self.check.connection.open_managed_default_connection():
+            with self.check.connection.get_managed_cursor() as cursor:
+                cursor.execute(PLAN_LOOKUP_QUERY,
+                               bytes.fromhex(query_hash),
+                               bytes.fromhex(query_plan_hash))
+                result = cursor.fetchall()
+                if not result:
+                    self.log.debug("failed to loan plan, it must have just been expired out of the plan cache")
+                    return None
+                return result[0][0]
 
     def _collect_plans(self, rows):
         for row in rows:
-            for plan_hash, plan in self._load_plans(row['query_hash']):
-                statement_plan_sig = (row['query_signature'], plan_signature)
-                if self._seen_samples_ratelimiter.acquire(statement_plan_sig):
-                    event = {
-                        "host": self._db_hostname,
-                        "ddagentversion": datadog_agent.get_version(),
-                        "ddsource": "postgres",
-                        "ddtags": ",".join(self.check.tags),
-                        "timestamp": time.time() * 1000,
-                        "db": {
-                            "instance": row.get('datname', None),
-                            "plan": {
-                                "definition": obfuscated_plan,
-                                "signature": plan_signature,
-                                "collection_errors": collection_errors,
-                            },
-                            "query_signature": query_signature,
-                            "resource_hash": query_signature,
-                            "application": row.get('application_name', None),
-                            "user": row['usename'],
-                            "statement": obfuscated_statement,
-                            "query_truncated": self._get_truncation_state(
-                                self._get_track_activity_query_size(), row['query']
-                            ).value,
+            plan_key = (row['query_signature'], row['query_hash'], row['query_plan_hash'])
+            if self._seen_plans_ratelimiter.acquire(plan_key):
+                raw_plan = self._load_plan(row['query_hash'], row['query_plan_hash'])
+                yield {
+                    "host": self._db_hostname,
+                    "ddagentversion": datadog_agent.get_version(),
+                    "ddsource": "sqlserver",
+                    "ddtags": ",".join(self.check.tags),
+                    "timestamp": time.time() * 1000,
+                    # TODO: should this be a different type, maybe "plan"?
+                    "dbm_type": "sample",
+                    "db": {
+                        "instance": row.get("database_name", None),
+                        "plan": {
+                            "definition": raw_plan,
+                            "signature": row['query_plan_hash'],
+                            "collection_errors": None,
                         },
-                        'postgres': {k: v for k, v in row.items() if k not in pg_stat_activity_sample_exclude_keys},
-                    }
+                        "query_signature": row['query_signature'],
+                        # "application": row.get('application_name', None),
+                        # "user": row['usename'],
+                        "statement": row['text'],
+                    },
+                    'sqlserver': {k: v for k, v in row.items() if k in {'query_hash', 'query_plan_hash'}},
+                }

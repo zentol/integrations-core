@@ -102,6 +102,12 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, dat
     dbm_samples = aggregator.get_event_platform_events("dbm-samples")
     assert len(dbm_samples) > 0, "should have collected some samples"
 
+    plan_events = [s for s in dbm_samples if s['dbm_type'] == "sample"]
+    assert plan_events
+    plan_event = plan_events[0]
+    assert plan_event['db']['plan']['definition'], "must have a plan"
+
+
 @not_windows_ci
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
