@@ -7,7 +7,6 @@ variables:
   TAGGER_EMAIL: packages@datadoghq.com
   TAGGER_NAME: ci.integrations-core
   NOTIFICATIONS_SLACK_CHANNEL: agent-integrations
-  SLACK_CACHE_DIR: "/.slack-cache"
 
 # Uncomment when/if we modify script to use Jira
 #
@@ -27,9 +26,9 @@ stages:
   - notify
 
 cache: &slack-cache
-  key: integraitons-core-slack-cache
+  key: integrations-core-slack-cache
   paths:
-    - /.slack-cache
+    - .slack-cache
   policy: pull-push
 
 test-slack:
@@ -41,39 +40,19 @@ test-slack:
     DEBUG: 'true'
     SLACK_NOTIFIER_DEBUG: 'true'
   script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
     - echo "test"
     - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
+    - sleep 2
     - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
+    - sleep 2
     - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
+    - sleep 2
     - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
+    - sleep 2
     - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
+    - sleep 2
     - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
-    - sleep 5
-    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
-    - sleep 5
     - echo "done"
   tags: ["runner:main"]
   only:
@@ -107,6 +86,7 @@ trigger-agent-build:
   cache:
     <<: *slack-cache
   script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
     - DATADOG_AGENT_PIPELINE_URL=$(aws ssm get-parameter --region us-east-1 --name ci.integrations-core.datadog-agent-pipeline-url --with-decryption --query "Parameter.Value" --out text)
     - export AGENT_REQUIREMENTS_CHANGED="false"
     - git fetch origin master
@@ -141,6 +121,7 @@ validate-agent-build:
   cache:
     <<: *slack-cache
   script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
     - |
       if [[ -s ./pipeline_id.txt ]]; then
           # Fetch secrets from SCM
@@ -179,6 +160,7 @@ notify-slack:
   cache:
     <<: *slack-cache
   script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
     - |
       if [[ -s ./errors.txt ]]; then
           cat errors.txt
@@ -200,6 +182,7 @@ notify-failed-pipeline:
   cache:
     <<: *slack-cache
   script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
     - |
       MESSAGE="The pipeline uncountered an unexpected error."
       postmessage "$NOTIFICATIONS_SLACK_CHANNEL" "$MESSAGE" alert
