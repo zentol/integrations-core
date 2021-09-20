@@ -253,8 +253,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                     "ddsource": "sqlserver",
                     "ddtags": ",".join(self.check.tags),
                     "timestamp": time.time() * 1000,
-                    # TODO: should this be a different type, maybe "plan"?
-                    "dbm_type": "sample",
+                    "dbm_type": "plan",
                     "db": {
                         "instance": row.get("database_name", None),
                         "plan": {
@@ -267,5 +266,8 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                         # "user": row['usename'],
                         "statement": row['text'],
                     },
-                    'sqlserver': {k: v for k, v in row.items() if k in {'query_hash', 'query_plan_hash'}},
+                    'sqlserver': {
+                        'query_hash': row['query_hash'],
+                        'query_plan_hash': row['query_plan_hash'],
+                      },
                 }
