@@ -181,11 +181,11 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             'ddagentversion': datadog_agent.get_version(),
         }
 
-    def collect_per_statement_metrics(self):
-        # exclude the default "db" tag from statement metrics & FQT events because this data is collected from
-        # all databases on the host. For metrics the "db" tag is added during ingestion based on which database
-        # each query came from.
-        # returns the rows
+    def collect_statement_metrics_and_plans(self):
+        """
+        Collects statement metrics and plans.
+        :return:
+        """
         try:
             rows = self._collect_metrics_rows()
             if not rows:
@@ -225,7 +225,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             }
 
     def run_job(self):
-        self.collect_per_statement_metrics()
+        self.collect_statement_metrics_and_plans()
 
     def _load_plan(self, query_hash, query_plan_hash):
         # loads the plan

@@ -6,6 +6,7 @@ import logging
 
 from datadog_checks.sqlserver import SQLServer
 from datadog_checks.sqlserver.statements import STATEMENT_METRICS_QUERY
+import xml.etree.ElementTree as ET
 
 from .common import CHECK_NAME, CUSTOM_METRICS, CUSTOM_QUERY_A, CUSTOM_QUERY_B, EXPECTED_DEFAULT_METRICS, assert_metrics
 from .utils import not_windows_ci, windows_ci
@@ -42,35 +43,50 @@ def bob_conn(dbm_instance):
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
 @pytest.mark.parametrize(
-    "database,query,params,match_query",
+    "database,query,param_groups,match_pattern",
     [
         [
             "datadog_test",
             "SELECT * FROM things",
-            (),
-            "SELECT * FROM things"
+            (
+                    (),
+            ),
+            r"SELECT \* FROM things"
         ],
         [
             "datadog_test",
             "SELECT * FROM things where id = ?",
-            (1,),
-            "(@P1 INT)SELECT * FROM things where id = @P1"
+            (
+                    (1,),
+                    (2,),
+                    (3,),
+            ),
+            r"\(@P1 \w+\)SELECT \* FROM things where id = @P1",
         ],
         [
             "master",
             "SELECT * FROM datadog_test.dbo.things where id = ?",
-            (1,),
-            "(@P1 INT)SELECT * FROM datadog_test.dbo.things where id = @P1"
+            (
+                    (1,),
+                    (2,),
+                    (3,),
+            ),
+            r"\(@P1 \w+\)SELECT \* FROM datadog_test.dbo.things where id = @P1"
         ],
         [
             "datadog_test",
             "SELECT * FROM things where id = ? and name = ?",
-            (1, "hello"),
-            "(@P1 INT,@P2 NVARCHAR(10))SELECT * FROM things where id = @P1 and name = @P2"
+            (
+                    (1, "hello"),
+                    (2, "there"),
+                    (3, "bill"),
+            ),
+            r"\(@P1 \w+,@P2 NVARCHAR\(\d+\)\)SELECT \* FROM things where id = @P1 and name = @P2",
         ],
     ],
 )
-def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, database, query, params, match_query):
+def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob_conn, database, query, param_groups,
+                                     match_pattern):
     check = SQLServer(CHECK_NAME, {}, [dbm_instance])
 
     with bob_conn.cursor() as cursor:
@@ -78,8 +94,8 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, dat
 
     def _run_test_queries():
         with bob_conn.cursor() as cursor:
-            cursor.execute(query, params)
-            cursor.execute(query, params)
+            for params in param_groups:
+                cursor.execute(query, params)
 
     _run_test_queries()
     dd_run_check(check)
@@ -92,26 +108,32 @@ def test_statement_metrics(aggregator, dd_run_check, dbm_instance, bob_conn, dat
     payload = dbm_metrics[0]
     sqlserver_rows = payload.get('sqlserver_rows', [])
     assert sqlserver_rows, "should have collected some sqlserver query metrics rows"
-    matching_rows = [r for r in sqlserver_rows if r['text'] == match_query]
-    assert len(matching_rows) == 1, "expected exactly one matching metrics row"
-    row = matching_rows[0]
-    assert row['execution_count'] == 2, "wrong execution count"
-    assert row['query_signature'], "missing query signature"
-    assert row['database_name'] == database, "incorrect database_name"
+    matching_rows = [r for r in sqlserver_rows if re.match(match_pattern, r['text'])]
+    assert len(matching_rows) >= 1, "expected at least one matching metrics row"
+
+    total_execution_count = sum([r['execution_count'] for r in matching_rows])
+    assert total_execution_count == len(param_groups), "wrong execution count"
+    for row in matching_rows:
+        assert row['query_signature'], "missing query signature"
+        assert row['database_name'] == database, "incorrect database_name"
 
     dbm_samples = aggregator.get_event_platform_events("dbm-samples")
-    assert len(dbm_samples) > 0, "should have collected some samples"
+    assert dbm_samples, "should have collected at least one sample"
 
     plan_events = [s for s in dbm_samples if s['dbm_type'] == "plan"]
-    assert plan_events
-    plan_event = plan_events[0]
-    assert plan_event['db']['plan']['definition'], "must have a plan"
+    assert plan_events, "should have collected some plans"
+    matching_plan_events = [s for s in plan_events if re.match(match_pattern, s['db']['statement'])]
+    assert matching_plan_events, "should have collected at least one matching plan"
+    for event in matching_plan_events:
+        assert event['db']['plan']['definition'], "event plan definition missing"
+        parsed_plan = ET.fromstring(event['db']['plan']['definition'])
+        assert parsed_plan.tag.endswith("ShowPlanXML")
 
 
 @not_windows_ci
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
-def test_basic_statement_metrics_query(datadog_conn_docker):
+def test_statement_basic_metrics_query(datadog_conn_docker):
     test_query = "select * from sys.databases"
 
     # run this test query to guarantee there's at least one application query in the query plan cache
@@ -143,10 +165,11 @@ def test_basic_statement_metrics_query(datadog_conn_docker):
 
         assert cursor.fetchall()[0][0] == 1, "failed to read back the same query stats using the query and plan hash"
 
+
 @not_windows_ci
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
-def test_load_plans(datadog_conn_docker):
+def test_statement_load_plans(datadog_conn_docker):
     test_query = "select * from sys.databases"
 
     # run this test query to guarantee there's at least one application query in the query plan cache
