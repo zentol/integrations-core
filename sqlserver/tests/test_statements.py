@@ -164,24 +164,3 @@ def test_statement_basic_metrics_query(datadog_conn_docker):
         )
 
         assert cursor.fetchall()[0][0] == 1, "failed to read back the same query stats using the query and plan hash"
-
-
-@not_windows_ci
-@pytest.mark.integration
-@pytest.mark.usefixtures('dd_environment')
-def test_statement_load_plans(datadog_conn_docker):
-    test_query = "select * from sys.databases"
-
-    # run this test query to guarantee there's at least one application query in the query plan cache
-    with datadog_conn_docker.cursor() as cursor:
-        cursor.execute(test_query)
-        cursor.fetchall()
-
-    with datadog_conn_docker.cursor() as cursor:
-        logging.debug("running statement_metrics_query: %s", STATEMENT_METRICS_QUERY)
-        cursor.execute(STATEMENT_METRICS_QUERY)
-        columns = [i[0] for i in cursor.description]
-        # construct row dicts manually as there's no DictCursor for pyodbc
-        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        import pdb
-        pdb.set_trace()
