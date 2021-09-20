@@ -25,6 +25,14 @@ stages:
   - release
   - notify
 
+test-slack:
+  stage: trigger
+  image: $VALIDATE_AGENT_BUILD
+  script:
+    - DEBUG=true echo paul.coignet@datadoghq.com | email2slackid
+  tags: ["runner:main"]
+  only:
+  - flo/test_slack
 validate-log-integrations:
   stage: validate
   image: $VALIDATE_LOG_INTGS
