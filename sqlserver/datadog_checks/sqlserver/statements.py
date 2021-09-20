@@ -269,5 +269,5 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                     'sqlserver': {
                         'query_hash': row['query_hash'],
                         'query_plan_hash': row['query_plan_hash'],
-                      },
+                    },
                 }
