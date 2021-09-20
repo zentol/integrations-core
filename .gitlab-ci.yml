@@ -7,6 +7,7 @@ variables:
   TAGGER_EMAIL: packages@datadoghq.com
   TAGGER_NAME: ci.integrations-core
   NOTIFICATIONS_SLACK_CHANNEL: agent-integrations
+  SLACK_CACHE_DIR: "/.slack-cache"
 
 # Uncomment when/if we modify script to use Jira
 #
@@ -25,9 +26,17 @@ stages:
   - release
   - notify
 
+cache: &slack-cache
+  key: integraitons-core-slack-cache
+  paths:
+    - /.slack-cache
+  policy: pull-push
+
 test-slack:
   stage: trigger
   image: $VALIDATE_AGENT_BUILD
+  cache:
+    <<: *slack-cache
   variables:
     DEBUG: 'true'
     SLACK_NOTIFIER_DEBUG: 'true'
@@ -69,6 +78,7 @@ test-slack:
   tags: ["runner:main"]
   only:
   - flo/test_slack
+
 validate-log-integrations:
   stage: validate
   image: $VALIDATE_LOG_INTGS
@@ -94,6 +104,8 @@ validate-log-integrations:
 trigger-agent-build:
   stage: trigger
   image: $VALIDATE_AGENT_BUILD
+  cache:
+    <<: *slack-cache
   script:
     - DATADOG_AGENT_PIPELINE_URL=$(aws ssm get-parameter --region us-east-1 --name ci.integrations-core.datadog-agent-pipeline-url --with-decryption --query "Parameter.Value" --out text)
     - export AGENT_REQUIREMENTS_CHANGED="false"
@@ -126,6 +138,8 @@ validate-agent-build:
   stage: validate
   image: $VALIDATE_AGENT_BUILD
   timeout: 2 hours
+  cache:
+    <<: *slack-cache
   script:
     - |
       if [[ -s ./pipeline_id.txt ]]; then
@@ -162,6 +176,8 @@ notify-slack:
   image: $NOTIFIER_IMAGE
   only:
   - schedules
+  cache:
+    <<: *slack-cache
   script:
     - |
       if [[ -s ./errors.txt ]]; then
@@ -181,6 +197,8 @@ notify-failed-pipeline:
   only:
   - master
   when: on_failure
+  cache:
+    <<: *slack-cache
   script:
     - |
       MESSAGE="The pipeline uncountered an unexpected error."
