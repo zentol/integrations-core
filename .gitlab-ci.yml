@@ -31,7 +31,9 @@ test-slack:
   script:
     - echo "test"
     - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
+    - sleep 5
     - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
+    - echo "done"
   tags: ["runner:main"]
   only:
   - flo/test_slack
