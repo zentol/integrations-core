@@ -28,6 +28,9 @@ stages:
 test-slack:
   stage: trigger
   image: $VALIDATE_AGENT_BUILD
+  variables:
+    DEBUG: true
+    SLACK_NOTIFIER_DEBUG: true
   script:
     - echo "test"
     - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
