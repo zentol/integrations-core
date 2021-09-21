@@ -4,19 +4,32 @@ from copy import copy, deepcopy
 import pytest
 import logging
 
+from concurrent.futures.thread import ThreadPoolExecutor
+
+from datadog_checks.base.utils.db.utils import DBMAsyncJob
 from datadog_checks.sqlserver import SQLServer
-from datadog_checks.sqlserver.statements import STATEMENT_METRICS_QUERY
+from datadog_checks.sqlserver.statements import STATEMENT_METRICS_QUERY, SQL_SERVER_METRICS_COLUMNS
 import xml.etree.ElementTree as ET
 
 from .common import CHECK_NAME, CUSTOM_METRICS, CUSTOM_QUERY_A, CUSTOM_QUERY_B, EXPECTED_DEFAULT_METRICS, assert_metrics
 from .utils import not_windows_ci, windows_ci
 from .conftest import datadog_conn_docker
 
+
 try:
     import pyodbc
 except ImportError:
     pyodbc = None
 
+
+@pytest.fixture(autouse=True)
+def stop_orphaned_threads():
+    # make sure we shut down any orphaned threads and create a new Executor for each test
+    DBMAsyncJob.executor.shutdown(wait=True)
+    DBMAsyncJob.executor = ThreadPoolExecutor()
+
+
+# TODO: test DB version
 
 @pytest.fixture
 def dbm_instance(instance_docker):
@@ -103,31 +116,58 @@ def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob
     _run_test_queries()
     dd_run_check(check)
 
+    expected_instance_tags = set(dbm_instance.get('tags', []))
+    expected_instance_tags_with_db = set(dbm_instance.get('tags', [])) | {
+        "db:{}".format(database)
+    }
+
+    # dbm-metrics
     dbm_metrics = aggregator.get_event_platform_events("dbm-metrics")
     assert len(dbm_metrics) == 1, "should have collected exactly one dbm-metrics payload"
     payload = dbm_metrics[0]
+    # host metadata
+    assert payload['sqlserver_version'].startswith("Microsoft SQL Server"), "invalid version"
+    assert payload['host'] == "stubbed.hostname", "wrong hostname"
+    assert set(payload['tags']) == expected_instance_tags, "wrong instance tags for dbm-metrics event"
+    assert type(payload['min_collection_interval']) in (float, int), "invalid min_collection_interval"
+    # metrics rows
     sqlserver_rows = payload.get('sqlserver_rows', [])
     assert sqlserver_rows, "should have collected some sqlserver query metrics rows"
     matching_rows = [r for r in sqlserver_rows if re.match(match_pattern, r['text'])]
     assert len(matching_rows) >= 1, "expected at least one matching metrics row"
-
     total_execution_count = sum([r['execution_count'] for r in matching_rows])
     assert total_execution_count == len(param_groups), "wrong execution count"
     for row in matching_rows:
         assert row['query_signature'], "missing query signature"
         assert row['database_name'] == database, "incorrect database_name"
+        for column in SQL_SERVER_METRICS_COLUMNS:
+            assert column in row, "missing required metrics column {}".format(column)
+            assert type(row[column]) in (float, int), "wrong type for metrics column {}".format(column)
 
     dbm_samples = aggregator.get_event_platform_events("dbm-samples")
     assert dbm_samples, "should have collected at least one sample"
 
+    matching_samples = [s for s in dbm_samples if re.match(match_pattern, s['db']['statement'])]
+    assert matching_samples, "should have collected some matching samples"
+
+    # validate common host fields
+    for event in matching_samples:
+        assert event['host'] == "stubbed.hostname", "wrong hostname"
+        assert event['ddsource'] == "sqlserver", "wrong source"
+        assert event['ddagentversion'], "missing ddagentversion"
+        assert set(event['ddtags'].split(',')) == expected_instance_tags_with_db, "wrong instance tags for plan event"
+
     plan_events = [s for s in dbm_samples if s['dbm_type'] == "plan"]
     assert plan_events, "should have collected some plans"
-    matching_plan_events = [s for s in plan_events if re.match(match_pattern, s['db']['statement'])]
-    assert matching_plan_events, "should have collected at least one matching plan"
-    for event in matching_plan_events:
+
+    for event in plan_events:
         assert event['db']['plan']['definition'], "event plan definition missing"
         parsed_plan = ET.fromstring(event['db']['plan']['definition'])
-        assert parsed_plan.tag.endswith("ShowPlanXML")
+        assert parsed_plan.tag.endswith("ShowPlanXML"), "plan does not match expected structure"
+
+    fqt_events = [s for s in dbm_samples if s['dbm_type'] == "fqt"]
+    assert fqt_events, "should have collected some FQT events"
+
 
 
 @not_windows_ci

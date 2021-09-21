@@ -167,6 +167,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
     @staticmethod
     def _to_metrics_payload_row(row):
         row = {k: v for k, v in row.items()}
+        # truncate query text to the maximum length supported by metrics tags
         row['text'] = row['text'][0:200]
         return row
 
@@ -191,13 +192,11 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             if not rows:
                 return
             for event in self._rows_to_fqt_events(rows):
-                self._check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
-            # truncate query text to the maximum length supported by metrics tags
+                self.check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
             payload = self._to_metrics_payload(rows)
-            self._check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))
+            self.check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))
             for event in self._collect_plans(rows):
-                self._check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
-
+                self.check.database_monitoring_query_sample(json.dumps(event, default=default_json_event_encoding))
         except Exception:
             self.log.exception('Unable to collect statement metrics due to an error')
             return []
@@ -211,7 +210,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             tags = self.check.tags + ["db:{}".format(row['database_name'])]
             yield {
                 "timestamp": time.time() * 1000,
-                "host": self._check.resolved_hostname,
+                "host": self.check.resolved_hostname,
                 "ddagentversion": datadog_agent.get_version(),
                 "ddsource": "sqlserver",
                 "ddtags": ",".join(tags),
@@ -247,11 +246,12 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             plan_key = (row['query_signature'], row['query_hash'], row['query_plan_hash'])
             if self._seen_plans_ratelimiter.acquire(plan_key):
                 raw_plan = self._load_plan(row['query_hash'], row['query_plan_hash'])
+                tags = self.check.tags + ["db:{}".format(row['database_name'])]
                 yield {
                     "host": self._db_hostname,
                     "ddagentversion": datadog_agent.get_version(),
                     "ddsource": "sqlserver",
-                    "ddtags": ",".join(self.check.tags),
+                    "ddtags": ",".join(tags),
                     "timestamp": time.time() * 1000,
                     "dbm_type": "plan",
                     "db": {
