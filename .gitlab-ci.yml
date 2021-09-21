@@ -31,6 +31,37 @@ cache: &slack-cache
     - .slack-cache
   policy: pull-push
 
+test-slack:
+  stage: trigger
+  image: $VALIDATE_AGENT_BUILD
+  cache:
+    <<: *slack-cache
+  variables:
+    DEBUG: 'true'
+    SLACK_NOTIFIER_DEBUG: 'true'
+  script:
+    - export SLACK_CACHE_DIR="${PWD}/.slack-cache"
+    - echo "test"
+    - DEBUG=true echo "paul.coignet@datadoghq.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "ChristineTChen@users.noreply.github.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "31313038+yzhan289@users.noreply.github.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "611228+hithwen@users.noreply.github.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "florian.veaux@datadoghq.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "fanny.jiang@datadoghq.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "ofekmeister@gmail.com" | email2slackid
+    - sleep 2
+    - DEBUG=true echo "sarah.witt@datadoghq.com" | email2slackid
+    - echo "done"
+  tags: ["runner:main"]
+  only:
+  - flo/test_slack
+
 validate-log-integrations:
   stage: validate
   image: $VALIDATE_LOG_INTGS
