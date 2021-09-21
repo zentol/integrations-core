@@ -203,4 +203,4 @@ def test_statement_basic_metrics_query(datadog_conn_docker):
             row['query_plan_hash']
         )
 
-        assert cursor.fetchall()[0][0] == 1, "failed to read back the same query stats using the query and plan hash"
+        assert cursor.fetchall()[0][0] >= 1, "failed to read back the same query stats using the query and plan hash"

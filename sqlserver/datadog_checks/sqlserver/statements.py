@@ -42,25 +42,43 @@ SQL_SERVER_METRICS_COLUMNS = [
 # sum(execution_count) as execution_count
 # from sys.dm_exec_query_stats cross apply sys.dm_exec_sql_text(sql_handle)
 # group by text, sql_handle, plan_handle, dbid;
+# STATEMENT_METRICS_QUERY_OLD = """\
+# with qstats as (
+#     select text, query_hash, query_plan_hash, value as dbid, {}
+#     from sys.dm_exec_query_stats
+#         cross apply sys.dm_exec_sql_text(sql_handle)
+#         cross apply sys.dm_exec_plan_attributes(plan_handle)
+#     where
+#         attribute = 'dbid'
+#     group by text, sql_handle, query_hash, query_plan_hash, value
+# )
+# select text, query_hash, query_plan_hash, name as database_name, {}
+#     from qstats S
+#     join sys.databases D on S.dbid = D.database_id;
+# """.format(
+#     ', '.join(['sum({}) as {}'.format(c, c) for c in SQL_SERVER_METRICS_COLUMNS]),
+#     ', '.join(SQL_SERVER_METRICS_COLUMNS)
+# )
 
-# TODO: aggregate by both database and userid
 STATEMENT_METRICS_QUERY = """\
 with qstats as (
-    select text, query_hash, query_plan_hash, value as dbid, {}
+    select text, query_hash, query_plan_hash,
+           (select value from sys.dm_exec_plan_attributes(plan_handle) where attribute = 'dbid') as dbid,
+           (select value from sys.dm_exec_plan_attributes(plan_handle) where attribute = 'user_id') as user_id,
+           {}
     from sys.dm_exec_query_stats
         cross apply sys.dm_exec_sql_text(sql_handle)
-        cross apply sys.dm_exec_plan_attributes(plan_handle)
-    where 
-        attribute = 'dbid'
-    group by text, sql_handle, query_hash, query_plan_hash, value
-) 
-select text, query_hash, query_plan_hash, name as database_name, {}
-    from qstats S
-    join sys.databases D on S.dbid = D.database_id;
-""".format(
-    ', '.join(['sum({}) as {}'.format(c, c) for c in SQL_SERVER_METRICS_COLUMNS]),
-    ', '.join(SQL_SERVER_METRICS_COLUMNS)
 )
+select text, query_hash, query_plan_hash, CAST(S.dbid as int) as dbid, D.name as database_name, U.name as user_name, {}
+    from qstats S
+    left join sys.databases D on S.dbid = D.database_id
+    left join sys.sysusers U on S.user_id = U.uid
+    group by text, query_hash, query_plan_hash, S.dbid, D.name, U.name
+""".format(
+    ', '.join(SQL_SERVER_METRICS_COLUMNS),
+    ', '.join(['sum({}) as {}'.format(c, c) for c in SQL_SERVER_METRICS_COLUMNS])
+)
+
 
 PLAN_LOOKUP_QUERY = """\
 select query_plan from sys.dm_exec_query_stats
@@ -131,6 +149,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
         self.log.debug("collecting sql server statement metrics")
         with self.check.connection.open_managed_default_connection():
             with self.check.connection.get_managed_cursor() as cursor:
+                self._log.debug("Running query [%s]", STATEMENT_METRICS_QUERY)
                 cursor.execute(STATEMENT_METRICS_QUERY)
                 columns = [i[0] for i in cursor.description]
                 # construct row dicts manually as there's no DictCursor for pyodbc
@@ -229,9 +248,9 @@ class SqlserverStatementMetrics(DBMAsyncJob):
     def _load_plan(self, query_hash, query_plan_hash):
         # loads the plan
         self.log.debug("collecting plan")
-
         with self.check.connection.open_managed_default_connection():
             with self.check.connection.get_managed_cursor() as cursor:
+                self._log.debug("Running query [%s] %s", PLAN_LOOKUP_QUERY, (query_hash, query_plan_hash))
                 cursor.execute(PLAN_LOOKUP_QUERY,
                                bytes.fromhex(query_hash),
                                bytes.fromhex(query_plan_hash))
