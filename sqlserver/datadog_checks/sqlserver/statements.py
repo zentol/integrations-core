@@ -93,7 +93,7 @@ def _row_key(row):
     :param row: a normalized row from pg_stat_statements
     :return: a tuple uniquely identifying this row
     """
-    return row['database_name'], row['query_signature'], row['query_hash'], row['query_plan_hash']
+    return row['database_name'], row['user_name'], row['query_signature'], row['query_hash'], row['query_plan_hash']
 
 
 class SqlserverStatementMetrics(DBMAsyncJob):

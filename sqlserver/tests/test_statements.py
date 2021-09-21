@@ -56,50 +56,54 @@ def bob_conn(dbm_instance):
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')
 @pytest.mark.parametrize(
-    "database,query,param_groups,match_pattern",
+    "database,plan_user,query,match_pattern,param_groups",
     [
         [
             "datadog_test",
+            "dbo",
             "SELECT * FROM things",
+            r"SELECT \* FROM things",
             (
                     (),
             ),
-            r"SELECT \* FROM things"
         ],
         [
             "datadog_test",
+            "dbo",
             "SELECT * FROM things where id = ?",
+            r"\(@P1 \w+\)SELECT \* FROM things where id = @P1",
             (
                     (1,),
                     (2,),
                     (3,),
             ),
-            r"\(@P1 \w+\)SELECT \* FROM things where id = @P1",
         ],
         [
             "master",
+            None,
             "SELECT * FROM datadog_test.dbo.things where id = ?",
+            r"\(@P1 \w+\)SELECT \* FROM datadog_test.dbo.things where id = @P1",
             (
                     (1,),
                     (2,),
                     (3,),
             ),
-            r"\(@P1 \w+\)SELECT \* FROM datadog_test.dbo.things where id = @P1"
         ],
         [
             "datadog_test",
+            "dbo",
             "SELECT * FROM things where id = ? and name = ?",
+            r"\(@P1 \w+,@P2 NVARCHAR\(\d+\)\)SELECT \* FROM things where id = @P1 and name = @P2",
             (
                     (1, "hello"),
                     (2, "there"),
                     (3, "bill"),
             ),
-            r"\(@P1 \w+,@P2 NVARCHAR\(\d+\)\)SELECT \* FROM things where id = @P1 and name = @P2",
         ],
     ],
 )
-def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob_conn, database, query, param_groups,
-                                     match_pattern):
+def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob_conn, database, plan_user, query,
+                                     param_groups, match_pattern):
     check = SQLServer(CHECK_NAME, {}, [dbm_instance])
 
     with bob_conn.cursor() as cursor:
@@ -133,13 +137,14 @@ def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob
     # metrics rows
     sqlserver_rows = payload.get('sqlserver_rows', [])
     assert sqlserver_rows, "should have collected some sqlserver query metrics rows"
-    matching_rows = [r for r in sqlserver_rows if re.match(match_pattern, r['text'])]
+    matching_rows = [r for r in sqlserver_rows if re.match(match_pattern, r['text'], re.IGNORECASE)]
     assert len(matching_rows) >= 1, "expected at least one matching metrics row"
     total_execution_count = sum([r['execution_count'] for r in matching_rows])
     assert total_execution_count == len(param_groups), "wrong execution count"
     for row in matching_rows:
         assert row['query_signature'], "missing query signature"
         assert row['database_name'] == database, "incorrect database_name"
+        assert row['user_name'] == plan_user, "incorrect user_name"
         for column in SQL_SERVER_METRICS_COLUMNS:
             assert column in row, "missing required metrics column {}".format(column)
             assert type(row[column]) in (float, int), "wrong type for metrics column {}".format(column)
@@ -147,7 +152,7 @@ def test_statement_metrics_and_plans(aggregator, dd_run_check, dbm_instance, bob
     dbm_samples = aggregator.get_event_platform_events("dbm-samples")
     assert dbm_samples, "should have collected at least one sample"
 
-    matching_samples = [s for s in dbm_samples if re.match(match_pattern, s['db']['statement'])]
+    matching_samples = [s for s in dbm_samples if re.match(match_pattern, s['db']['statement'], re.IGNORECASE)]
     assert matching_samples, "should have collected some matching samples"
 
     # validate common host fields
