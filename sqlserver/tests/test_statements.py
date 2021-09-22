@@ -41,17 +41,6 @@ def dbm_instance(instance_docker):
     return copy(instance_docker)
 
 
-@pytest.fixture
-def bob_conn(dbm_instance):
-    # Make DB connection
-    conn_str = 'DRIVER={};Server={};Database=master;UID={};PWD={};'.format(
-        dbm_instance['driver'], dbm_instance['host'], "bob", "hey-there-bob123"
-    )
-    conn = pyodbc.connect(conn_str, timeout=30)
-    yield conn
-    conn.close()
-
-
 @not_windows_ci
 @pytest.mark.integration
 @pytest.mark.usefixtures('dd_environment')

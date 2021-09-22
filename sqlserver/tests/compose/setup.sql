@@ -33,3 +33,26 @@ GO
 
 EXEC sp_addrolemember 'db_datareader', 'bob'
 EXEC sp_addrolemember 'db_datawriter', 'bob'
+GO
+
+-- create test procedure for metrics loading feature
+USE master;
+GO
+CREATE PROCEDURE pyStoredProc AS
+BEGIN
+    CREATE TABLE #Datadog
+    (
+        [metric] varchar(255) not null,
+        [type] varchar(50) not null,
+        [value] float not null,
+        [tags] varchar(255)
+    )
+    SET NOCOUNT ON;
+    INSERT INTO #Datadog (metric, type, value, tags) VALUES
+                                                         ('sql.sp.testa', 'gauge', 100, 'foo:bar,baz:qux'),
+                                                         ('sql.sp.testb', 'gauge', 1, 'foo:bar,baz:qux'),
+                                                         ('sql.sp.testb', 'gauge', 2, 'foo:bar,baz:qux');
+    SELECT * FROM #Datadog;
+END;
+GO
+GRANT EXECUTE on pyStoredProc to datadog;
