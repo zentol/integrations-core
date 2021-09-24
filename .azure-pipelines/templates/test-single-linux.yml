@@ -13,6 +13,7 @@ parameters:
   repo: 'core'
   ispr: false
   run_py2_tests: true  # Whether or not to run python2 tests.
+  run_py3_tests: true  # Whether or not to run python3 tests.
   force_base_package: false
   pip_cache_config: null
   coverage: true
