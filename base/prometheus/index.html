@@ -420,7 +420,7 @@
 <span class=sd>    &quot;&quot;&quot;</span>
     <span class=k>if</span> <span class=n>response</span><span class=o>.</span><span class=n>encoding</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
         <span class=n>response</span><span class=o>.</span><span class=n>encoding</span> <span class=o>=</span> <span class=s1>&#39;utf-8&#39;</span>
-    <span class=n>input_gen</span> <span class=o>=</span> <span class=n>response</span><span class=o>.</span><span class=n>iter_lines</span><span class=p>(</span><span class=n>chunk_size</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>REQUESTS_CHUNK_SIZE</span><span class=p>,</span> <span class=n>decode_unicode</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+    <span class=n>input_gen</span> <span class=o>=</span> <span class=n>response</span><span class=o>.</span><span class=n>iter_lines</span><span class=p>(</span><span class=n>decode_unicode</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
     <span class=k>if</span> <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_text_filter_blacklist&#39;</span><span class=p>]:</span>
         <span class=n>input_gen</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_text_filter_input</span><span class=p>(</span><span class=n>input_gen</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>)</span>
 
