@@ -19,6 +19,7 @@ variables:
 #   tags: [ "runner:main" ]
 
 stages:
+  - test
   - build
   - trigger
   - validate
@@ -32,14 +33,14 @@ cache: &slack-cache
   policy: pull-push
 
 validate-log-integrations:
-  stage: validate
+  stage: test
   image: $VALIDATE_LOG_INTGS
   only:
   - flo/test_ci
   variables:
     WEBUI_INTGS_FILE: web-ui/javascript/datadog/logs/lib/shared/integrations/integrations.ts
     LOGS_BACKEND_INTGS_ROOT: logs-backend/service/src/main/resources/integrations/
-    INTEGRATIONS_CORE_ROOT: .
+    INTEGRATIONS_CORE_ROOT: /go/src/github.com/DataDog/integrations-core
   script:
     - pwd
     - ls
