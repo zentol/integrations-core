@@ -35,12 +35,14 @@ validate-log-integrations:
   stage: validate
   image: $VALIDATE_LOG_INTGS
   only:
-  - schedules
+  - flo/test_ci
   variables:
     WEBUI_INTGS_FILE: web-ui/javascript/datadog/logs/lib/shared/integrations/integrations.ts
     LOGS_BACKEND_INTGS_ROOT: logs-backend/service/src/main/resources/integrations/
     INTEGRATIONS_CORE_ROOT: .
   script:
+    - pwd
+    - ls
     - cd /app
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/Datadog/web-ui.git --depth 1
     - ts-node parse_ts.ts > logs_integrations.json
