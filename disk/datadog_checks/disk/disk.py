@@ -116,9 +116,16 @@ class Disk(AgentCheck):
             self.devices_label = self._get_devices_label()
 
         for part in psutil.disk_partitions(all=self._include_all_devices):
+            device = part.device
+            if device == '/dev/root':
+                try:
+                    device = get_subprocess_output(['findmnt','-n','-o','SOURCE',part.mountpoint], self.log)
+                except Exception as e:
+                    self.log.debug('findmnt on /dev/root failed: %s', e)
+
             # we check all exclude conditions
-            if self.exclude_disk(part):
-                self.log.debug('Excluding device %s', part.device)
+            if self.exclude_disk(device, part.fstype, part.mountpoint, part.opts):
+                self.log.debug('Excluding device %s', device)
                 continue
 
             # Get disk metrics here to be able to exclude on total usage
@@ -144,12 +151,12 @@ class Disk(AgentCheck):
             # Exclude disks with size less than min_disk_size
             if disk_usage.total <= self._min_disk_size:
                 if disk_usage.total > 0:
-                    self.log.info('Excluding device %s with total disk size %s', part.device, disk_usage.total)
+                    self.log.info('Excluding device %s with total disk size %s', device, disk_usage.total)
                 continue
 
-            self.log.debug('Passed: %s', part.device)
+            self.log.debug('Passed: %s', device)
 
-            device_name = part.mountpoint if self._use_mount else part.device
+            device_name = part.mountpoint if self._use_mount else device
 
             tags = [part.fstype, 'filesystem:{}'.format(part.fstype)] if self._tag_by_filesystem else []
             tags.extend(self._custom_tags)
@@ -167,8 +174,8 @@ class Disk(AgentCheck):
                 device_name = device_name.strip('\\').lower()
 
             tags.append('device:{}'.format(device_name))
-            tags.append('device_name:{}'.format(_base_device_name(part.device)))
-            for metric_name, metric_value in iteritems(self._collect_part_metrics(part, disk_usage)):
+            tags.append('device_name:{}'.format(_base_device_name(device)))
+            for metric_name, metric_value in iteritems(self._collect_part_metrics(part.mountpoint, disk_usage)):
                 self.gauge(metric_name, metric_value, tags=tags)
 
             # Add in a disk read write or read only check
@@ -183,13 +190,13 @@ class Disk(AgentCheck):
 
         self.collect_latency_metrics()
 
-    def exclude_disk(self, part):
+    def exclude_disk(self, device, file_system, mount_point, mount_opts):
         # skip cd-rom drives with no disk in it; they may raise
         # ENOENT, pop-up a Windows GUI error for a non-ready
         # partition or just hang;
         # and all the other excluded disks
-        skip_win = Platform.is_win32() and ('cdrom' in part.opts or part.fstype == '')
-        return skip_win or self._exclude_disk(part.device, part.fstype, part.mountpoint)
+        skip_win = Platform.is_win32() and ('cdrom' in mount_opts or file_system == '')
+        return skip_win or self._exclude_disk(device, file_system, mount_point)
 
     def _exclude_disk(self, device, file_system, mount_point):
         """
@@ -263,7 +270,7 @@ class Disk(AgentCheck):
 
         return not not self._mount_point_exclude.match(mount_point)
 
-    def _collect_part_metrics(self, part, usage):
+    def _collect_part_metrics(self, mountpoint, usage):
         metrics = {}
 
         for name in ['total', 'used', 'free']:
@@ -274,7 +281,7 @@ class Disk(AgentCheck):
         metrics[self.METRIC_DISK.format('in_use')] = usage.percent / 100
 
         if Platform.is_unix():
-            metrics.update(self._collect_inodes_metrics(part.mountpoint))
+            metrics.update(self._collect_inodes_metrics(mountpoint))
 
         return metrics
 
