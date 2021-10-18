@@ -33,6 +33,7 @@ class IbmICheck(AgentCheck, ConfigMixin):
 
     def check(self, _):
         self._current_errors = 0
+        check_start = datetime.now()
 
         try:
             self.query_manager.execute()
@@ -53,6 +54,18 @@ class IbmICheck(AgentCheck, ConfigMixin):
                 self.SERVICE_CHECK_NAME,
                 check_status,
                 tags=self.config.tags,
+                hostname=self._query_manager.hostname,
+            )
+
+        if check_status is not None:
+            check_end = datetime.now()
+            check_duration = check_end - check_start
+            # The list() conversion is needed as self.config.tags is a tuple
+            check_duration_tags = list(self.config.tags) + ["check_id:{}".format(self.check_id)]
+            self.gauge(
+                "ibm_i.check.duration",
+                check_duration.total_seconds(),
+                check_duration_tags,
                 hostname=self._query_manager.hostname,
             )
 
