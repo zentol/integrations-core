@@ -14,10 +14,15 @@ pytestmark = pytest.mark.integration
 def test_check(aggregator, instance):
     check = SapHanaCheck('sap_hana', {}, [instance])
     check.check(instance)
+    server_tag = 'server:{}'.format(instance['server'])
+    port_tag = 'port:{}'.format(instance['port'])
 
     for metric in metrics.STANDARD:
-        aggregator.assert_metric_has_tag(metric, 'server:{}'.format(instance['server']))
-        aggregator.assert_metric_has_tag(metric, 'port:{}'.format(instance['port']))
+        aggregator.assert_metric_has_tag(metric, server_tag)
+        aggregator.assert_metric_has_tag(metric, port_tag)
+    for metric in metrics.OPTIONAL:
+        aggregator.assert_metric_has_tag(metric, server_tag, at_least=0)
+        aggregator.assert_metric_has_tag(metric, port_tag, at_least=0)
 
     aggregator.assert_all_metrics_covered()
 

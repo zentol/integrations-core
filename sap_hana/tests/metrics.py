@@ -1,12 +1,15 @@
 # (C) Datadog, Inc. 2019-present
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
+OPTIONAL = [
+    'sap_hana.cpu.service.utilized',
+]
+
 STANDARD = [
     'sap_hana.backup.latest',
     'sap_hana.connection.idle',
     'sap_hana.connection.open',
     'sap_hana.connection.running',
-    'sap_hana.cpu.service.utilized',
     'sap_hana.connection.queuing',
     'sap_hana.connection.empty',
     'sap_hana.disk.free',
