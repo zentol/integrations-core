@@ -71,7 +71,7 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/prometheus/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/openmetrics/</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
@@ -132,6 +132,11 @@
     </url>
     <url>
          <loc>https://datadoghq.dev/integrations-core/guidelines/style/</loc>
+         <lastmod>2020-02-02</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://datadoghq.dev/integrations-core/legacy/prometheus/</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
