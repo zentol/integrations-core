@@ -12,11 +12,25 @@ pr:
 variables:
   PIP_CACHE_DIR: $(Pipeline.Workspace)/.cache/pip
   DDEV_COLOR: 1
+  DD_TRACE_AGENT_PORT: 8127
+
+resources:
+  containers:
+    - container: dd_agent
+      image: gcr.io/datadoghq/agent:latest
+      ports:
+        - 8127:8126
+      env:
+        DD_API_KEY: $(DD_CI_API_KEY)
+        DD_HOSTNAME: "none"
+        DD_INSIDE_CI: "true"
+
 
 jobs:
 - template: './templates/test-single-linux.yml'
   parameters:
     job_name: Changed
+    ddtrace_flag: '--ddtrace'
     display: Linux
     validate: true
     validate_codeowners: false
@@ -31,6 +45,7 @@ jobs:
 - template: './templates/test-single-windows.yml'
   parameters:
     job_name: Changed
+    ddtrace_flag: '--ddtrace'
     check: '--changed datadog_checks_base datadog_checks_dev active_directory aspdotnet disk dns_check dotnetclr exchange_server iis network pdh_check sqlserver tcp_check win32_event_log windows_service wmi_check'
     validate_changed: changed
     display: Windows
