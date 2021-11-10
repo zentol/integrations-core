@@ -560,6 +560,17 @@ def test_report_pods_running(monkeypatch, tagger):
     check = KubeletCheck('kubelet', {}, [{}])
     monkeypatch.setattr(check, 'retrieve_pod_list', mock.Mock(return_value=json.loads(mock_from_file('pods.json'))))
     monkeypatch.setattr(check, 'gauge', mock.Mock())
+
+    excluded_containers_by_pod_id = {
+        # Pod name: fluentd-gcp-v2.0.10-9q9t4
+        "2edfd4d9-10ce-11e8-bd5a-42010af00137": [
+            # Container name: fluentd-gcp
+            "docker://5741ed2471c0e458b6b95db40ba05d1a5ee168256638a0264f08703e48d76561"
+        ]
+    }
+    check.pod_list_utils = mock.Mock()
+    check.pod_list_utils.is_excluded = lambda cid, pod_uid: cid in excluded_containers_by_pod_id.get(pod_uid, [])
+
     pod_list = check.retrieve_pod_list()
 
     check._report_pods_running(pod_list, [])
@@ -570,7 +581,7 @@ def test_report_pods_running(monkeypatch, tagger):
         mock.call('kubernetes.pods.running', 1, ['pod_name:demo-app-success-c485bc67b-klj45']),
         mock.call(
             'kubernetes.containers.running',
-            2,
+            1,  # It's 1 instead of 2 because of the excluded container
             ["kube_container_name:fluentd-gcp", "kube_deployment:fluentd-gcp-v2.0.10"],
         ),
         mock.call(
@@ -599,6 +610,17 @@ def test_report_pods_running_none_ids(monkeypatch, tagger):
     check = KubeletCheck('kubelet', {}, [{}])
     monkeypatch.setattr(check, 'retrieve_pod_list', mock.Mock(return_value=podlist))
     monkeypatch.setattr(check, 'gauge', mock.Mock())
+
+    excluded_containers_by_pod_id = {
+        # Pod name: fluentd-gcp-v2.0.10-p13r3
+        "2fdfd4d9-10ce-11e8-bd5a-42010af00137": [
+            # Container name: prometheus-to-sd-exporter
+            "docker://690cb469826a10317fd63cc780441920f49913ae63918d4c7b19a72347645b05"
+        ]
+    }
+    check.pod_list_utils = mock.Mock()
+    check.pod_list_utils.is_excluded = lambda cid, pod_uid: cid in excluded_containers_by_pod_id.get(pod_uid, [])
+
     pod_list = check.retrieve_pod_list()
 
     check._report_pods_running(pod_list, [])
@@ -607,7 +629,7 @@ def test_report_pods_running_none_ids(monkeypatch, tagger):
         mock.call('kubernetes.pods.running', 1, ["pod_name:fluentd-gcp-v2.0.10-9q9t4"]),
         mock.call(
             'kubernetes.containers.running',
-            2,
+            1,  # It's 1 instead of 2 because of the excluded container
             ["kube_container_name:prometheus-to-sd-exporter", "kube_deployment:fluentd-gcp-v2.0.10"],
         ),
     ]

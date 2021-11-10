@@ -446,6 +446,7 @@ class KubeletCheck(
         pods_tag_counter = defaultdict(int)
         containers_tag_counter = defaultdict(int)
         for pod in pods.get('items', []):
+            pod_id = pod.get('metadata', {}).get('uid')
             # Containers reporting
             containers = pod.get('status', {}).get('containerStatuses', [])
             has_container_running = False
@@ -454,6 +455,10 @@ class KubeletCheck(
                 if not container_id:
                     self.log.debug('skipping container with no id')
                     continue
+
+                if self.pod_list_utils.is_excluded(container_id, pod_id):
+                    continue
+
                 if "running" not in container.get('state', {}):
                     continue
                 has_container_running = True
@@ -466,7 +471,6 @@ class KubeletCheck(
             # Pod reporting
             if not has_container_running:
                 continue
-            pod_id = pod.get('metadata', {}).get('uid')
             if not pod_id:
                 self.log.debug('skipping pod with no uid')
                 continue
