@@ -135,6 +135,9 @@
     <span class=c1># Retrieve potential default instance settings for the namespace</span>
     <span class=n>default_instance</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>default_instances</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>namespace</span><span class=p>,</span> <span class=p>{})</span>
 
+    <span class=k>def</span> <span class=nf>_get_setting</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>default</span><span class=p>):</span>
+        <span class=k>return</span> <span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>default_instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>default</span><span class=p>))</span>
+
     <span class=c1># `metrics_mapper` is a dictionary where the keys are the metrics to capture</span>
     <span class=c1># and the values are the corresponding metrics names to have in datadog.</span>
     <span class=c1># Note: it is empty in the parent class but will need to be</span>
@@ -414,7 +417,11 @@
         <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_default_metric_transformers&#39;</span><span class=p>][</span><span class=n>config</span><span class=p>[</span><span class=s1>&#39;metadata_metric_name&#39;</span><span class=p>]]</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>transform_metadata</span>
 
     <span class=c1># Whether or not to enable flushing of the first value of monotonic counts</span>
-    <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_successfully_executed&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>False</span>
+    <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>False</span>
+
+    <span class=c1># Whether to use process_start_time_seconds to decide if counter-like values should  be flushed</span>
+    <span class=c1># on first scrape.</span>
+    <span class=n>config</span><span class=p>[</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>_get_setting</span><span class=p>(</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))</span>
 
     <span class=k>return</span> <span class=n>config</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 id=datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family class="doc doc-heading"> <code class="highlight language-python"><span class=n>parse_metric_family</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>response</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.parse_metric_family class=headerlink title="Permanent link">&para;</a></h5> <div class="doc doc-contents "> <p>Parse the MetricFamily from a valid <code>requests.Response</code> object to provide a MetricFamily object. The text format uses iter_lines() generator.</p> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>parse_metric_family</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>response</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>):</span>
@@ -488,14 +495,38 @@
 <span class=sd>    Note that if the instance has a `tags` attribute, it will be pushed</span>
 <span class=sd>    automatically as additional custom tags and added to the metrics</span>
 <span class=sd>    &quot;&quot;&quot;</span>
+
     <span class=n>transformers</span> <span class=o>=</span> <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_default_metric_transformers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>copy</span><span class=p>()</span>
     <span class=k>if</span> <span class=n>metric_transformers</span><span class=p>:</span>
         <span class=n>transformers</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>metric_transformers</span><span class=p>)</span>
 
+    <span class=n>counter_buffer</span> <span class=o>=</span> <span class=p>[]</span>
+    <span class=n>agent_start_time</span> <span class=o>=</span> <span class=kc>None</span>
+    <span class=n>process_start_time</span> <span class=o>=</span> <span class=kc>None</span>
+    <span class=k>if</span> <span class=ow>not</span> <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>]</span> <span class=ow>and</span> <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>]:</span>
+        <span class=n>agent_start_time</span> <span class=o>=</span> <span class=n>datadog_agent</span><span class=o>.</span><span class=n>get_process_start_time</span><span class=p>()</span>
+
     <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>scrape_metrics</span><span class=p>(</span><span class=n>scraper_config</span><span class=p>):</span>
+        <span class=k>if</span> <span class=n>agent_start_time</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
+            <span class=k>if</span> <span class=n>metric</span><span class=o>.</span><span class=n>name</span> <span class=o>==</span> <span class=s1>&#39;process_start_time_seconds&#39;</span> <span class=ow>and</span> <span class=n>metric</span><span class=o>.</span><span class=n>samples</span><span class=p>:</span>
+                <span class=n>min_metric_value</span> <span class=o>=</span> <span class=nb>min</span><span class=p>(</span><span class=n>s</span><span class=p>[</span><span class=bp>self</span><span class=o>.</span><span class=n>SAMPLE_VALUE</span><span class=p>]</span> <span class=k>for</span> <span class=n>s</span> <span class=ow>in</span> <span class=n>metric</span><span class=o>.</span><span class=n>samples</span><span class=p>)</span>
+                <span class=k>if</span> <span class=n>process_start_time</span> <span class=ow>is</span> <span class=kc>None</span> <span class=ow>or</span> <span class=n>min_metric_value</span> <span class=o>&lt;</span> <span class=n>process_start_time</span><span class=p>:</span>
+                    <span class=n>process_start_time</span> <span class=o>=</span> <span class=n>min_metric_value</span>
+            <span class=k>if</span> <span class=n>metric</span><span class=o>.</span><span class=n>type</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>METRICS_WITH_COUNTERS</span><span class=p>:</span>
+                <span class=n>counter_buffer</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>metric</span><span class=p>)</span>
+                <span class=k>continue</span>
+
         <span class=bp>self</span><span class=o>.</span><span class=n>process_metric</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>,</span> <span class=n>metric_transformers</span><span class=o>=</span><span class=n>transformers</span><span class=p>)</span>
 
-    <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_successfully_executed&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>True</span>
+    <span class=k>if</span> <span class=n>agent_start_time</span> <span class=ow>and</span> <span class=n>process_start_time</span> <span class=ow>and</span> <span class=n>agent_start_time</span> <span class=o>&lt;</span> <span class=n>process_start_time</span><span class=p>:</span>
+        <span class=c1># If agent was started before the process, we assume counters were started recently from zero,</span>
+        <span class=c1># and thus we can compute the rates.</span>
+        <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>True</span>
+
+    <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=n>counter_buffer</span><span class=p>:</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>process_metric</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>,</span> <span class=n>metric_transformers</span><span class=o>=</span><span class=n>transformers</span><span class=p>)</span>
+
+    <span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=kc>True</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h5 id=datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric class="doc doc-heading"> <code class="highlight language-python"><span class=n>process_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>metric</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>,</span> <span class=n>metric_transformers</span><span class=o>=</span><span class=kc>None</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.mixins.OpenMetricsScraperMixin.process_metric class=headerlink title="Permanent link">&para;</a></h5> <div class="doc doc-contents "> <p>Handle a Prometheus metric according to the following flow: - search <code>scraper_config['metrics_mapper']</code> for a prometheus.metric to datadog.metric mapping - call check method with the same name as the metric - log info if none of the above worked</p> <p><code>metric_transformers</code> is a dict of <code>&lt;metric name&gt;:&lt;function to run when the metric name is encountered&gt;</code></p> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>process_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>metric</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>,</span> <span class=n>metric_transformers</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Handle a Prometheus metric according to the following flow:</span>
@@ -647,7 +678,7 @@
                     <span class=n>val</span><span class=p>,</span>
                     <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                     <span class=n>hostname</span><span class=o>=</span><span class=n>custom_hostname</span><span class=p>,</span>
-                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_successfully_executed&#39;</span><span class=p>],</span>
+                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>],</span>
                 <span class=p>)</span>
             <span class=k>elif</span> <span class=n>metric</span><span class=o>.</span><span class=n>type</span> <span class=o>==</span> <span class=s2>&quot;rate&quot;</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>rate</span><span class=p>(</span><span class=n>metric_name_with_namespace</span><span class=p>,</span> <span class=n>val</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span><span class=o>=</span><span class=n>custom_hostname</span><span class=p>)</span>
@@ -662,7 +693,7 @@
                         <span class=n>val</span><span class=p>,</span>
                         <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                         <span class=n>hostname</span><span class=o>=</span><span class=n>custom_hostname</span><span class=p>,</span>
-                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_successfully_executed&#39;</span><span class=p>],</span>
+                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>scraper_config</span><span class=p>[</span><span class=s1>&#39;_flush_first_value&#39;</span><span class=p>],</span>
                     <span class=p>)</span>
     <span class=k>elif</span> <span class=n>metric</span><span class=o>.</span><span class=n>type</span> <span class=o>==</span> <span class=s2>&quot;histogram&quot;</span><span class=p>:</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>_submit_gauges_from_histogram</span><span class=p>(</span><span class=n>metric_name</span><span class=p>,</span> <span class=n>metric</span><span class=p>,</span> <span class=n>scraper_config</span><span class=p>)</span>

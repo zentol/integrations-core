@@ -228,14 +228,18 @@
         <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>,</span> <span class=s1>&#39;text/plain&#39;</span><span class=p>)</span>
 
+    <span class=bp>self</span><span class=o>.</span><span class=n>use_process_start_time</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>))</span>
+
     <span class=c1># Used for monotonic counts</span>
-    <span class=bp>self</span><span class=o>.</span><span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=kc>False</span>
-</code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.consume_metrics class="doc doc-heading"> <code class="highlight language-python"><span class=n>consume_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.consume_metrics class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Yield the processed metrics and filter out excluded metrics.</p> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>consume_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+    <span class=bp>self</span><span class=o>.</span><span class=n>flush_first_value</span> <span class=o>=</span> <span class=kc>False</span>
+</code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.consume_metrics class="doc doc-heading"> <code class="highlight language-python"><span class=n>consume_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.consume_metrics class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Yield the processed metrics and filter out excluded metrics.</p> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>consume_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Yield the processed metrics and filter out excluded metrics.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
 
     <span class=n>metric_parser</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>parse_metrics</span><span class=p>()</span>
+    <span class=k>if</span> <span class=ow>not</span> <span class=bp>self</span><span class=o>.</span><span class=n>flush_first_value</span> <span class=ow>and</span> <span class=bp>self</span><span class=o>.</span><span class=n>use_process_start_time</span><span class=p>:</span>
+        <span class=n>metric_parser</span> <span class=o>=</span> <span class=n>first_scrape_handler</span><span class=p>(</span><span class=n>metric_parser</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>,</span> <span class=n>datadog_agent</span><span class=o>.</span><span class=n>get_process_start_time</span><span class=p>())</span>
     <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>label_aggregator</span><span class=o>.</span><span class=n>configured</span><span class=p>:</span>
         <span class=n>metric_parser</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>label_aggregator</span><span class=p>(</span><span class=n>metric_parser</span><span class=p>)</span>
 
@@ -350,17 +354,16 @@
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Execute a scrape, and for each metric collected, transform the metric.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
+    <span class=n>runtime_data</span> <span class=o>=</span> <span class=p>{</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>:</span> <span class=bp>self</span><span class=o>.</span><span class=n>flush_first_value</span><span class=p>,</span> <span class=s1>&#39;static_tags&#39;</span><span class=p>:</span> <span class=bp>self</span><span class=o>.</span><span class=n>static_tags</span><span class=p>}</span>
 
-    <span class=n>runtime_data</span> <span class=o>=</span> <span class=p>{</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>:</span> <span class=bp>self</span><span class=o>.</span><span class=n>has_successfully_executed</span><span class=p>,</span> <span class=s1>&#39;static_tags&#39;</span><span class=p>:</span> <span class=bp>self</span><span class=o>.</span><span class=n>static_tags</span><span class=p>}</span>
-
-    <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>consume_metrics</span><span class=p>():</span>
+    <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>consume_metrics</span><span class=p>(</span><span class=n>runtime_data</span><span class=p>):</span>
         <span class=n>transformer</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_transformer</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=n>metric</span><span class=p>)</span>
         <span class=k>if</span> <span class=n>transformer</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
             <span class=k>continue</span>
 
         <span class=n>transformer</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>generate_sample_data</span><span class=p>(</span><span class=n>metric</span><span class=p>),</span> <span class=n>runtime_data</span><span class=p>)</span>
 
-    <span class=bp>self</span><span class=o>.</span><span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=kc>True</span>
+    <span class=bp>self</span><span class=o>.</span><span class=n>flush_first_value</span> <span class=o>=</span> <span class=kc>True</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.set_dynamic_tags class="doc doc-heading"> <code class="highlight language-python"><span class=n>set_dynamic_tags</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>tags</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.set_dynamic_tags class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Set dynamic tags.</p> <details class=quote> <summary>Source code in <code></code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>set_dynamic_tags</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>*</span><span class=n>tags</span><span class=p>):</span>
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Set dynamic tags.</span>
@@ -391,7 +394,7 @@
     <span class=n>metric_name</span> <span class=o>=</span> <span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>metric_name</span><span class=si>}</span><span class=s1>.count&#39;</span>
 
     <span class=k>def</span> <span class=nf>counter</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-        <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+        <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
         <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>sample_data</span><span class=p>:</span>
             <span class=k>if</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_total&#39;</span><span class=p>):</span>
@@ -400,7 +403,7 @@
                     <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                     <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                     <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                 <span class=p>)</span>
 
     <span class=k>del</span> <span class=n>check</span>
@@ -418,7 +421,7 @@
     <span class=n>count_metric</span> <span class=o>=</span> <span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>metric_name</span><span class=si>}</span><span class=s1>.count&#39;</span>
 
     <span class=k>def</span> <span class=nf>counter_gauge</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-        <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+        <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
         <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>sample_data</span><span class=p>:</span>
             <span class=n>gauge_method</span><span class=p>(</span><span class=n>total_metric</span><span class=p>,</span> <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>)</span>
@@ -427,7 +430,7 @@
                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
             <span class=p>)</span>
 
     <span class=k>del</span> <span class=n>check</span>
@@ -466,7 +469,7 @@
                 <span class=n>count_metric</span> <span class=o>=</span> <span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>metric_name</span><span class=si>}</span><span class=s1>.count&#39;</span>
 
                 <span class=k>def</span> <span class=nf>histogram</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-                    <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+                    <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
                     <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>decumulate_histogram_buckets</span><span class=p>(</span><span class=n>sample_data</span><span class=p>):</span>
                         <span class=n>sample_name</span> <span class=o>=</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span>
@@ -476,7 +479,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_count&#39;</span><span class=p>):</span>
                             <span class=n>monotonic_count_method</span><span class=p>(</span>
@@ -484,7 +487,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_bucket&#39;</span><span class=p>):</span>
                             <span class=n>lower_bound</span> <span class=o>=</span> <span class=n>canonicalize_numeric_label</span><span class=p>(</span><span class=n>sample</span><span class=o>.</span><span class=n>labels</span><span class=p>[</span><span class=s1>&#39;lower_bound&#39;</span><span class=p>])</span>
@@ -505,13 +508,13 @@
                                 <span class=kc>True</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
 
             <span class=k>else</span><span class=p>:</span>
 
                 <span class=k>def</span> <span class=nf>histogram</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-                    <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+                    <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
                     <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>decumulate_histogram_buckets</span><span class=p>(</span><span class=n>sample_data</span><span class=p>):</span>
                         <span class=k>if</span> <span class=ow>not</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_bucket&#39;</span><span class=p>):</span>
@@ -535,7 +538,7 @@
                             <span class=kc>True</span><span class=p>,</span>
                             <span class=n>hostname</span><span class=p>,</span>
                             <span class=n>tags</span><span class=p>,</span>
-                            <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                            <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                         <span class=p>)</span>
 
         <span class=k>else</span><span class=p>:</span>
@@ -547,7 +550,7 @@
             <span class=k>if</span> <span class=n>global_options</span><span class=p>[</span><span class=s1>&#39;non_cumulative_histogram_buckets&#39;</span><span class=p>]:</span>
 
                 <span class=k>def</span> <span class=nf>histogram</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-                    <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+                    <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
                     <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>decumulate_histogram_buckets</span><span class=p>(</span><span class=n>sample_data</span><span class=p>):</span>
                         <span class=n>sample_name</span> <span class=o>=</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span>
@@ -557,7 +560,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_count&#39;</span><span class=p>):</span>
                             <span class=n>monotonic_count_method</span><span class=p>(</span>
@@ -565,7 +568,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=c1># Skip infinity upper bound as that is otherwise the</span>
                         <span class=c1># same context as the sample suffixed by `_count`</span>
@@ -575,14 +578,14 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
 
             <span class=c1># Default behavior</span>
             <span class=k>else</span><span class=p>:</span>
 
                 <span class=k>def</span> <span class=nf>histogram</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-                    <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+                    <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
                     <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>sample_data</span><span class=p>:</span>
                         <span class=n>sample_name</span> <span class=o>=</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span>
@@ -592,7 +595,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_count&#39;</span><span class=p>):</span>
                             <span class=n>monotonic_count_method</span><span class=p>(</span>
@@ -600,7 +603,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
                         <span class=c1># Skip infinity upper bound as that is otherwise the</span>
                         <span class=c1># same context as the sample suffixed by `_count`</span>
@@ -610,7 +613,7 @@
                                 <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                                 <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                                 <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                                <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                             <span class=p>)</span>
 
     <span class=k>else</span><span class=p>:</span>
@@ -619,7 +622,7 @@
         <span class=n>count_metric</span> <span class=o>=</span> <span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>metric_name</span><span class=si>}</span><span class=s1>.count&#39;</span>
 
         <span class=k>def</span> <span class=nf>histogram</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-            <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+            <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
             <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>sample_data</span><span class=p>:</span>
                 <span class=n>sample_name</span> <span class=o>=</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span>
@@ -629,7 +632,7 @@
                         <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                         <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                         <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                     <span class=p>)</span>
                 <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_count&#39;</span><span class=p>):</span>
                     <span class=n>monotonic_count_method</span><span class=p>(</span>
@@ -637,7 +640,7 @@
                         <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                         <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                         <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                        <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                     <span class=p>)</span>
 
     <span class=k>del</span> <span class=n>check</span>
@@ -755,7 +758,7 @@
     <span class=n>quantile_metric</span> <span class=o>=</span> <span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>metric_name</span><span class=si>}</span><span class=s1>.quantile&#39;</span>
 
     <span class=k>def</span> <span class=nf>summary</span><span class=p>(</span><span class=n>metric</span><span class=p>,</span> <span class=n>sample_data</span><span class=p>,</span> <span class=n>runtime_data</span><span class=p>):</span>
-        <span class=n>has_successfully_executed</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;has_successfully_executed&#39;</span><span class=p>]</span>
+        <span class=n>flush_first_value</span> <span class=o>=</span> <span class=n>runtime_data</span><span class=p>[</span><span class=s1>&#39;flush_first_value&#39;</span><span class=p>]</span>
 
         <span class=k>for</span> <span class=n>sample</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span> <span class=ow>in</span> <span class=n>sample_data</span><span class=p>:</span>
             <span class=n>sample_name</span> <span class=o>=</span> <span class=n>sample</span><span class=o>.</span><span class=n>name</span>
@@ -765,7 +768,7 @@
                     <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                     <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                     <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                 <span class=p>)</span>
             <span class=k>elif</span> <span class=n>sample_name</span><span class=o>.</span><span class=n>endswith</span><span class=p>(</span><span class=s1>&#39;_count&#39;</span><span class=p>):</span>
                 <span class=n>monotonic_count_method</span><span class=p>(</span>
@@ -773,7 +776,7 @@
                     <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span>
                     <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span>
                     <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>,</span>
-                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>has_successfully_executed</span><span class=p>,</span>
+                    <span class=n>flush_first_value</span><span class=o>=</span><span class=n>flush_first_value</span><span class=p>,</span>
                 <span class=p>)</span>
             <span class=k>elif</span> <span class=n>sample_name</span> <span class=o>==</span> <span class=n>metric</span><span class=o>.</span><span class=n>name</span><span class=p>:</span>
                 <span class=n>gauge_method</span><span class=p>(</span><span class=n>quantile_metric</span><span class=p>,</span> <span class=n>sample</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span><span class=o>=</span><span class=n>hostname</span><span class=p>)</span>
