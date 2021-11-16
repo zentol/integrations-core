@@ -29,7 +29,7 @@ $ helm repo add datadog https://helm.datadoghq.com
 $ helm repo update
 ```
 </code></pre></div> <p>Then run:</p> <div class=highlight><pre><span></span><code>helm install datadog-monitoring --set datadog.apiKey<span class=o>=</span>&lt;YOUR_API_KEY&gt; -f cluster-agent-values.yaml datadog/datadog
-</code></pre></div> <details class=example><summary>Example cluster-agent-values.yaml</summary><div class=highlight><pre><span></span><code><span class=nt>datadog</span><span class=p>:</span>
+</code></pre></div> <details class=example> <summary>Example cluster-agent-values.yaml</summary> <div class=highlight><pre><span></span><code><span class=nt>datadog</span><span class=p>:</span>
   <span class=c1>## @param apiKey - string - required</span>
   <span class=c1>## Set this to your Datadog API key before the Agent runs.</span>
   <span class=c1>## ref: https://app.datadoghq.com/account/settings#agent/kubernetes</span>
