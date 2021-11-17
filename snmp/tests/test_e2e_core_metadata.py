@@ -20,7 +20,7 @@ def assert_network_devices_metadata(aggregator, events):
     assert events == actual_events
 
 
-def test_e2e_core_metadata(dd_agent_check):
+def test_e2e_core_metadata_f5(dd_agent_check):
     config = common.generate_container_instance_config([])
     instance = config['instances'][0]
     instance.update(
@@ -52,6 +52,7 @@ def test_e2e_core_metadata(dd_agent_check):
                     'name': 'f5-big-ip-adc-good-byol-1-vm.c.datadog-integrations-lab.internal',
                     'profile': 'f5-big-ip',
                     'status': 1,
+                    'serial_number': '26ff4a4d-190e-12ac-d4257ed36ba6',
                     'subnet': '',
                     'sys_object_id': '1.3.6.1.4.1.3375.2.1.3.4.43',
                     'tags': [
