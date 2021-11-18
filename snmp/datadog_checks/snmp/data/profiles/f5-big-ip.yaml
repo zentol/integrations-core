@@ -1,5 +1,10 @@
 # Profile for F5 BIG-IP devices
 #
+# Details related to F5-BIGIP-SYSTEM-MIB:
+#   http://www.mibdepot.com/cgi-bin/getmib3.cgi?win=mib_a&r=f5&f=F5-BIGIP-SYSTEM-MIB&v=v2&t=tree
+# Example sysDescr:
+#   BIG-IP Virtual Edition : Linux 3.10.0-862.14.4.el7.ve.x86_64 : BIG-IP software release 15.0.1, build 0.0.11
+
 extends:
   - _base.yaml
   - _generic-if.yaml # F5-specific variants of the other metrics are provided in this profile.
