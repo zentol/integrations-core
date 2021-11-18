@@ -1,8 +1,6 @@
 # (C) Datadog, Inc. 2021-present
 # All rights reserved
 # Licensed under Simplified BSD License (see LICENSE)
-from copy import deepcopy
-
 import pytest
 
 from . import common
@@ -67,7 +65,7 @@ def test_e2e_core_metadata_f5(dd_agent_check):
                     u'os_name': u'Linux',
                     u'os_version': u'#1 SMP Fri Aug 2 19:34:15 PDT 2019',
                     u'product_name': u'BIG-IP',
-                    u'version': u'15.0.1'
+                    u'version': u'15.0.1',
                 },
             ],
             u'interfaces': [
@@ -132,4 +130,3 @@ def test_e2e_core_metadata_f5(dd_agent_check):
         },
     ]
     assert_network_devices_metadata(aggregator, events)
-
