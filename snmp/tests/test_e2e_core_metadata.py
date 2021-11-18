@@ -62,6 +62,12 @@ def test_e2e_core_metadata_f5(dd_agent_check):
                         u'snmp_profile:f5-big-ip',
                     ],
                     u'vendor': u'f5',
+                    u'model': u'Final',
+                    u'os_hostname': u'f5-big-ip-adc-good-byol-1-vm.c.datadog-integrations-lab.internal',
+                    u'os_name': u'Linux',
+                    u'os_version': u'#1 SMP Fri Aug 2 19:34:15 PDT 2019',
+                    u'product_name': u'BIG-IP',
+                    u'version': u'15.0.1'
                 },
             ],
             u'interfaces': [
