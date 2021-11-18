@@ -53,7 +53,6 @@ def test_e2e_core_metadata_f5(dd_agent_check):
                     u'profile': u'f5-big-ip',
                     u'status': 1,
                     u'serial_number': '26ff4a4d-190e-12ac-d4257ed36ba6',
-                    u'subnet': u'',
                     u'sys_object_id': u'1.3.6.1.4.1.3375.2.1.3.4.43',
                     u'tags': [
                         u'device_namespace:default',
