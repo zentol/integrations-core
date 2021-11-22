@@ -17,10 +17,13 @@ SELECT   table_schema, IFNULL(SUM(data_length+index_length)/1024/1024,0) AS tota
 FROM     information_schema.tables
 GROUP BY table_schema"""
 
-SQL_QUERY_TABLE_SIZE = """\
-SELECT   table_name, IFNULL(SUM(data_length+index_length)/1024/1024,0) AS total_mb
-FROM     information_schema.tables
-GROUP BY table_name"""
+SQL_QUERY_TABLE_INDEX_SIZE = """\
+SELECT   CONCAT(table_schema,'.',table_name) as table_name, IFNULL(index_length/1024/1024,0) AS total_mb
+FROM     information_schema.tables"""
+
+SQL_QUERY_TABLE_DATA_SIZE = """\
+SELECT   CONCAT(table_schema,'.',table_name) as table_name, IFNULL(data_length/1024/1024,0) AS total_mb
+FROM     information_schema.tables"""
 
 SQL_AVG_QUERY_RUN_TIME = """\
 SELECT schema_name, ROUND((SUM(sum_timer_wait) / SUM(count_star)) / 1000000) AS avg_us
