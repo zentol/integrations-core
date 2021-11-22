@@ -320,8 +320,9 @@ class MySql(AgentCheck):
 
         if is_affirmative(self._config.options.get('table_size_metrics', False)):
             # report size of tables in MiB to Datadog
-            results['information_table_index_size'] = self._query_index_size_per_table(db)
-            results['information_table_data_size'] = self._query_data_size_per_table(db)
+            (table_index_size, table_data_size) = self._query_size_per_table(db)
+            results['information_table_index_size'] = table_index_size
+            results['information_table_data_size'] = table_data_size
             metrics.update(TABLE_VARS)
 
         if is_affirmative(self._config.options.get('replication', self._config.dbm_enabled)):
@@ -860,47 +861,27 @@ class MySql(AgentCheck):
 
         return {}
 
-    def _query_index_size_per_table(self, db):
+    def _query_size_per_table(self, db):
         try:
             with closing(db.cursor()) as cursor:
-                cursor.execute(SQL_QUERY_TABLE_INDEX_SIZE)
+                cursor.execute(SQL_QUERY_TABLE_SIZE)
 
                 if cursor.rowcount < 1:
                     self.warning("Failed to fetch records from the information schema 'tables' table.")
                     return None
 
-                table_size = {}
+                table_index_size = {}
+                table_data_size = {}
                 for row in cursor.fetchall():
                     table_name = str(row[0])
-                    size = long(row[1])
+                    index_size = long(row[1])
+                    data_size = long(row[2])
 
                     # set the tag as the dictionary key
-                    table_size["schema:{0}".format(table_name)] = size
+                    table_index_size["schema:{0}".format(table_name)] = index_size
+                    table_data_size["schema:{0}".format(table_name)] = data_size
 
-                return table_size
-        except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
-            self.warning("Size of tables metrics unavailable at this time: %s", e)
-
-        return {}
-
-    def _query_data_size_per_table(self, db):
-        try:
-            with closing(db.cursor()) as cursor:
-                cursor.execute(SQL_QUERY_TABLE_DATA_SIZE)
-
-                if cursor.rowcount < 1:
-                    self.warning("Failed to fetch records from the information schema 'tables' table.")
-                    return None
-
-                table_size = {}
-                for row in cursor.fetchall():
-                    table_name = str(row[0])
-                    size = long(row[1])
-
-                    # set the tag as the dictionary key
-                    table_size["schema:{0}".format(table_name)] = size
-
-                return table_size
+                return table_index_size, table_data_size
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
             self.warning("Size of tables metrics unavailable at this time: %s", e)
 
