@@ -87,7 +87,7 @@ def merged_prs(ctx, from_ref, to_ref, release_milestone, exclude_releases, expor
     integrations_release = Release.from_github(
         ctx, 'integrations-core', release_milestone, from_ref=from_ref, to_ref=to_ref
     )
-    #import pdb; pdb.set_trace()
+
     changes = [parse_commit(commit) for commit in agent_release.commits + integrations_release.commits]
 
     if exclude_releases:
