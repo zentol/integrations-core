@@ -11,6 +11,7 @@ def get_metadata(check, metric_name, modifiers, global_options):
     https://datadoghq.dev/integrations-core/base/metadata/
     """
     set_metadata_method = check.set_metadata
+    gauge_method = check.gauge
 
     options = deepcopy(modifiers)
     label = options.pop('label', '')
@@ -22,6 +23,7 @@ def get_metadata(check, metric_name, modifiers, global_options):
     def metadata(metric, sample_data, runtime_data):
         for sample, _tags, _hostname in sample_data:
             set_metadata_method(metric_name, sample.labels[label], **options)
+            gauge_method(sample.name, sample.value, tags=sample.labels, **options)
 
     del check
     del modifiers
