@@ -107,6 +107,7 @@ class SqlserverActivity(DBMAsyncJob):
         )
         self._conn_key_prefix = "dbm-activity-"
         self._activity_payload_max_bytes = MAX_PAYLOAD_BYTES
+        self._num_activity = 0
 
     def _close_db_conn(self):
         pass
@@ -199,6 +200,9 @@ class SqlserverActivity(DBMAsyncJob):
                 normalized_rows = self._normalize_queries_and_filter_rows(rows, MAX_PAYLOAD_BYTES)
                 event = self._create_activity_event(normalized_rows, connections)
                 payload = json.dumps(event, default=default_json_event_encoding)
+                if self._num_activity % 5 == 0:
+                    self.log.warning(payload)
+                self._num_activity = self._num_activity + 1
                 self._check.database_monitoring_query_activity(payload)
 
         elapsed_ms = (time.time() - start_time) * 1000
