@@ -7,7 +7,6 @@ from collections import ChainMap
 from contextlib import contextmanager
 
 from ....errors import ConfigurationError
-from ....utils.tracing import traced_class
 from ... import AgentCheck
 from .scraper import OpenMetricsScraper
 
@@ -30,11 +29,6 @@ class OpenMetricsBaseCheckV2(AgentCheck):
     """
 
     DEFAULT_METRIC_LIMIT = 2000
-
-    # Allow tracing for openmetrics integrations
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        return traced_class(cls)
 
     def __init__(self, name, init_config, instances):
         """
