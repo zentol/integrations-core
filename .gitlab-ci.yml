@@ -79,7 +79,8 @@ trigger-agent-build:
           echo $BASE_REF
           git tag --points-at $BASE_REF
           echo "Was not first one"
-          git tag --points-at $BASE_REF | grep "^7."
+          git tag --points-at $BASE_REF | cat | grep "^7."
+          echo "Was not the second one"
           VERSION_TAG=$(git tag --points-at $BASE_REF | grep "^7." | sed 's/-.*/ /')
           echo "File agent_requirements.in has been modified, triggering an agent build pipeline."
           DATADOG_AGENT_PIPELINE_URL=$DATADOG_AGENT_PIPELINE_URL VERSION_TAG=$VERSION_TAG python -u /trigger_agent_build.py --output-file pipeline_id.txt
