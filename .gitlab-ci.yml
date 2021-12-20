@@ -78,6 +78,7 @@ trigger-agent-build:
           echo "Triggering the pipeline"
           echo $BASE_REF
           git tag --points-at $BASE_REF
+          echo "Was not first one"
           git tag --points-at $BASE_REF | grep "^7."
           VERSION_TAG=$(git tag --points-at $BASE_REF | grep "^7." | sed 's/-.*/ /')
           echo "File agent_requirements.in has been modified, triggering an agent build pipeline."
