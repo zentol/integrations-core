@@ -76,9 +76,8 @@ trigger-agent-build:
     - |
       if [[ "$AGENT_REQUIREMENTS_CHANGED" = "true" ]]; then
           echo "Triggering the pipeline"
-          git tag --points-at $BASE_REF | read MYSTUFF
-          echo $MYSTUFF
-          echo "$(git tag --points-at $BASE_REF | grep "^7.")"
+          git tag --points-at $BASE_REF
+          git tag --points-at $BASE_REF | grep "^7."
           VERSION_TAG=$(git tag --points-at $BASE_REF | grep "^7." | sed 's/-.*/ /')
           echo "File agent_requirements.in has been modified, triggering an agent build pipeline."
           DATADOG_AGENT_PIPELINE_URL=$DATADOG_AGENT_PIPELINE_URL VERSION_TAG=$VERSION_TAG python -u /trigger_agent_build.py --output-file pipeline_id.txt
