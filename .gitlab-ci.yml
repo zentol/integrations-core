@@ -76,7 +76,7 @@ trigger-agent-build:
     - |
       if [[ "$AGENT_REQUIREMENTS_CHANGED" = "true" ]]; then
           echo "Triggering the pipeline"
-          MYSTUFF="$(git tag --points-at $BASE_REF)"
+          git tag --points-at $BASE_REF | read MYSTUFF
           echo $MYSTUFF
           echo "$(git tag --points-at $BASE_REF | grep "^7.")"
           VERSION_TAG=$(git tag --points-at $BASE_REF | grep "^7." | sed 's/-.*/ /')
