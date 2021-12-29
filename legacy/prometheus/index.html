@@ -555,12 +555,16 @@
         <span class=c1># INTERNAL FEATURE, might be removed in future versions</span>
         <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_text_filter_blacklist&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>[]</span>
 
-        <span class=c1># Whether or not to use the service account bearer token for authentication</span>
-        <span class=c1># if &#39;bearer_token_path&#39; is not set, we use /var/run/secrets/kubernetes.io/serviceaccount/token</span>
+        <span class=c1># Whether or not to use the service account bearer token for authentication.</span>
+        <span class=c1># Can be explicitly set to true or false to send or not the bearer token.</span>
+        <span class=c1># If set to the `tls_only` value, the bearer token will be sent only to https endpoints.</span>
+        <span class=c1># If &#39;bearer_token_path&#39; is not set, we use /var/run/secrets/kubernetes.io/serviceaccount/token</span>
         <span class=c1># as a default path to get the token.</span>
-        <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span>
-            <span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=n>default_instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))</span>
-        <span class=p>)</span>
+        <span class=n>bearer_token_auth</span> <span class=o>=</span> <span class=n>_get_setting</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)</span>
+        <span class=k>if</span> <span class=n>bearer_token_auth</span> <span class=o>==</span> <span class=s1>&#39;tls_only&#39;</span><span class=p>:</span>
+            <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>config</span><span class=p>[</span><span class=s1>&#39;prometheus_url&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>startswith</span><span class=p>(</span><span class=s2>&quot;https://&quot;</span><span class=p>)</span>
+        <span class=k>else</span><span class=p>:</span>
+            <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>bearer_token_auth</span><span class=p>)</span>
 
         <span class=c1># Can be used to get a service account bearer token from files</span>
         <span class=c1># other than /var/run/secrets/kubernetes.io/serviceaccount/token</span>
@@ -1730,12 +1734,16 @@
     <span class=c1># INTERNAL FEATURE, might be removed in future versions</span>
     <span class=n>config</span><span class=p>[</span><span class=s1>&#39;_text_filter_blacklist&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=p>[]</span>
 
-    <span class=c1># Whether or not to use the service account bearer token for authentication</span>
-    <span class=c1># if &#39;bearer_token_path&#39; is not set, we use /var/run/secrets/kubernetes.io/serviceaccount/token</span>
+    <span class=c1># Whether or not to use the service account bearer token for authentication.</span>
+    <span class=c1># Can be explicitly set to true or false to send or not the bearer token.</span>
+    <span class=c1># If set to the `tls_only` value, the bearer token will be sent only to https endpoints.</span>
+    <span class=c1># If &#39;bearer_token_path&#39; is not set, we use /var/run/secrets/kubernetes.io/serviceaccount/token</span>
     <span class=c1># as a default path to get the token.</span>
-    <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span>
-        <span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=n>default_instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))</span>
-    <span class=p>)</span>
+    <span class=n>bearer_token_auth</span> <span class=o>=</span> <span class=n>_get_setting</span><span class=p>(</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)</span>
+    <span class=k>if</span> <span class=n>bearer_token_auth</span> <span class=o>==</span> <span class=s1>&#39;tls_only&#39;</span><span class=p>:</span>
+        <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>config</span><span class=p>[</span><span class=s1>&#39;prometheus_url&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>startswith</span><span class=p>(</span><span class=s2>&quot;https://&quot;</span><span class=p>)</span>
+    <span class=k>else</span><span class=p>:</span>
+        <span class=n>config</span><span class=p>[</span><span class=s1>&#39;bearer_token_auth&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>bearer_token_auth</span><span class=p>)</span>
 
     <span class=c1># Can be used to get a service account bearer token from files</span>
     <span class=c1># other than /var/run/secrets/kubernetes.io/serviceaccount/token</span>
