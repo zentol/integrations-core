@@ -177,6 +177,14 @@ class SQLServer(AgentCheck):
                     else:
                         self.log.warning("failed to load version static information due to empty results")
 
+    def is_azure_sql_database(self):
+        """
+        Returns true if the version is managed by Microsoft Azure SQL Database
+        (https://azure.microsoft.com/en-us/products/azure-sql/database)
+        """
+        self.load_static_information()
+        return 'Microsoft SQL Azure (RTM)' in self.static_info_cache["version"]
+
     def debug_tags(self):
         return self.tags + ['agent_hostname:{}'.format(self.agent_hostname)]
 
@@ -314,8 +322,9 @@ class SQLServer(AgentCheck):
 
         # Load instance-level (previously Performance) metrics)
         # If several check instances are querying the same server host, it can be wise to turn these off
-        # to avoid sending duplicate metrics
-        if is_affirmative(self.instance.get('include_instance_metrics', True)):
+        # to avoid sending duplicate metrics. Additionally Azure SQL Database does not expose server-level
+        # performance counters to users of single database.
+        if is_affirmative(self.instance.get('include_instance_metrics', True)) and not self.is_azure_sql_database():
             common_metrics = INSTANCE_METRICS
             if not self.dbm_enabled:
                 common_metrics = common_metrics + DBM_MIGRATED_METRICS
@@ -325,7 +334,7 @@ class SQLServer(AgentCheck):
             )
 
         # populated through autodiscovery
-        if self.databases:
+        if self.databases and not self.is_azure_sql_database():
             for db in self.databases:
                 self._add_performance_counters(INSTANCE_METRICS_TOTAL, metrics_to_collect, tags, db=db)
 
