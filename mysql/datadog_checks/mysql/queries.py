@@ -18,7 +18,9 @@ FROM     information_schema.tables
 GROUP BY table_schema"""
 
 SQL_QUERY_TABLE_SIZE = """\
-SELECT   CONCAT(table_schema,'.',table_name) as table_name, IFNULL(index_length/1024/1024,0) AS index_size_mb, IFNULL(data_length/1024/1024,0) AS data_size_mb
+SELECT   CONCAT(table_schema,'.',table_name) as table_name,
+         IFNULL(index_length/1024/1024,0) AS index_size_mb,
+         IFNULL(data_length/1024/1024,0) AS data_size_mb
 FROM     information_schema.tables"""
 
 SQL_AVG_QUERY_RUN_TIME = """\

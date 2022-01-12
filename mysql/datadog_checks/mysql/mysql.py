@@ -32,9 +32,9 @@ from .const import (
     RATE,
     REPLICA_VARS,
     SCHEMA_VARS,
-    TABLE_VARS,
     STATUS_VARS,
     SYNTHETIC_VARS,
+    TABLE_VARS,
     VARIABLES_VARS,
 )
 from .innodb_metrics import InnoDBMetrics
@@ -44,6 +44,7 @@ from .queries import (
     SQL_INNODB_ENGINES,
     SQL_PROCESS_LIST,
     SQL_QUERY_SCHEMA_SIZE,
+    SQL_QUERY_TABLE_SIZE,
     SQL_REPLICATION_ROLE_AWS_AURORA,
     SQL_SERVER_ID_AWS_AURORA,
     SQL_WORKER_THREADS,
