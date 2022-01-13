@@ -87,6 +87,7 @@ def _assert_complex_config(aggregator, hostname='stubbed.hostname'):
         + variables.SCHEMA_VARS
         + variables.SYNTHETIC_VARS
         + variables.STATEMENT_VARS
+        + variables.TABLE_STATS_VARS
     )
 
     if MYSQL_VERSION_PARSED >= parse_version('5.6'):
