@@ -46,27 +46,25 @@ SQL_SERVER_QUERY_METRICS_COLUMNS = [
 ]
 
 STATEMENT_METRICS_SNAPSHOT = """\
+DROP TABLE IF EXISTS #DDQueryStatsSnapshot;
+
 SELECT query_hash, query_plan_hash, plan_handle,
     {query_metrics_columns}
-INTO ##DDQueryStatsSnapshot
-FROM sys.dm_exec_query_stats
-"""
-
-STATEMENT_METRICS_SNAPSHOT_DROP = """\
-DROP TABLE IF EXISTS ##DDQueryStatsSnapshot
+INTO #DDQueryStatsSnapshot
+FROM sys.dm_exec_query_stats;
 """
 
 STATEMENT_METRICS_DELTAS = """\
 SELECT TOP {limit} p2.query_hash, p2.query_plan_hash, p2.plan_handle,
     {query_metrics_columns_deltas}
-FROM ##DDQueryStatsSnapshot p1
+FROM #DDQueryStatsSnapshot p1
 RIGHT OUTER JOIN sys.dm_exec_query_stats p2
     ON p2.query_hash = ISNULL(p1.query_hash, p2.query_hash)
    AND p2.query_plan_hash = ISNULL(p1.query_plan_hash, p2.query_plan_hash)
    AND p2.plan_handle = ISNULL(p1.plan_handle, p2.plan_handle)
-CROSS APPLY sys.dm_exec_sql_text AS qt
+CROSS APPLY sys.dm_exec_sql_text(p2.sql_handle) AS qt
 WHERE p2.execution_count != ISNULL(p1.execution_count, 0)
-ORDER BY total_elapsed_time DESC
+ORDER BY total_elapsed_time DESC;
 """
 
 
@@ -196,7 +194,6 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             check.statement_metrics_config.get('enforce_collection_interval_deadline', True)
         )
         # self._state = StatementMetrics()
-        self._last_snapshot = None
         self._init_caches()
         self._conn_key_prefix = "dbm-"
         self._statement_metrics_query = None
@@ -255,22 +252,18 @@ class SqlserverStatementMetrics(DBMAsyncJob):
 
         available_columns = self._get_available_query_metrics_columns(cursor, SQL_SERVER_QUERY_METRICS_COLUMNS)
 
-        # query from the deltas for the initial run
-        rows = []
-        if self._last_snapshot is not None:
-            query_deltas = STATEMENT_METRICS_DELTAS.format(limit=200, query_metrics_columns_deltas=', '.join(['p2.{column} - ISNULL(p1.{column}, 0) AS {column}'.format(column=column) for column in available_columns]))
-            cursor.execute(query_deltas)
-            columns = [i[0] for i in cursor.description]
-            # construct row dicts manually as there's no DictCursor for pyodbc
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        cursor.execute(STATEMENT_METRICS_SNAPSHOT_DROP)
-
-        # take the next snapshot
         query_snapshot = STATEMENT_METRICS_SNAPSHOT.format(query_metrics_columns=','.join(available_columns))
         cursor.execute(query_snapshot)
-        self._last_snapshot = time.time()
+        time.sleep(self.collection_interval)
 
+        query_deltas = STATEMENT_METRICS_DELTAS.format(
+            limit=200,
+            query_metrics_columns_deltas=', '.join(['p2.{column} - ISNULL(p1.{column}, 0) AS {column}'.format(column=column) for column in available_columns]),
+        )
+        cursor.execute(query_deltas)
+        columns = [i[0] for i in cursor.description]
+        # construct row dicts manually as there's no DictCursor for pyodbc
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
         self.log.debug("loaded sql server statement metrics len(rows)=%s", len(rows))
         return rows
 
