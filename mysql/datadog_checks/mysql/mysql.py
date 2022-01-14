@@ -319,7 +319,7 @@ class MySql(AgentCheck):
             results['information_schema_size'] = self._query_size_per_schema(db)
             metrics.update(SCHEMA_VARS)
 
-        if is_affirmative(self._config.options.get('table_size_metrics', False)):
+        if is_affirmative(self._config.options.get('table_size_metrics', True)):
             # report size of tables in MiB to Datadog
             (table_index_size, table_data_size) = self._query_size_per_table(db)
             results['information_table_index_size'] = table_index_size
@@ -863,6 +863,7 @@ class MySql(AgentCheck):
         return {}
 
     def _query_size_per_table(self, db):
+        self.log.warning("running _query_size_per_table")
         try:
             with closing(db.cursor()) as cursor:
                 cursor.execute(SQL_QUERY_TABLE_SIZE)
@@ -879,8 +880,12 @@ class MySql(AgentCheck):
                     data_size = long(row[2])
 
                     # set the tag as the dictionary key
-                    table_index_size["schema:{0}".format(table_name)] = index_size
-                    table_data_size["schema:{0}".format(table_name)] = data_size
+                    # TODO: simply update the query to get this info from separate columns
+                    schema_table_info = table_name.split(".")
+                    table_index_size["schema:{0}".format(schema_table_info[0])] = index_size
+                    table_index_size["table:{0}".format(schema_table_info[1])] = index_size
+                    table_data_size["schema:{0}".format(schema_table_info[0])] = data_size
+                    table_data_size["table:{0}".format(schema_table_info[1])] = data_size
 
                 return table_index_size, table_data_size
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
