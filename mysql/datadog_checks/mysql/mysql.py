@@ -863,7 +863,6 @@ class MySql(AgentCheck):
         return {}
 
     def _query_size_per_table(self, db):
-        self.log.warning("running _query_size_per_table")
         try:
             with closing(db.cursor()) as cursor:
                 cursor.execute(SQL_QUERY_TABLE_SIZE)

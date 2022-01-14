@@ -212,10 +212,6 @@ def test_complex_config_replica(aggregator, dd_run_check, instance_complex):
         else:
             aggregator.assert_metric(mname, tags=tags.METRIC_TAGS, at_least=0)
 
-    # assert tags for table size metrics
-    # aggregator.assert_metric('mysql.info.table.index_size', tags=tags.METRIC_TAGS + ['schema:something', 'table:blah'])
-    # aggregator.assert_metric('mysql.info.table.data_size', tags=tags.METRIC_TAGS + ['schema:something', 'table:blah'])
-
     # test custom query metrics
     aggregator.assert_metric('alice.age', value=25)
     aggregator.assert_metric('bob.age', value=20)
