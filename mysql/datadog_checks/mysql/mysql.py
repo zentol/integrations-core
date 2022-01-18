@@ -319,7 +319,7 @@ class MySql(AgentCheck):
             results['information_schema_size'] = self._query_size_per_schema(db)
             metrics.update(SCHEMA_VARS)
 
-        if is_affirmative(self._config.options.get('table_size_metrics', True)):
+        if is_affirmative(self._config.options.get('table_size_metrics', False)):
             # report size of tables in MiB to Datadog
             (table_index_size, table_data_size) = self._query_size_per_table(db)
             results['information_table_index_size'] = table_index_size
