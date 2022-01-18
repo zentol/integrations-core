@@ -249,6 +249,11 @@ TABLE_VARS = {
     'information_table_data_size': ('mysql.info.table.data_size', GAUGE),
 }
 
+EXTRA_TABLE_VARS = {
+    'information_table_extra_index_size': ('mysql.info.extra.table.index_size', GAUGE),
+    'information_table_extra_data_size': ('mysql.info.extra.table.data_size', GAUGE),
+}
+
 # Vars found in "show slave status" or "show replication status" (depending on mysql version)
 REPLICA_VARS = {
     'Seconds_Behind_Source': [  # for 8 onwards

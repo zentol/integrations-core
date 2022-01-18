@@ -99,6 +99,7 @@ def instance_complex():
             'extra_performance_metrics': True,
             'schema_size_metrics': True,
             'table_size_metrics': True,
+            'extra_table_size_metrics': True,
         },
         'tags': tags.METRIC_TAGS,
         'queries': [

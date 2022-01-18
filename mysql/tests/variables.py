@@ -53,9 +53,14 @@ COMPLEX_STATUS_VARS = [
     'mysql.performance.qcache_lowmem_prunes',
 ]
 
-TABLE_STATS_VARS = [
+TABLE_VARS = [
     'mysql.info.table.index_size',
     'mysql.info.table.data_size',
+]
+
+EXTRA_TABLE_VARS = [
+    'mysql.info.extra.table.index_size',
+    'mysql.info.extra.table.data_size',
 ]
 
 # Possibly from SHOW GLOBAL VARIABLES

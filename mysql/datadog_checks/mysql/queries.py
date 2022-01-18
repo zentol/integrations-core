@@ -18,10 +18,18 @@ FROM     information_schema.tables
 GROUP BY table_schema"""
 
 SQL_QUERY_TABLE_SIZE = """\
-SELECT   CONCAT(table_schema,'.',table_name) as table_name,
+SELECT   table_schema, table_name,
          IFNULL(index_length/1024/1024,0) AS index_size_mb,
          IFNULL(data_length/1024/1024,0) AS data_size_mb
-FROM     information_schema.tables"""
+FROM     information_schema.tables
+WHERE    table_schema not in ('mysql', 'performance_schema', 'information_schema')"""
+
+SQL_QUERY_EXTRA_TABLE_SIZE = """\
+SELECT   table_schema, table_name,
+         IFNULL(index_length/1024/1024,0) AS index_size_mb,
+         IFNULL(data_length/1024/1024,0) AS data_size_mb
+FROM     information_schema.tables
+WHERE    table_schema in ('mysql', 'performance_schema', 'information_schema')"""
 
 SQL_AVG_QUERY_RUN_TIME = """\
 SELECT schema_name, ROUND((SUM(sum_timer_wait) / SUM(count_star)) / 1000000) AS avg_us

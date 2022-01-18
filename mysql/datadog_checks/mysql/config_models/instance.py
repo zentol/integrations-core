@@ -37,6 +37,7 @@ class Options(BaseModel):
     extra_innodb_metrics: Optional[bool]
     extra_performance_metrics: Optional[bool]
     extra_status_metrics: Optional[bool]
+    extra_table_size_metrics: Optional[bool]
     galera_cluster: Optional[bool]
     replication: Optional[bool]
     replication_channel: Optional[str]

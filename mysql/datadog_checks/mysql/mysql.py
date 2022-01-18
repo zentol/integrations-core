@@ -21,6 +21,7 @@ from .config import MySQLConfig
 from .const import (
     BINLOG_VARS,
     COUNT,
+    EXTRA_TABLE_VARS,
     GALERA_VARS,
     GAUGE,
     INNODB_VARS,
@@ -43,6 +44,7 @@ from .queries import (
     SQL_AVG_QUERY_RUN_TIME,
     SQL_INNODB_ENGINES,
     SQL_PROCESS_LIST,
+    SQL_QUERY_EXTRA_TABLE_SIZE,
     SQL_QUERY_SCHEMA_SIZE,
     SQL_QUERY_TABLE_SIZE,
     SQL_REPLICATION_ROLE_AWS_AURORA,
@@ -325,6 +327,13 @@ class MySql(AgentCheck):
             results['information_table_index_size'] = table_index_size
             results['information_table_data_size'] = table_data_size
             metrics.update(TABLE_VARS)
+
+        if is_affirmative(self._config.options.get('extra_table_size_metrics', False)):
+            # report size of tables in MiB to Datadog
+            (extra_table_index_size, extra_table_data_size) = self._query_size_per_table(db, extra=True)
+            results['information_table_extra_index_size'] = extra_table_index_size
+            results['information_table_extra_data_size'] = extra_table_data_size
+            metrics.update(EXTRA_TABLE_VARS)
 
         if is_affirmative(self._config.options.get('replication', self._config.dbm_enabled)):
             replication_metrics = self._collect_replication_metrics(db, results, above_560)
@@ -862,10 +871,13 @@ class MySql(AgentCheck):
 
         return {}
 
-    def _query_size_per_table(self, db):
+    def _query_size_per_table(self, db, extra=False):
         try:
             with closing(db.cursor()) as cursor:
-                cursor.execute(SQL_QUERY_TABLE_SIZE)
+                if extra:
+                    cursor.execute(SQL_QUERY_EXTRA_TABLE_SIZE)
+                else:
+                    cursor.execute(SQL_QUERY_TABLE_SIZE)
 
                 if cursor.rowcount < 1:
                     self.warning("Failed to fetch records from the information schema 'tables' table.")
@@ -874,17 +886,16 @@ class MySql(AgentCheck):
                 table_index_size = {}
                 table_data_size = {}
                 for row in cursor.fetchall():
-                    table_name = str(row[0])
-                    index_size = long(row[1])
-                    data_size = long(row[2])
+                    table_schema = str(row[0])
+                    table_name = str(row[1])
+                    index_size = long(row[2])
+                    data_size = long(row[3])
 
                     # set the tag as the dictionary key
-                    # TODO: simply update the query to get this info from separate columns
-                    schema_table_info = table_name.split(".")
-                    table_index_size["schema:{0}".format(schema_table_info[0])] = index_size
-                    table_index_size["table:{0}".format(schema_table_info[1])] = index_size
-                    table_data_size["schema:{0}".format(schema_table_info[0])] = data_size
-                    table_data_size["table:{0}".format(schema_table_info[1])] = data_size
+                    table_index_size["schema:{0}".format(table_schema)] = index_size
+                    table_index_size["table:{0}".format(table_name)] = index_size
+                    table_data_size["schema:{0}".format(table_schema)] = data_size
+                    table_data_size["table:{0}".format(table_name)] = data_size
 
                 return table_index_size, table_data_size
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
