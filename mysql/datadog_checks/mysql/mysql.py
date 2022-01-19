@@ -21,7 +21,6 @@ from .config import MySQLConfig
 from .const import (
     BINLOG_VARS,
     COUNT,
-    EXTRA_TABLE_VARS,
     GALERA_VARS,
     GAUGE,
     INNODB_VARS,
@@ -330,10 +329,10 @@ class MySql(AgentCheck):
 
         if is_affirmative(self._config.options.get('extra_table_size_metrics', False)):
             # report size of tables in MiB to Datadog
-            (extra_table_index_size, extra_table_data_size) = self._query_size_per_table(db, extra=True)
-            results['information_table_extra_index_size'] = extra_table_index_size
-            results['information_table_extra_data_size'] = extra_table_data_size
-            metrics.update(EXTRA_TABLE_VARS)
+            (table_index_size, table_data_size) = self._query_size_per_table(db, extra=True)
+            results['information_table_index_size'] = table_index_size
+            results['information_table_data_size'] = table_data_size
+            metrics.update(TABLE_VARS)
 
         if is_affirmative(self._config.options.get('replication', self._config.dbm_enabled)):
             replication_metrics = self._collect_replication_metrics(db, results, above_560)

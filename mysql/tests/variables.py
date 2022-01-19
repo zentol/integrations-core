@@ -58,11 +58,6 @@ TABLE_VARS = [
     'mysql.info.table.data_size',
 ]
 
-EXTRA_TABLE_VARS = [
-    'mysql.info.extra.table.index_size',
-    'mysql.info.extra.table.data_size',
-]
-
 # Possibly from SHOW GLOBAL VARIABLES
 VARIABLES_VARS = [
     'mysql.myisam.key_buffer_size',
