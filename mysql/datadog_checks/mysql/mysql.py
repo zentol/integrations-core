@@ -515,7 +515,12 @@ class MySql(AgentCheck):
         for tag, value in collect_all_scalars(variable, db_results):
             metric_tags = list(tags)
             if tag:
-                metric_tags.append(tag)
+                if "," in tag:
+                    t_split = tag.split(",")
+                    for t in t_split:
+                        metric_tags.append(t)
+                else:
+                    metric_tags.append(tag)
             if value is not None:
                 if metric_type == RATE:
                     self.rate(metric_name, value, tags=metric_tags, hostname=self.resolved_hostname)
@@ -887,14 +892,12 @@ class MySql(AgentCheck):
                 for row in cursor.fetchall():
                     table_schema = str(row[0])
                     table_name = str(row[1])
-                    index_size = long(row[2])
-                    data_size = long(row[3])
+                    index_size = float(row[2])
+                    data_size = float(row[3])
 
                     # set the tag as the dictionary key
-                    table_index_size["schema:{0}".format(table_schema)] = index_size
-                    table_index_size["table:{0}".format(table_name)] = index_size
-                    table_data_size["schema:{0}".format(table_schema)] = data_size
-                    table_data_size["table:{0}".format(table_name)] = data_size
+                    table_index_size["schema:{},table:{}".format(table_schema, table_name)] = index_size
+                    table_data_size["schema:{},table:{}".format(table_schema, table_name)] = data_size
 
                 return table_index_size, table_data_size
         except (pymysql.err.InternalError, pymysql.err.OperationalError) as e:
