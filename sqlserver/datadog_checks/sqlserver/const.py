@@ -64,6 +64,7 @@ INSTANCE_METRICS = [
 # datadog metric name, counter name, instance name
 INSTANCE_METRICS_TOTAL = [
     # SQLServer:Locks
+    ('sqlserver.deadlocks', 'Number of Deadlocks/sec', '_Total'),
     ('sqlserver.stats.lock_waits', 'Lock Waits/sec', '_Total'),  # BULK_COUNT
     # SQLServer:Plan Cache
     ('sqlserver.cache.object_counts', 'Cache Object Counts', '_Total'),
