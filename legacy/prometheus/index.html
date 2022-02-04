@@ -94,7 +94,7 @@
                             <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=s2>&quot;Couldn&#39;t connect to </span><span class=si>%s</span><span class=s2>: </span><span class=si>%s</span><span class=s2>, trying next possible URL.&quot;</span><span class=p>,</span> <span class=n>url</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>e</span><span class=p>))</span>
                     <span class=k>else</span><span class=p>:</span>
                         <span class=k>raise</span> <span class=n>CheckException</span><span class=p>(</span>
-                            <span class=s2>&quot;The agent could connect to none of the following URL: </span><span class=si>%s</span><span class=s2>.&quot;</span> <span class=o>%</span> <span class=n>possible_urls</span>
+                            <span class=s2>&quot;The agent could not connect to any of the following URLs: </span><span class=si>%s</span><span class=s2>.&quot;</span> <span class=o>%</span> <span class=n>possible_urls</span>
                         <span class=p>)</span>
                 <span class=k>else</span><span class=p>:</span>
                     <span class=bp>self</span><span class=o>.</span><span class=n>get_scraper_config</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
@@ -198,7 +198,7 @@
                         <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>info</span><span class=p>(</span><span class=s2>&quot;Couldn&#39;t connect to </span><span class=si>%s</span><span class=s2>: </span><span class=si>%s</span><span class=s2>, trying next possible URL.&quot;</span><span class=p>,</span> <span class=n>url</span><span class=p>,</span> <span class=nb>str</span><span class=p>(</span><span class=n>e</span><span class=p>))</span>
                 <span class=k>else</span><span class=p>:</span>
                     <span class=k>raise</span> <span class=n>CheckException</span><span class=p>(</span>
-                        <span class=s2>&quot;The agent could connect to none of the following URL: </span><span class=si>%s</span><span class=s2>.&quot;</span> <span class=o>%</span> <span class=n>possible_urls</span>
+                        <span class=s2>&quot;The agent could not connect to any of the following URLs: </span><span class=si>%s</span><span class=s2>.&quot;</span> <span class=o>%</span> <span class=n>possible_urls</span>
                     <span class=p>)</span>
             <span class=k>else</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>get_scraper_config</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
