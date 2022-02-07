@@ -327,25 +327,57 @@ AgentCheck.check()                          # no more instance argument for chec
         <span class=bp>self</span><span class=o>.</span><span class=n>_log_deprecation</span><span class=p>(</span><span class=s1>&#39;in_developer_mode&#39;</span><span class=p>)</span>
         <span class=k>return</span> <span class=kc>False</span>
 
+    <span class=k>def</span> <span class=nf>log_typos_in_options</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>user_config</span><span class=p>,</span> <span class=n>models_config</span><span class=p>,</span> <span class=n>level</span><span class=p>):</span>
+        <span class=c1># only import it when running in python 3</span>
+        <span class=kn>from</span> <span class=nn>jellyfish</span> <span class=kn>import</span> <span class=n>jaro_winkler_similarity</span>
+
+        <span class=n>user_config</span> <span class=o>=</span> <span class=n>user_config</span> <span class=ow>or</span> <span class=p>{}</span>
+        <span class=n>models_config</span> <span class=o>=</span> <span class=n>models_config</span> <span class=ow>or</span> <span class=p>{}</span>
+        <span class=n>typos</span> <span class=o>=</span> <span class=nb>set</span><span class=p>()</span>  <span class=c1># type: Set[str]</span>
+
+        <span class=n>known_options</span> <span class=o>=</span> <span class=nb>dict</span><span class=p>(</span><span class=n>models_config</span><span class=p>)</span><span class=o>.</span><span class=n>keys</span><span class=p>()</span>
+        <span class=n>unknown_options</span> <span class=o>=</span> <span class=nb>sorted</span><span class=p>(</span><span class=nb>list</span><span class=p>(</span><span class=n>user_config</span><span class=o>.</span><span class=n>keys</span><span class=p>()</span> <span class=o>-</span> <span class=n>known_options</span><span class=p>))</span>
+
+        <span class=k>for</span> <span class=n>unknown_option</span> <span class=ow>in</span> <span class=n>unknown_options</span><span class=p>:</span>
+            <span class=n>similar_known_options</span> <span class=o>=</span> <span class=p>[]</span>  <span class=c1># type: List[Tuple[str, int]]</span>
+            <span class=k>for</span> <span class=n>known_option</span> <span class=ow>in</span> <span class=n>known_options</span><span class=p>:</span>
+                <span class=n>ratio</span> <span class=o>=</span> <span class=n>jaro_winkler_similarity</span><span class=p>(</span><span class=n>unknown_option</span><span class=p>,</span> <span class=n>known_option</span><span class=p>)</span>
+                <span class=k>if</span> <span class=n>ratio</span> <span class=o>&gt;</span> <span class=n>TYPO_SIMILARITY_THRESHOLD</span><span class=p>:</span>
+                    <span class=n>similar_known_options</span><span class=o>.</span><span class=n>append</span><span class=p>((</span><span class=n>known_option</span><span class=p>,</span> <span class=n>ratio</span><span class=p>))</span>
+                    <span class=n>typos</span><span class=o>.</span><span class=n>add</span><span class=p>(</span><span class=n>unknown_option</span><span class=p>)</span>
+
+            <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=n>similar_known_options</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>:</span>
+                <span class=n>similar_known_options</span><span class=o>.</span><span class=n>sort</span><span class=p>(</span><span class=n>key</span><span class=o>=</span><span class=k>lambda</span> <span class=n>option</span><span class=p>:</span> <span class=n>option</span><span class=p>[</span><span class=mi>1</span><span class=p>],</span> <span class=n>reverse</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+                <span class=n>similar_known_options_names</span> <span class=o>=</span> <span class=p>[</span><span class=n>option</span><span class=p>[</span><span class=mi>0</span><span class=p>]</span> <span class=k>for</span> <span class=n>option</span> <span class=ow>in</span> <span class=n>similar_known_options</span><span class=p>]</span>  <span class=c1># type: List[str]</span>
+                <span class=n>message</span> <span class=o>=</span> <span class=p>(</span>
+                    <span class=s1>&#39;Detected potential typo in configuration option in </span><span class=si>{}</span><span class=s1>/</span><span class=si>{}</span><span class=s1> section: `</span><span class=si>{}</span><span class=s1>`. Did you mean </span><span class=si>{}</span><span class=s1>?&#39;</span>
+                <span class=p>)</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>level</span><span class=p>,</span> <span class=n>unknown_option</span><span class=p>,</span> <span class=s1>&#39;, or &#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>similar_known_options_names</span><span class=p>))</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=n>message</span><span class=p>)</span>
+        <span class=k>return</span> <span class=n>typos</span>
+
     <span class=k>def</span> <span class=nf>load_configuration_models</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>package_path</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
         <span class=k>if</span> <span class=n>package_path</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
             <span class=c1># &#39;datadog_checks.&lt;PACKAGE&gt;.&lt;MODULE&gt;...&#39;</span>
             <span class=n>module_parts</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=vm>__module__</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;.&#39;</span><span class=p>)</span>
             <span class=n>package_path</span> <span class=o>=</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>.config_models&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=s1>&#39;.&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>module_parts</span><span class=p>[:</span><span class=mi>2</span><span class=p>]))</span>
-
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_shared</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
             <span class=n>raw_shared_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_get_config_model_initialization_data</span><span class=p>()</span>
-            <span class=n>raw_shared_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>_get_shared_config</span><span class=p>())</span>
+            <span class=n>intg_shared_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_get_shared_config</span><span class=p>()</span>
+            <span class=n>raw_shared_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>intg_shared_config</span><span class=p>)</span>
 
             <span class=n>shared_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_model</span><span class=p>(</span><span class=n>package_path</span><span class=p>,</span> <span class=s1>&#39;SharedConfig&#39;</span><span class=p>,</span> <span class=n>raw_shared_config</span><span class=p>)</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_shared_config</span><span class=p>,</span> <span class=n>shared_config</span><span class=p>,</span> <span class=s1>&#39;init_config&#39;</span><span class=p>)</span>
             <span class=k>if</span> <span class=n>shared_config</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_shared</span> <span class=o>=</span> <span class=n>shared_config</span>
 
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_instance</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
             <span class=n>raw_instance_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_get_config_model_initialization_data</span><span class=p>()</span>
-            <span class=n>raw_instance_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>_get_instance_config</span><span class=p>())</span>
+            <span class=n>intg_instance_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_get_instance_config</span><span class=p>()</span>
+            <span class=n>raw_instance_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>intg_instance_config</span><span class=p>)</span>
 
             <span class=n>instance_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_model</span><span class=p>(</span><span class=n>package_path</span><span class=p>,</span> <span class=s1>&#39;InstanceConfig&#39;</span><span class=p>,</span> <span class=n>raw_instance_config</span><span class=p>)</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_instance_config</span><span class=p>,</span> <span class=n>instance_config</span><span class=p>,</span> <span class=s1>&#39;instances&#39;</span><span class=p>)</span>
+
             <span class=k>if</span> <span class=n>instance_config</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_instance</span> <span class=o>=</span> <span class=n>instance_config</span>
 
