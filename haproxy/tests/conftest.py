@@ -233,3 +233,5 @@ def version_metadata():
             'version.patch': str(HAPROXY_VERSION.micro),
             'version.raw': mock.ANY,
         }
+
+#test commit for yubikey set up
