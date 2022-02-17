@@ -366,7 +366,10 @@ AgentCheck.check()                          # no more instance argument for chec
             <span class=n>raw_shared_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>intg_shared_config</span><span class=p>)</span>
 
             <span class=n>shared_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_model</span><span class=p>(</span><span class=n>package_path</span><span class=p>,</span> <span class=s1>&#39;SharedConfig&#39;</span><span class=p>,</span> <span class=n>raw_shared_config</span><span class=p>)</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_shared_config</span><span class=p>,</span> <span class=n>shared_config</span><span class=p>,</span> <span class=s1>&#39;init_config&#39;</span><span class=p>)</span>
+            <span class=k>try</span><span class=p>:</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_shared_config</span><span class=p>,</span> <span class=n>shared_config</span><span class=p>,</span> <span class=s1>&#39;init_config&#39;</span><span class=p>)</span>
+            <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>debug</span><span class=p>(</span><span class=s2>&quot;Failed to detect typos in `init_config` section: </span><span class=si>%s</span><span class=s2>&quot;</span><span class=p>,</span> <span class=n>e</span><span class=p>)</span>
             <span class=k>if</span> <span class=n>shared_config</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_shared</span> <span class=o>=</span> <span class=n>shared_config</span>
 
@@ -376,8 +379,10 @@ AgentCheck.check()                          # no more instance argument for chec
             <span class=n>raw_instance_config</span><span class=o>.</span><span class=n>update</span><span class=p>(</span><span class=n>intg_instance_config</span><span class=p>)</span>
 
             <span class=n>instance_config</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_model</span><span class=p>(</span><span class=n>package_path</span><span class=p>,</span> <span class=s1>&#39;InstanceConfig&#39;</span><span class=p>,</span> <span class=n>raw_instance_config</span><span class=p>)</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_instance_config</span><span class=p>,</span> <span class=n>instance_config</span><span class=p>,</span> <span class=s1>&#39;instances&#39;</span><span class=p>)</span>
-
+            <span class=k>try</span><span class=p>:</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>log_typos_in_options</span><span class=p>(</span><span class=n>intg_instance_config</span><span class=p>,</span> <span class=n>instance_config</span><span class=p>,</span> <span class=s1>&#39;instances&#39;</span><span class=p>)</span>
+            <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
+                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>debug</span><span class=p>(</span><span class=s2>&quot;Failed to detect typos in `instances` section: </span><span class=si>%s</span><span class=s2>&quot;</span><span class=p>,</span> <span class=n>e</span><span class=p>)</span>
             <span class=k>if</span> <span class=n>instance_config</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
                 <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_instance</span> <span class=o>=</span> <span class=n>instance_config</span>
 
