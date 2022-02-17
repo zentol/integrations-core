@@ -1,0 +1,35 @@
+{
+  "display_name": "IBM ACE",
+  "maintainer": "help@datadoghq.com",
+  "manifest_version": "1.0.0",
+  "name": "ibm_ace",
+  "metric_prefix": "ibm_ace.",
+  "metric_to_check": "",
+  "creates_events": false,
+  "short_description": "",
+  "guid": "381ef23a-76c8-49d3-8a0a-7cddac6142f0",
+  "support": "core",
+  "supported_os": [
+    "linux",
+    "mac_os",
+    "windows"
+  ],
+  "public_title": "IBM ACE",
+  "categories": [
+    ""
+  ],
+  "type": "check",
+  "is_public": false,
+  "integration_id": "ibm-ace",
+  "assets": {
+    "configuration": {
+      "spec": "assets/configuration/spec.yaml"
+    },
+    "dashboards": {},
+    "monitors": {},
+    "saved_views": {},
+    "service_checks": "assets/service_checks.json",
+    "logs": {},
+    "metrics_metadata": "metadata.csv"
+  }
+}

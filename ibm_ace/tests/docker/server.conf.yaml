@@ -1,0 +1,20 @@
+# https://www.ibm.com/docs/en/app-connect/12.0?topic=ccmfasd-configuring-collection-message-flow-statistics-by-using-yaml-configuration-file
+Statistics:
+  Resource:
+    reportingOn: true
+  Snapshot:
+    publicationOn: 'active'
+    accountingOrigin: 'basic'
+    nodeDataLevel: 'advanced'
+    outputFormat: 'xml'
+    threadDataLevel: 'basic'
+  Archive:
+    archivalOn: 'active'
+    accountingOrigin: 'basic'
+    majorInterval: 1
+    nodeDataLevel: 'advanced'
+    outputFormat: 'xml'
+    threadDataLevel: 'basic'
+
+# https://www.ibm.com/docs/en/app-connect/12.0?topic=properties-mqendpoint-policy
+remoteDefaultQueueManager: '{DefaultPolicies}:mqpolicy'
