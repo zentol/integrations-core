@@ -65,3 +65,11 @@ metrics:
         column:
           OID: 1.3.6.1.2.1.25.3.3.1.1
           name: hrProcessorFrwID
+      - tag: hrDeviceIndex
+        column:
+          OID: 1.3.6.1.2.1.25.3.2.1.1
+          name: hrDeviceIndex
+      - tag: hrDeviceDescr
+        column:
+          OID: 1.3.6.1.2.1.25.3.2.1.3
+          name: hrDeviceDescr
