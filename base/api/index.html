@@ -579,12 +579,13 @@ AgentCheck.check()                          # no more instance argument for chec
             <span class=c1># ignore metric sample</span>
             <span class=k>return</span>
 
+        <span class=n>name</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_format_namespace</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>raw</span><span class=p>)</span>
+        <span class=k>if</span> <span class=ow>not</span> <span class=bp>self</span><span class=o>.</span><span class=n>should_send_metric</span><span class=p>(</span><span class=n>name</span><span class=p>):</span>
+            <span class=k>return</span>
+
         <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_normalize_tags_type</span><span class=p>(</span><span class=n>tags</span> <span class=ow>or</span> <span class=p>[],</span> <span class=n>device_name</span><span class=p>,</span> <span class=n>name</span><span class=p>)</span>
         <span class=k>if</span> <span class=n>hostname</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
             <span class=n>hostname</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
-
-        <span class=k>if</span> <span class=ow>not</span> <span class=bp>self</span><span class=o>.</span><span class=n>should_send_metric</span><span class=p>(</span><span class=n>name</span><span class=p>):</span>
-            <span class=k>return</span>
 
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=p>:</span>
             <span class=k>if</span> <span class=n>mtype</span> <span class=ow>in</span> <span class=n>ONE_PER_CONTEXT_METRIC_TYPES</span><span class=p>:</span>
@@ -608,9 +609,7 @@ AgentCheck.check()                          # no more instance argument for chec
             <span class=bp>self</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=n>err_msg</span><span class=p>)</span>
             <span class=k>return</span>
 
-        <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_metric</span><span class=p>(</span>
-            <span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>mtype</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>_format_namespace</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>raw</span><span class=p>),</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span><span class=p>,</span> <span class=n>flush_first_value</span>
-        <span class=p>)</span>
+        <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>mtype</span><span class=p>,</span> <span class=n>name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>hostname</span><span class=p>,</span> <span class=n>flush_first_value</span><span class=p>)</span>
 
     <span class=k>def</span> <span class=nf>gauge</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>hostname</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>device_name</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>False</span><span class=p>):</span>
         <span class=c1># type: (str, float, Sequence[str], str, str, bool) -&gt; None</span>
