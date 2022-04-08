@@ -76,6 +76,7 @@ except ImportError:
 if PY3:
     long = int
 
+PYTHON_PROFILER = None
 
 class MySql(AgentCheck):
     SERVICE_CHECK_NAME = 'mysql.can_connect'
@@ -154,7 +155,17 @@ class MySql(AgentCheck):
     def get_library_versions(cls):
         return {'pymysql': pymysql.__version__}
 
+    def enable_python_profiler(self):
+        global PYTHON_PROFILER
+        if not PYTHON_PROFILER:
+            from ddtrace.profiling import Profiler
+            PYTHON_PROFILER = Profiler(
+                service="mysql-integration",
+            )
+            PYTHON_PROFILER.start()
+
     def check(self, _):
+        self.enable_python_profiler()
         if self.instance.get('user'):
             self._log_deprecation('_config_renamed', 'user', 'username')
 

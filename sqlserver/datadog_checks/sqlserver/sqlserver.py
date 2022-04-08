@@ -10,7 +10,6 @@ from itertools import chain
 
 import six
 from cachetools import TTLCache
-
 from datadog_checks.base import AgentCheck, ConfigurationError
 from datadog_checks.base.config import is_affirmative
 from datadog_checks.base.utils.common import to_native_string
@@ -71,6 +70,8 @@ if adodbapi is None and pyodbc is None:
     raise ImportError('adodbapi or pyodbc must be installed to use this check.')
 
 set_default_driver_conf()
+
+PYTHON_PROFILER = None
 
 
 class SQLServer(AgentCheck):
@@ -578,8 +579,18 @@ class SQLServer(AgentCheck):
 
         return cls(cfg_inst, base_name, metric_type, column, self.log)
 
+    def enable_python_profiler(self):
+        global PYTHON_PROFILER
+        if not PYTHON_PROFILER:
+            from ddtrace.profiling import Profiler
+            PYTHON_PROFILER = Profiler(
+                service="sqlserver-integration",
+            )
+            PYTHON_PROFILER.start()
+
     def check(self, _):
         if self.do_check:
+            self.enable_python_profiler()
             self.load_static_information()
             if self.proc:
                 self.do_stored_procedure_check()

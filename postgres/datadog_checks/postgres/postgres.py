@@ -37,6 +37,7 @@ MAX_CUSTOM_RESULTS = 100
 
 PG_SETTINGS_QUERY = "SELECT name, setting FROM pg_settings WHERE name IN (%s, %s)"
 
+PYTHON_PROFILER = None
 
 class PostgreSql(AgentCheck):
     """Collects per-database, and optionally per-relation metrics, custom metrics"""
@@ -575,7 +576,17 @@ class PostgreSql(AgentCheck):
         for warning in messages:
             self.warning(warning)
 
+    def enable_python_profiler(self):
+        global PYTHON_PROFILER
+        if not PYTHON_PROFILER:
+            from ddtrace.profiling import Profiler
+            PYTHON_PROFILER = Profiler(
+                service="postgres-integration",
+            )
+            PYTHON_PROFILER.start()
+
     def check(self, _):
+        self.enable_python_profiler()
         tags = copy.copy(self._config.tags)
         # Collect metrics
         try:
