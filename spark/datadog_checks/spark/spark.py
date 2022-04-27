@@ -501,7 +501,7 @@ class SparkCheck(AgentCheck):
                 response = self._rest_request_to_json(
                     base_url, SPARK_APPS_PATH, SPARK_SERVICE_CHECK, addl_tags, app_id, 'streaming/statistics'
                 )
-                self.log.debug('streaming/statistics: %s', response)
+                self.log.debug('streaming/statistics available: %s', response)
                 tags = ['app_name:%s' % str(app_name)]
                 tags.extend(addl_tags)
 
