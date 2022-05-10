@@ -343,12 +343,14 @@
         <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families_strict</span>
             <span class=c1># https://github.com/prometheus/client_python/blob/v0.9.0/prometheus_client/openmetrics/exposition.py#L7</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span>
-                <span class=s1>&#39;Accept&#39;</span><span class=p>,</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
-            <span class=p>)</span>
+            <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
         <span class=k>else</span><span class=p>:</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>,</span> <span class=s1>&#39;text/plain&#39;</span><span class=p>)</span>
+            <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;text/plain&#39;</span>
+
+        <span class=c1># Request the appropriate exposition format</span>
+        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=s1>&#39;*/*&#39;</span><span class=p>:</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>][</span><span class=s1>&#39;Accept&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>accept_header</span>
 
         <span class=bp>self</span><span class=o>.</span><span class=n>use_process_start_time</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>))</span>
 
@@ -722,12 +724,14 @@
     <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families_strict</span>
         <span class=c1># https://github.com/prometheus/client_python/blob/v0.9.0/prometheus_client/openmetrics/exposition.py#L7</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span>
-            <span class=s1>&#39;Accept&#39;</span><span class=p>,</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
-        <span class=p>)</span>
+        <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
     <span class=k>else</span><span class=p>:</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>,</span> <span class=s1>&#39;text/plain&#39;</span><span class=p>)</span>
+        <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;text/plain&#39;</span>
+
+    <span class=c1># Request the appropriate exposition format</span>
+    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=s1>&#39;*/*&#39;</span><span class=p>:</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>][</span><span class=s1>&#39;Accept&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>accept_header</span>
 
     <span class=bp>self</span><span class=o>.</span><span class=n>use_process_start_time</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_process_start_time&#39;</span><span class=p>))</span>
 
