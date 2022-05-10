@@ -1147,10 +1147,19 @@ AgentCheck.check()                          # no more instance argument for chec
         <span class=k>return</span> <span class=n>normalized_tags</span>
 
     <span class=k>def</span> <span class=nf>degeneralise_tag</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>tag</span><span class=p>):</span>
-        <span class=n>tag_name</span><span class=p>,</span> <span class=n>value</span> <span class=o>=</span> <span class=n>tag</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>)</span>
+        <span class=n>split_tag</span> <span class=o>=</span> <span class=n>tag</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>)</span>
+        <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=n>split_tag</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>1</span><span class=p>:</span>
+            <span class=n>tag_name</span><span class=p>,</span> <span class=n>value</span> <span class=o>=</span> <span class=n>split_tag</span>
+        <span class=k>else</span><span class=p>:</span>
+            <span class=n>tag_name</span> <span class=o>=</span> <span class=n>tag</span>
+            <span class=n>value</span> <span class=o>=</span> <span class=kc>None</span>
+
         <span class=k>if</span> <span class=n>tag_name</span> <span class=ow>in</span> <span class=n>GENERIC_TAGS</span><span class=p>:</span>
             <span class=n>new_name</span> <span class=o>=</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>_</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>tag_name</span><span class=p>)</span>
-            <span class=k>return</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>new_name</span><span class=p>,</span> <span class=n>value</span><span class=p>)</span>
+            <span class=k>if</span> <span class=n>value</span><span class=p>:</span>
+                <span class=k>return</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>new_name</span><span class=p>,</span> <span class=n>value</span><span class=p>)</span>
+            <span class=k>else</span><span class=p>:</span>
+                <span class=k>return</span> <span class=n>new_name</span>
         <span class=k>else</span><span class=p>:</span>
             <span class=k>return</span> <span class=n>tag</span>
 
