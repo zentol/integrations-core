@@ -122,6 +122,7 @@ class PostgresStatementMetrics(DBMAsyncJob):
             maxsize=config.full_statement_text_cache_max_size,
             ttl=60 * 60 / config.full_statement_text_samples_per_hour_per_query,
         )
+        self._num_payloads = 0
 
     def _execute_query(self, cursor, query, params=()):
         try:
@@ -187,6 +188,9 @@ class PostgresStatementMetrics(DBMAsyncJob):
                 'ddagentversion': datadog_agent.get_version(),
                 "ddagenthostname": self._check.agent_hostname,
             }
+            self._num_payloads += 1
+            if self._num_payloads % 5 == 0:
+                self._log.warning(json.dumps(payload, default=default_json_event_encoding))
             self._check.database_monitoring_query_metrics(json.dumps(payload, default=default_json_event_encoding))
         except Exception:
             self._log.exception('Unable to collect statement metrics due to an error')
