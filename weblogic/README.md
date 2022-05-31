@@ -2,7 +2,14 @@
 
 ## Overview
 
-This check monitors Oracle [WebLogic][1] Server. 
+Oracle [WebLogic][15] allows users to develop and deploy an application that has business logic and allows the application to access other services like database, messaging, or other enterprise systems. It is a platform where you deploy your Java application and everything else is handled by the server. When clients make a request to a web application the web server will handle the request and delegate its processing to the required service. If the request requires reading data for example from the database, WebLogic will take care of it and the client is served with the required content.
+
+The integration enables you to:
+- Become aware of increasing heap size in your JVM
+- Track server response time
+- Monitor session details of web applications
+- Track thread pool and messaging services
+- Track database connection pool usage
 
 ## Setup
 
@@ -143,7 +150,7 @@ See [service_checks.json][8] for a list of service checks provided by this integ
 Need help? Contact [Datadog support][6].
 
 
-[1]: https://docs.datadoghq.com/integrations/weblogic/?tab=host#pagetitle
+[1]: https://www.oracle.com/middleware/technologies/weblogic.html
 [2]: https://app.datadoghq.com/account/settings#agent
 [3]: https://github.com/DataDog/integrations-core/blob/master/weblogic/datadog_checks/weblogic/data/conf.yaml.example
 [4]: https://docs.datadoghq.com/agent/guide/agent-commands/#agent-status-and-information
