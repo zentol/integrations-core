@@ -2,6 +2,9 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 
+import copy
+
+
 QUERY_SERVER_STATIC_INFO = {
     'name': 'sys.dm_os_sys_info',
     'query': """
@@ -158,61 +161,69 @@ QUERY_FAILOVER_CLUSTER_INSTANCE = {
 }
 
 
-def get_query_file_stats(sqlserver_major_version):
-    """
-    Construct the dm_io_virtual_file_stats QueryExecutor configuration based on the SQL Server major version
-
-    :param sqlserver_major_version: SQL Server major version (i.e. 2012, 2019, ...)
-    :return: a QueryExecutor query config object
-    """
-
-    _file_stats_column_name_to_metric_name = {
-        'size_on_disk_bytes': 'files.size_on_disk',
-        'num_of_reads': 'files.reads',
-        'num_of_bytes_read': 'files.read_bytes',
-        'io_stall_read_ms': 'files.read_io_stall',
-        'io_stall_queued_read_ms': 'files.read_io_stall_queued',
-        'num_of_writes': 'files.writes',
-        'num_of_bytes_written': 'files.written_bytes',
-        'io_stall_write_ms': 'files.write_io_stall',
-        'io_stall_queued_write_ms': 'files.write_io_stall_queued',
-        'io_stall': 'files.io_stall',
-    }
-
-    available_file_stats_columns = sorted(_file_stats_column_name_to_metric_name.keys())
-    if sqlserver_major_version <= 2012:
-        missing = {"io_stall_queued_read_ms", "io_stall_queued_write_ms"}
-        available_file_stats_columns = [c for c in available_file_stats_columns if c not in missing]
-
-    file_stats_columns_sql = []
-    metric_columns = []
-    for column in available_file_stats_columns:
-        file_stats_columns_sql.append("fs.{} AS {}".format(column, column))
-        metric_type = 'gauge' if column == 'size_on_disk_bytes' else 'monotonic_count'
-        metric_name = _file_stats_column_name_to_metric_name[column]
-        metric_columns.append({'name': metric_name, 'type': metric_type})
-
-    return {
-        'name': 'sys.dm_io_virtual_file_stats',
-        'query': """
+QUERY_FILE_STATS = {
+    'name': 'sys.dm_io_virtual_file_stats',
+    'query': """
         SELECT
             DB_NAME(fs.database_id) AS database_name,
             mf.state_desc AS state_desc,
             mf.name AS logical_name,
             mf.physical_name AS physical_name,
-            {file_stats_columns_sql}
+            {columns}
         FROM sys.dm_io_virtual_file_stats(NULL, NULL) fs
             LEFT JOIN sys.master_files mf
                 ON mf.database_id = fs.database_id
                 AND mf.file_id = fs.file_id;
-    """.strip().format(
-            file_stats_columns_sql=", ".join(file_stats_columns_sql)
-        ),
+    """,
         'columns': [
             {'name': 'db', 'type': 'tag'},
             {'name': 'state', 'type': 'tag'},
             {'name': 'logical_name', 'type': 'tag'},
             {'name': 'file_location', 'type': 'tag'},
         ]
-        + metric_columns,
     }
+
+QUERY_FILE_STATS_COLUMNS = {
+    'fs.size_on_disk_bytes': {'name': 'files.size_on_disk', 'type': 'gauge'},
+    'fs.num_of_reads': {'name': 'files.reads', 'type': 'monotonic_count'},
+    'fs.num_of_bytes_read': {'name': 'files.read_bytes', 'type': 'monotonic_count'},
+    'fs.num_of_writes': {'name': 'files.writes', 'type': 'monotonic_count'},
+    'fs.num_of_bytes_written': {'name': 'files.written_bytes', 'type': 'monotonic_count'},
+    'fs.io_stall_read_ms': {'name': 'files.read_io_stall', 'type': 'monotonic_count'},
+    'fs.io_stall_write_ms': {'name': 'files.write_io_stall', 'type': 'monotonic_count'},
+    'fs.io_stall': {'name': 'files.io_stall', 'type': 'monotonic_count'},
+
+}
+
+# these columns are only available on version >2012
+QUERY_FILE_STATS_COLUMNS_GREATER_THAN_2012 = {
+    'fs.io_stall_queued_read_ms': {'name': 'files.read_io_stall_queued', 'type': 'monotonic_count'},
+    'fs.io_stall_queued_write_ms': {'name': 'files.write_io_stall_queued', 'type': 'monotonic_count'},
+}
+
+
+def get_query_file_stats(major_version):
+    """
+    Construct the dm_io_virtual_file_stats QueryExecutor configuration given the available
+    dm_io_virtual_file_stats columns.
+
+    :param major_version: The major version of the SQL Server
+    :return: a QueryExecutor query config object
+    """
+    q = copy.deepcopy(QUERY_FILE_STATS)
+
+    sql_columns = []
+    metric_columns = []
+
+    for column, metric in QUERY_FILE_STATS_COLUMNS.items():
+        sql_columns.append(column)
+        metric_columns.append(metric)
+    
+    if major_version > 2012:
+        for column in QUERY_FILE_STATS_COLUMNS_GREATER_THAN_2012.items():
+            sql_columns.append(column)
+            metric_columns.append(metric)
+
+    q['query'] = q['query'].format(columns=', '.join(sql_columns)).strip()
+    q['columns'].extend(metric_columns)
+    return q
