@@ -47,7 +47,8 @@
       }
     },
     "dashboards": {
-      "Vault - Overview": "assets/dashboards/vault_overview.json"
+      "Vault - Overview": "assets/dashboards/vault_overview.json",
+      "Vault - Overview (legacy)": "assets/dashboards/vault_overview_(legacy).json"
     },
     "monitors": {
       "[Vault] S3 time to access secrets is high": "assets/monitors/vault_S3_time_high.json"
