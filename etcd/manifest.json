@@ -17,7 +17,7 @@
       "Supported OS::Windows",
       "Category::Orchestration",
       "Category::Containers",
-      "Category::Configuration Deployment",
+      "Category::Configuration & Deployment",
       "Category::Autodiscovery",
       "Category::Log Collection"
     ]
