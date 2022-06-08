@@ -14,7 +14,7 @@
     "classifier_tags": [
       "Supported OS::Linux",
       "Supported OS::macOS",
-      "Category::Configuration Deployment",
+      "Category::Configuration & Deployment",
       "Category::Containers",
       "Category::Log Collection",
       "Category::Autodiscovery"
