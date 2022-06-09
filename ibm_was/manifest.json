@@ -50,7 +50,7 @@
       "IBM_WAS": "assets/dashboards/overview.json"
     },
     "logs": {
-      "source": "ibm-was"
+      "source": "ibm_was"
     }
   }
 }
