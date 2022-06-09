@@ -47,7 +47,7 @@
       }
     },
     "dashboards": {
-      "Vault - Overview": "assets/dashboards/vault_overview_(legacy).json",
+      "Vault - Overview": "assets/dashboards/vault_overview_legacy.json",
       "Vault - Overview (OpenMetricsV2)": "assets/dashboards/vault_overview.json"
     },
     "monitors": {
