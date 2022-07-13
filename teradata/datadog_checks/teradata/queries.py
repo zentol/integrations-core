@@ -91,7 +91,7 @@ AMP_USAGE = {
 # https://docs.teradata.com/r/Teradata-VantageTM-Resource-Usage-Macros-and-Tables/July-2021/ResUsageSpma-Table/Statistics-Columns
 RESOURCE_USAGE = {
     'name': 'resource_usage',
-    'query': 'SELECT TOP 1 TheTimestamp, FileLockBlocks, FileLockDeadlocks, FileLockEnters, DBLockBlocks, '
+    'query': 'SELECT TOP 1 TheTimestamp, NodeID, FileLockBlocks, FileLockDeadlocks, FileLockEnters, DBLockBlocks, '
     'DBLockDeadlocks, IoThrottleCount, IoThrottleTime, IoThrottleTimeMax, MemCtxtPageReads, MemCtxtPageWrites,'
     'MemTextPageReads, VHCacheKB, KernMemInuseKB, SegMDLInuseKB, SegMaxAvailMB, SegInuseMB, SegCacheMB, '
     'SegMDLAlloc, SegMDLFree, SegMDLRelease, SegMDLRecycle, SegMDLAllocKB, SegMDLFreeKB, SegMDLReleaseKB, '
@@ -100,6 +100,7 @@ RESOURCE_USAGE = {
     'ORDER BY TheTimestamp DESC;',
     'columns': [
         {'name': 'timestamp', 'type': 'source'},
+        {'name': 'td_node', 'type': 'tag'},
         {'name': 'file_lock.blocks', 'type': 'gauge'},
         {'name': 'file_lock.deadlocks', 'type': 'gauge'},
         {'name': 'file_lock.enters', 'type': 'gauge'},
