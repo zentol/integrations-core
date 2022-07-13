@@ -55,10 +55,6 @@ AgentCheck.check()                          # no more instance argument for chec
     <span class=c1># a mapping type, then each key will be considered a `name` and will be sent with its (str) value.</span>
     <span class=n>METADATA_TRANSFORMERS</span> <span class=o>=</span> <span class=kc>None</span>
 
-    <span class=c1># Default fields to whitelist for metadata submission</span>
-    <span class=n>METADATA_DEFAULT_CONFIG_INIT_CONFIG</span> <span class=o>=</span> <span class=kc>None</span>
-    <span class=n>METADATA_DEFAULT_CONFIG_INSTANCE</span> <span class=o>=</span> <span class=kc>None</span>
-
     <span class=n>FIRST_CAP_RE</span> <span class=o>=</span> <span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=sa>br</span><span class=s1>&#39;(.)([A-Z][a-z]+)&#39;</span><span class=p>)</span>
     <span class=n>ALL_CAP_RE</span> <span class=o>=</span> <span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=sa>br</span><span class=s1>&#39;([a-z0-9])([A-Z])&#39;</span><span class=p>)</span>
     <span class=n>METRIC_REPLACEMENT</span> <span class=o>=</span> <span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=sa>br</span><span class=s1>&#39;([^a-zA-Z0-9_.]+)|(^[^a-zA-Z]+)&#39;</span><span class=p>)</span>
@@ -209,7 +205,7 @@ AgentCheck.check()                          # no more instance argument for chec
         <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_shared</span> <span class=o>=</span> <span class=kc>None</span>  <span class=c1># type: Any</span>
 
         <span class=c1># Functions that will be called exactly once (if successful) before the first check run</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span> <span class=o>=</span> <span class=n>deque</span><span class=p>([</span><span class=bp>self</span><span class=o>.</span><span class=n>send_config_metadata</span><span class=p>])</span>  <span class=c1># type: Deque[Callable[[], None]]</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span> <span class=o>=</span> <span class=n>deque</span><span class=p>()</span>  <span class=c1># type: Deque[Callable[[], None]]</span>
 
         <span class=k>if</span> <span class=ow>not</span> <span class=n>PY2</span><span class=p>:</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_models</span><span class=p>)</span>
@@ -812,13 +808,6 @@ AgentCheck.check()                          # no more instance argument for chec
 <span class=sd>        &quot;&quot;&quot;</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>metadata_manager</span><span class=o>.</span><span class=n>submit</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>options</span><span class=p>)</span>
 
-    <span class=k>def</span> <span class=nf>send_config_metadata</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
-        <span class=c1># type: () -&gt; None</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>set_metadata</span><span class=p>(</span><span class=s1>&#39;config&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=p>,</span> <span class=n>section</span><span class=o>=</span><span class=s1>&#39;instance&#39;</span><span class=p>,</span> <span class=n>whitelist</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>METADATA_DEFAULT_CONFIG_INSTANCE</span><span class=p>)</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>set_metadata</span><span class=p>(</span>
-            <span class=s1>&#39;config&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>section</span><span class=o>=</span><span class=s1>&#39;init_config&#39;</span><span class=p>,</span> <span class=n>whitelist</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>METADATA_DEFAULT_CONFIG_INIT_CONFIG</span>
-        <span class=p>)</span>
-
     <span class=nd>@staticmethod</span>
     <span class=k>def</span> <span class=nf>is_metadata_collection_enabled</span><span class=p>():</span>
         <span class=c1># type: () -&gt; bool</span>
@@ -1299,7 +1288,7 @@ AgentCheck.check()                          # no more instance argument for chec
     <span class=bp>self</span><span class=o>.</span><span class=n>_config_model_shared</span> <span class=o>=</span> <span class=kc>None</span>  <span class=c1># type: Any</span>
 
     <span class=c1># Functions that will be called exactly once (if successful) before the first check run</span>
-    <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span> <span class=o>=</span> <span class=n>deque</span><span class=p>([</span><span class=bp>self</span><span class=o>.</span><span class=n>send_config_metadata</span><span class=p>])</span>  <span class=c1># type: Deque[Callable[[], None]]</span>
+    <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span> <span class=o>=</span> <span class=n>deque</span><span class=p>()</span>  <span class=c1># type: Deque[Callable[[], None]]</span>
 
     <span class=k>if</span> <span class=ow>not</span> <span class=n>PY2</span><span class=p>:</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>load_configuration_models</span><span class=p>)</span>
