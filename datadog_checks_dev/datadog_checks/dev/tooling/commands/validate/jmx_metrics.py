@@ -18,8 +18,6 @@ from ...utils import (
 )
 from ..console import CONTEXT_SETTINGS, abort, annotate_error, echo_failure, echo_info, echo_success
 
-# List of integrations to skip the duplicate bean check on
-
 @click.command('jmx-metrics', context_settings=CONTEXT_SETTINGS, short_help='Validate JMX metrics files')
 @click.argument('check', shell_complete=complete_valid_checks, required=False)
 @click.option('--verbose', '-v', is_flag=True, help='Verbose mode')
@@ -58,7 +56,6 @@ def jmx_metrics(check, verbose):
 
 def validate_jmx_metrics(check_name, saved_errors, verbose):
     jmx_metrics_file, metrics_file_exists = get_jmx_metrics_file(check_name)
-
     if not metrics_file_exists:
         saved_errors[(check_name, None)].append(f'{jmx_metrics_file} does not exist')
         return
