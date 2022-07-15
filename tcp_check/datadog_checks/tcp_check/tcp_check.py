@@ -81,13 +81,13 @@ class TCPCheck(AgentCheck):
             'instance:{}'.format(self.instance_name),
         ]
 
-        # IPv6 address format: 2001:db8:85a3:8d3:1319:8a2e:370:7348
-        if is_ipv6(self.host):  # It may then be a IP V6 address, we check that
-            # It's a correct IP V6 address
-            self.socket_type = socket.AF_INET6
-        else:
-            self.socket_type = socket.AF_INET
-            # IP will be resolved at check time
+        # # IPv6 address format: 2001:db8:85a3:8d3:1319:8a2e:370:7348
+        # if is_ipv6(self.host):  # It may then be a IP V6 address, we check that
+        #     # It's a correct IP V6 address
+        #     self.socket_type = socket.AF_INET6
+        # else:
+        #     self.socket_type = socket.AF_INET
+        #     # IP will be resolved at check time
 
     @property
     def addrs(self):
@@ -102,25 +102,26 @@ class TCPCheck(AgentCheck):
 
     def resolve_ips(self):
         self._addrs = [
-            sockaddr[0] for (_, _, _, _, sockaddr) in socket.getaddrinfo(self.host, self.port, 0, 0, socket.IPPROTO_TCP)
+            (sockaddr[0], family)
+            for (family, _, _, _, sockaddr) in socket.getaddrinfo(self.host, self.port, 0, 0, socket.IPPROTO_TCP)
         ]
         if not self.multiple_ips:
             if not is_ipv6(self.host):
-                self._addrs = [socket.gethostbyname(self.host)]
+                self._addrs = [(socket.gethostbyname(self.host), socket.AF_INET)]
             else:
                 self._addrs = self._addrs[:1]
 
         if self._addrs == []:
             raise Exception("No IPs attached to host")
-        self.log.debug("%s resolved to %s", self.host, self._addrs)
+        self.log.debug("%s resolved to %s. Socket type: %s", self.host, self._addrs[0][0], self._addrs[0][1])
 
     def should_resolve_ips(self):
         if self.ip_cache_duration is None:
             return False
         return get_precise_time() - self.ip_cache_last_ts > self.ip_cache_duration
 
-    def connect(self, addr):
-        with closing(socket.socket(self.socket_type)) as sock:
+    def connect(self, addr, family):
+        with closing(socket.socket(family)) as sock:
             sock.settimeout(self.timeout)
             start = get_precise_time()
             sock.connect((addr, self.port))
@@ -136,9 +137,10 @@ class TCPCheck(AgentCheck):
 
         self.log.debug("Connecting to %s on port %d", self.host, self.port)
 
-        for addr in self.addrs:
+        for addr, family in self.addrs:
+            self.socket_type = family
             try:
-                response_time = self.connect(addr)
+                response_time = self.connect(addr, family)
                 self.log.debug("%s:%d is UP (%s)", self.host, self.port, addr)
                 self.report_as_service_check(AgentCheck.OK, addr, 'UP')
                 if self.collect_response_time:

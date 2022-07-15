@@ -45,7 +45,7 @@ def test_reattempt_resolution_on_error():
 
     # Upon connection failure, cached resolved IP is cleared
     with mock.patch.object(check, 'connect', wraps=check.connect) as connect:
-        connect.side_effect = lambda self, addr: Exception()
+        connect.side_effect = lambda self, addr, family: Exception()
         check.check(instance)
         assert check._addrs is None
 
@@ -79,7 +79,7 @@ def test_up(aggregator, check):
     """
     check.check(deepcopy(common.INSTANCE))
     expected_tags = ["instance:UpService", "target_host:datadoghq.com", "port:80", "foo:bar"]
-    expected_tags.append("address:{}".format(check._addrs[0]))
+    expected_tags.append("address:{}".format(check._addrs[0][0]))
     aggregator.assert_service_check('tcp.can_connect', status=check.OK, tags=expected_tags)
     aggregator.assert_metric('network.tcp.can_connect', value=1, tags=expected_tags)
     aggregator.assert_all_metrics_covered()
@@ -98,13 +98,13 @@ def test_response_time(aggregator):
 
     # service check
     expected_tags = ['foo:bar', 'target_host:datadoghq.com', 'port:80', 'instance:instance:response_time']
-    expected_tags.append("address:{}".format(check._addrs[0]))
+    expected_tags.append("address:{}".format(check._addrs[0][0]))
     aggregator.assert_service_check('tcp.can_connect', status=check.OK, tags=expected_tags)
     aggregator.assert_metric('network.tcp.can_connect', value=1, tags=expected_tags)
 
     # response time metric
     expected_tags = ['url:datadoghq.com:80', 'instance:instance:response_time', 'foo:bar']
-    expected_tags.append("address:{}".format(check._addrs[0]))
+    expected_tags.append("address:{}".format(check._addrs[0][0]))
     aggregator.assert_metric('network.tcp.response_time', tags=expected_tags)
     aggregator.assert_all_metrics_covered()
     assert len(aggregator.service_checks('tcp.can_connect')) == 1
@@ -119,7 +119,7 @@ def test_response_time(aggregator):
                 (socket.AF_INET6, socket.SOCK_STREAM, 6, '', ('::1', 80, 0, 0)),
                 (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('127.0.0.1', 80)),
             ],
-            '127.0.0.1',
+            ('127.0.0.1', socket.AF_INET),
             id='localhost',
         ),
         pytest.param(
@@ -129,7 +129,7 @@ def test_response_time(aggregator):
                 (socket.AF_INET6, socket.SOCK_STREAM, 6, '', ('ip2', 80, 0, 0)),
                 (socket.AF_INET6, socket.SOCK_STREAM, 6, '', ('ip3', 80, 0, 0)),
             ],
-            'ip1',
+            ('ip1', socket.AF_INET),
             id='string hostname: ipv4 address 1st in list',
         ),
         pytest.param(
@@ -139,7 +139,7 @@ def test_response_time(aggregator):
                 (socket.AF_INET, socket.SOCK_STREAM, 6, '', ('ip2', 80)),
                 (socket.AF_INET6, socket.SOCK_STREAM, 6, '', ('ip3', 80, 0, 0)),
             ],
-            'ip2',
+            ('ip2', socket.AF_INET),
             id='string hostname: ipv4 address 2nd in list',
         ),
     ],
@@ -154,7 +154,7 @@ def test_hostname_resolution(aggregator, hostname, getaddrinfo, expected_addrs):
     check = TCPCheck(common.CHECK_NAME, {}, [instance])
 
     with mock.patch('socket.getaddrinfo', return_value=getaddrinfo,), mock.patch(
-        'socket.gethostbyname', return_value=expected_addrs
+        'socket.gethostbyname', return_value=expected_addrs[0]
     ), mock.patch.object(check, 'connect', wraps=check.connect) as connect:
         connect.side_effect = [None, Exception(), None]
         expected_tags = [
@@ -162,7 +162,7 @@ def test_hostname_resolution(aggregator, hostname, getaddrinfo, expected_addrs):
             "target_host:{}".format(hostname),
             "port:80",
             "foo:bar",
-            "address:{}".format(expected_addrs),
+            "address:{}".format(expected_addrs[0]),
         ]
 
         check.check(instance)
@@ -227,7 +227,7 @@ def test_ipv6(aggregator, check):
     check.check(instance)
 
     nb_ipv4, nb_ipv6 = 0, 0
-    for addr in check.addrs:
+    for addr, _ in check.addrs:
         expected_tags = ["instance:UpService", "target_host:ip-ranges.datadoghq.com", "port:80", "foo:bar"]
         expected_tags.append("address:{}".format(addr))
         if re.match(r'^[0-9a-f:]+$', addr):

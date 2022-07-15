@@ -27,7 +27,7 @@ E2E_METADATA = {'docker_platform': 'windows' if using_windows_containers() else 
 
 def _test_check(aggregator, addrs):
     common_tags = ['foo:bar', 'target_host:datadoghq.com', 'port:80', 'instance:UpService']
-    for addr in addrs:
+    for addr, _ in addrs:
         tags = common_tags + ['address:{}'.format(addr)]
         aggregator.assert_metric('network.tcp.can_connect', value=1, tags=tags)
         aggregator.assert_service_check('tcp.can_connect', status=TCPCheck.OK, tags=tags)
