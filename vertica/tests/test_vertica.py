@@ -36,7 +36,8 @@ def test_check(aggregator, datadog_agent, instance, dd_run_check):
 
     aggregator.assert_all_metrics_covered()
 
-    version_metadata = {'version.scheme': 'semver', 'version.major': os.environ['VERTICA_VERSION'][0]}
+    major_version = common.VERTICA_MAJOR_VERSION
+    version_metadata = {'version.scheme': 'semver', 'version.major': str(major_version)}
     datadog_agent.assert_metadata('test:123', version_metadata)
     datadog_agent.assert_metadata_count(len(version_metadata) + 4)
 

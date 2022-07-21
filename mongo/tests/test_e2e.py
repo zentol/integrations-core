@@ -45,7 +45,14 @@ MONGOS_METRICS = BASE_METRICS + [
     'mongodb.stats.objects',
 ]
 
-MONGOD_METRICS = BASE_METRICS + ['mongodb.fsynclocked']
+MONGOD_METRICS = BASE_METRICS + [
+    'mongodb.oplatencies.reads.latencyps',
+    'mongodb.oplatencies.writes.latencyps',
+    'mongodb.oplatencies.commands.latencyps',
+    'mongodb.metrics.queryexecutor.scannedps',
+    'mongodb.metrics.queryexecutor.scannedobjectsps',
+    'mongodb.fsynclocked',
+]
 
 
 @pytest.mark.e2e
