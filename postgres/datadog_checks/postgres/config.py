@@ -90,6 +90,7 @@ class PostgresConfig:
         self.statement_samples_config = instance.get('query_samples', instance.get('statement_samples', {})) or {}
         self.statement_activity_config = instance.get('query_activity', {}) or {}
         self.statement_metrics_config = instance.get('query_metrics', {}) or {}
+        self.enable_profiler = instance.get('enable_profiler', False)
         self.cloud_metadata = {}
         aws = instance.get('aws', {})
         gcp = instance.get('gcp', {})

@@ -41,9 +41,9 @@ files:
         type: string
     - name: server_version
       description: |
-        Server version year of sqlserver the agent will connect to. 
+        Server version year of sqlserver the agent will connect to.
         Important for validating connection string attributes for older sqlserver versions.
-        
+
         This is required if connecting to a SQLServer instance older than 2014.
       value:
         type: string
@@ -62,7 +62,7 @@ files:
         type: string
     - name: database_autodiscovery
       description: |
-        Auto-discover and monitor databases. Supported for the metrics check. 
+        Auto-discover and monitor databases. Supported for the metrics check.
         If `true`, overrides `database` option.
         Can be combined with `autodiscovery_include` and `autodiscovery_exclude` options.
       value:
@@ -225,6 +225,13 @@ files:
       value:
         type: string
         example: "<CONNECTION_STRING>"
+    - name: enable_profiler
+      description: |
+        Set to `true` to enable profiling of the SQL Server integration.
+      value:
+        type: boolean
+        example: false
+        display_default: false
     - name: dbm
       description: |
         Set to `true` to enable Database Monitoring.
@@ -243,7 +250,7 @@ files:
             example: true
         - name: disable_secondary_tags
           description: |
-            Disable the secondary tags on query aggregate metrics, such as `user` and `database`. This is an optimization 
+            Disable the secondary tags on query aggregate metrics, such as `user` and `database`. This is an optimization
             for certain database workloads which result in long metric collection times.
           value:
             type: boolean
@@ -301,20 +308,20 @@ files:
 
     - name: aws
       description: |
-        This block defines the configuration for AWS RDS and Aurora instances. 
-        
-        Complete this section if you have installed the Datadog AWS Integration 
-        (https://docs.datadoghq.com/integrations/amazon_web_services) to enrich instances 
+        This block defines the configuration for AWS RDS and Aurora instances.
+
+        Complete this section if you have installed the Datadog AWS Integration
+        (https://docs.datadoghq.com/integrations/amazon_web_services) to enrich instances
         with SQL Server integration telemetry.
-        
+
         These values are only applied when `dbm: true` option is set.
       options:
         - name: instance_endpoint
           description: |
-            Equal to the Endpoint.Address of the instance the agent is connecting to. 
+            Equal to the Endpoint.Address of the instance the agent is connecting to.
             This value is optional if the value of `host` is already configured to the instance endpoint.
-            
-            For more information on instance endpoints, 
+
+            For more information on instance endpoints,
             see the AWS docs https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_Endpoint.html
           value:
             type: string
@@ -323,9 +330,9 @@ files:
     - name: gcp
       description: |
         This block defines the configuration for Google Cloud SQL instances.
-        
-        Complete this section if you have installed the Datadog GCP Integration 
-        (https://docs.datadoghq.com/integrations/google_cloud_platform) to enrich instances 
+
+        Complete this section if you have installed the Datadog GCP Integration
+        (https://docs.datadoghq.com/integrations/google_cloud_platform) to enrich instances
         with SQL Server integration telemetry.
 
         These values are only applied when `dbm: true` option is set.
@@ -333,7 +340,7 @@ files:
         - name: project_id
           description: |
             Equal to the GCP resource's project ID.
-            
+
             For more information on project IDs,
             See the GCP docs https://cloud.google.com/resource-manager/docs/creating-managing-projects
           value:
@@ -342,7 +349,7 @@ files:
         - name: instance_id
           description: |
             Equal to the GCP resource's instance ID.
-            
+
             For more information on instance IDs,
             See the GCP docs https://cloud.google.com/sql/docs/sqlserver/instance-settings#instance-id-2ndgen
           value:
@@ -351,24 +358,24 @@ files:
 
     - name: azure
       description: |
-        This block defines the configuration for Azure Managed Instance, Azure SQL Database or 
+        This block defines the configuration for Azure Managed Instance, Azure SQL Database or
         SQLServer on Virtual Machines.
-        
-        Complete this section if you have installed the Datadog Azure Integration 
-        (https://docs.datadoghq.com/integrations/azure) to enrich instances 
+
+        Complete this section if you have installed the Datadog Azure Integration
+        (https://docs.datadoghq.com/integrations/azure) to enrich instances
         with SQL Server integration telemetry.
 
         These values are only applied when `dbm: true` option is set.
       options:
         - name: deployment_type
           description: |
-            Equal to the deployment type for the managed database. 
-            
+            Equal to the deployment type for the managed database.
+
             Acceptable values are:
-              - `sql_database` 
+              - `sql_database`
               - `managed_instance`
               - `virtual_machine`
-            
+
             For more information on deployment types, see the Azure
             docs https://docs.microsoft.com/en-us/azure/azure-sql/azure-sql-iaas-vs-paas-what-is-overview?view=azuresql
           value:

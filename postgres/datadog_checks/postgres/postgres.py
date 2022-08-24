@@ -578,7 +578,7 @@ class PostgreSql(AgentCheck):
 
     def check(self, _):
         tags = copy.copy(self._config.tags)
-        if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
+        if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')) or self._config.enable_profiler:
             prof = Profiler(service='{}_check'.format(self.name))
             prof.start()
         # Collect metrics

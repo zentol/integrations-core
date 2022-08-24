@@ -116,6 +116,7 @@ class InstanceConfig(BaseModel):
     driver: Optional[str]
     dsn: Optional[str]
     empty_default_hostname: Optional[bool]
+    enable_profiler: Optional[bool]
     gcp: Optional[Gcp]
     host: str
     ignore_missing_database: Optional[bool]

@@ -114,6 +114,7 @@ class SQLServer(AgentCheck):
         self.proc = self.instance.get('stored_procedure')
         self.proc_type_mapping = {'gauge': self.gauge, 'rate': self.rate, 'histogram': self.histogram}
         self.custom_metrics = init_config.get('custom_metrics', [])
+        self.enable_profiler = self.instance.get('enable_profiler', False)
 
         # DBM
         self.dbm_enabled = self.instance.get('dbm', False)
@@ -622,7 +623,7 @@ class SQLServer(AgentCheck):
         return cls(cfg_inst, base_name, metric_type, column, self.log)
 
     def check(self, _):
-        if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
+        if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')) or self.enable_profiler:
             prof = Profiler(service='{}_check'.format(self.name))
             prof.start()
         if self.do_check:

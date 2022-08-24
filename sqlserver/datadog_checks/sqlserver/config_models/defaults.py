@@ -106,6 +106,10 @@ def instance_empty_default_hostname(field, value):
     return False
 
 
+def instance_enable_profiler(field, value):
+    return False
+
+
 def instance_gcp(field, value):
     return get_default_field_value(field, value)
 
