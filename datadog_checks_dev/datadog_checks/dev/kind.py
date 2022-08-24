@@ -45,7 +45,7 @@ def kind_run(sleep=None, endpoints=None, conditions=None, env_vars=None, wrapper
     check_name = check_name.replace("_", "-")
     try:
         cluster_name = 'cluster-{}-{}'.format(check_name, get_hatch_env())
-    except NameError:
+    except KeyError:
         cluster_name = 'cluster-{}-{}'.format(check_name, get_tox_env())
 
     with TempDir(cluster_name) as temp_dir:
