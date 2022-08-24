@@ -29,6 +29,8 @@ GH_ANNOTATION_LEVELS = ['warning', 'error']
 def get_tox_env():
     return os.environ['TOX_ENV_NAME']
 
+def get_hatch_env():
+    return os.environ['HATCH_ENV_ACTIVE']
 
 def using_legacy_docker_compose():
     return os.environ.get('LEGACY_DOCKER_COMPOSE', 'false') == 'true'
