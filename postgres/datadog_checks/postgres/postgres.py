@@ -73,6 +73,7 @@ class PostgreSql(AgentCheck):
         # map[dbname -> psycopg connection]
         self._db_pool = {}
         self._db_pool_lock = threading.Lock()
+        self.profiler_started = False
 
     def cancel(self):
         self.statement_samples.cancel()
@@ -578,9 +579,10 @@ class PostgreSql(AgentCheck):
 
     def check(self, _):
         tags = copy.copy(self._config.tags)
-        if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')) or self._config.enable_profiler:
+        if not self.profiler_started and (is_affirmative(os.environ.get('DD_PROFILING_ENABLED')) or self._config.enable_profiler):
             prof = Profiler(service='{}_check'.format(self.name))
             prof.start()
+            self.profiler_started = True
         # Collect metrics
         try:
             # Check version
