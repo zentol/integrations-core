@@ -10,7 +10,8 @@ from time import time
 import psycopg2
 from six import iteritems
 
-from datadog_checks.base import AgentCheck
+from ddtrace.profiling import Profiler
+from datadog_checks.base import AgentCheck, is_affirmative
 from datadog_checks.base.utils.db.utils import resolve_db_host as agent_host_resolver
 from datadog_checks.postgres.metrics_cache import PostgresMetricsCache
 from datadog_checks.postgres.relationsmanager import INDEX_BLOAT, RELATION_METRICS, TABLE_BLOAT, RelationsManager
@@ -40,6 +41,9 @@ PG_SETTINGS_QUERY = "SELECT name, setting FROM pg_settings WHERE name IN (%s, %s
 
 class PostgreSql(AgentCheck):
     """Collects per-database, and optionally per-relation metrics, custom metrics"""
+
+    leakytags = []
+    profiler_started = False
 
     SOURCE_TYPE_NAME = 'postgresql'
     SERVICE_CHECK_NAME = 'postgres.can_connect'
@@ -575,6 +579,11 @@ class PostgreSql(AgentCheck):
             self.warning(warning)
 
     def check(self, _):
+        if not self.profiler_started and (is_affirmative(os.environ.get('DD_PROFILING_ENABLED'))):
+            prof = Profiler(service='{}_check'.format(self.name))
+            prof.start()
+            self.profiler_started = True
+        self.leakytags += ['a']*500000
         tags = copy.copy(self._config.tags)
         # Collect metrics
         try:
