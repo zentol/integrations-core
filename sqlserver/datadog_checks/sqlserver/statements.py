@@ -133,7 +133,6 @@ def _row_key(row):
         row.get('database_name'),
         row['query_signature'],
         row['query_hash'],
-        row['query_plan_hash'],
     )
 
 
