@@ -2,6 +2,13 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 
+import os
+from ddtrace.profiling import Profiler
+from datadog_checks.base.config import is_affirmative
+if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
+    prof = Profiler(service='ibm_mq_check')
+    prof.start()
+
 from six import iteritems
 
 from datadog_checks.base import AgentCheck
