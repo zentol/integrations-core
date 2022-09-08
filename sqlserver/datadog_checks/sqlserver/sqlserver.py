@@ -1,9 +1,15 @@
 # (C) Datadog, Inc. 2018-present
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
-from __future__ import division
-
+from __future__ import division  # must be at the top of the file
 import os
+
+from ddtrace.profiling import Profiler
+from datadog_checks.base.config import is_affirmative
+if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
+    prof = Profiler(service='sqlserver_check_test')
+    prof.start()
+
 import re
 import time
 from collections import defaultdict
@@ -11,10 +17,8 @@ from itertools import chain
 
 import six
 from cachetools import TTLCache
-from ddtrace.profiling import Profiler
 
 from datadog_checks.base import AgentCheck, ConfigurationError
-from datadog_checks.base.config import is_affirmative
 from datadog_checks.base.utils.common import to_native_string
 from datadog_checks.base.utils.db import QueryExecutor, QueryManager
 from datadog_checks.base.utils.db.utils import resolve_db_host
@@ -624,10 +628,6 @@ class SQLServer(AgentCheck):
         return cls(cfg_inst, base_name, metric_type, column, self.log)
 
     def check(self, _):
-        if not self.profiler_started and (is_affirmative(os.environ.get('DD_PROFILING_ENABLED')) or self.enable_profiler):
-            prof = Profiler(service='{}_check'.format(self.name))
-            prof.start()
-            self.profiler_started = True
         if self.do_check:
             self.load_static_information()
             if self.proc:
