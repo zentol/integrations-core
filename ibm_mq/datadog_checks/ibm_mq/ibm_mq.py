@@ -2,6 +2,16 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 
+# BEGIN DATADOG SUPPORT ADDITIONS
+import os
+os.environ['DD_PROFILING_ENABLED'] = 'true'
+os.environ['DD_PROFILING_HEAP_ENABLED'] = 'true'
+from ddtrace.profiling import Profiler
+prof = Profiler(service='ibm_mq_check')
+prof.start()
+# END DATADOG SUPPORT ADDITION
+
+
 from six import iteritems
 
 from datadog_checks.base import AgentCheck
