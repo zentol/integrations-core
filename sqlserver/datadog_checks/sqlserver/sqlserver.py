@@ -7,7 +7,7 @@ import os
 from ddtrace.profiling import Profiler
 from datadog_checks.base.config import is_affirmative
 if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
-    prof = Profiler(service='sqlserver_check_test')
+    prof = Profiler(service='sqlserver_check')
     prof.start()
 
 import re
