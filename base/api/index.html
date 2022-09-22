@@ -1009,35 +1009,41 @@ AgentCheck.check()                          # no more instance argument for chec
     <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=c1># type: () -&gt; str</span>
         <span class=k>try</span><span class=p>:</span>
-            <span class=k>while</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=p>:</span>
-                <span class=n>initialization</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>popleft</span><span class=p>()</span>
-                <span class=k>try</span><span class=p>:</span>
-                    <span class=n>initialization</span><span class=p>()</span>
-                <span class=k>except</span> <span class=ne>Exception</span><span class=p>:</span>
-                    <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>appendleft</span><span class=p>(</span><span class=n>initialization</span><span class=p>)</span>
-                    <span class=k>raise</span>
+            <span class=c1># Ignore check initializations if running in a separate process</span>
+            <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;process_isolation&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;process_isolation&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))):</span>
+                <span class=kn>from</span> <span class=nn>..utils.replay.execute</span> <span class=kn>import</span> <span class=n>run_with_isolation</span>
 
-            <span class=n>instance</span> <span class=o>=</span> <span class=n>copy</span><span class=o>.</span><span class=n>deepcopy</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instances</span><span class=p>[</span><span class=mi>0</span><span class=p>])</span>
-
-            <span class=k>if</span> <span class=s1>&#39;set_breakpoint&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>:</span>
-                <span class=kn>from</span> <span class=nn>..utils.agent.debug</span> <span class=kn>import</span> <span class=n>enter_pdb</span>
-
-                <span class=n>enter_pdb</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=n>line</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>[</span><span class=s1>&#39;set_breakpoint&#39;</span><span class=p>],</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,))</span>
-            <span class=k>elif</span> <span class=s1>&#39;profile_memory&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span> <span class=ow>or</span> <span class=p>(</span>
-                <span class=n>datadog_agent</span><span class=o>.</span><span class=n>tracemalloc_enabled</span><span class=p>()</span> <span class=ow>and</span> <span class=n>should_profile_memory</span><span class=p>(</span><span class=n>datadog_agent</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
-            <span class=p>):</span>
-                <span class=kn>from</span> <span class=nn>..utils.agent.memory</span> <span class=kn>import</span> <span class=n>profile_memory</span>
-
-                <span class=n>metrics</span> <span class=o>=</span> <span class=n>profile_memory</span><span class=p>(</span>
-                    <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>namespaces</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>),</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,)</span>
-                <span class=p>)</span>
-
-                <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
-                <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;__memory_profiling_tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
-                <span class=k>for</span> <span class=n>m</span> <span class=ow>in</span> <span class=n>metrics</span><span class=p>:</span>
-                    <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>m</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>m</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+                <span class=n>run_with_isolation</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>aggregator</span><span class=p>,</span> <span class=n>datadog_agent</span><span class=p>)</span>
             <span class=k>else</span><span class=p>:</span>
-                <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
+                <span class=k>while</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=p>:</span>
+                    <span class=n>initialization</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>popleft</span><span class=p>()</span>
+                    <span class=k>try</span><span class=p>:</span>
+                        <span class=n>initialization</span><span class=p>()</span>
+                    <span class=k>except</span> <span class=ne>Exception</span><span class=p>:</span>
+                        <span class=bp>self</span><span class=o>.</span><span class=n>check_initializations</span><span class=o>.</span><span class=n>appendleft</span><span class=p>(</span><span class=n>initialization</span><span class=p>)</span>
+                        <span class=k>raise</span>
+
+                <span class=n>instance</span> <span class=o>=</span> <span class=n>copy</span><span class=o>.</span><span class=n>deepcopy</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instances</span><span class=p>[</span><span class=mi>0</span><span class=p>])</span>
+
+                <span class=k>if</span> <span class=s1>&#39;set_breakpoint&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>:</span>
+                    <span class=kn>from</span> <span class=nn>..utils.agent.debug</span> <span class=kn>import</span> <span class=n>enter_pdb</span>
+
+                    <span class=n>enter_pdb</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=n>line</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>[</span><span class=s1>&#39;set_breakpoint&#39;</span><span class=p>],</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,))</span>
+                <span class=k>elif</span> <span class=s1>&#39;profile_memory&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span> <span class=ow>or</span> <span class=p>(</span>
+                    <span class=n>datadog_agent</span><span class=o>.</span><span class=n>tracemalloc_enabled</span><span class=p>()</span> <span class=ow>and</span> <span class=n>should_profile_memory</span><span class=p>(</span><span class=n>datadog_agent</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
+                <span class=p>):</span>
+                    <span class=kn>from</span> <span class=nn>..utils.agent.memory</span> <span class=kn>import</span> <span class=n>profile_memory</span>
+
+                    <span class=n>metrics</span> <span class=o>=</span> <span class=n>profile_memory</span><span class=p>(</span>
+                        <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>namespaces</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>),</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,)</span>
+                    <span class=p>)</span>
+
+                    <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
+                    <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;__memory_profiling_tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
+                    <span class=k>for</span> <span class=n>m</span> <span class=ow>in</span> <span class=n>metrics</span><span class=p>:</span>
+                        <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>m</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>m</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+                <span class=k>else</span><span class=p>:</span>
+                    <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
 
             <span class=n>result</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
         <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
