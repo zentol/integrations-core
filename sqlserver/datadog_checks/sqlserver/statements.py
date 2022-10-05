@@ -1,3 +1,5 @@
+import logging
+
 import binascii
 import math
 import time
@@ -338,6 +340,11 @@ class SqlserverStatementMetrics(DBMAsyncJob):
         return row
 
     def _to_metrics_payload(self, rows):
+        for r in rows:
+            if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
+                for key, value in r:
+                    if key == 'execution_count':
+                        self.log.warning("execution_count row value: %d", value)
         return {
             'host': self.check.resolved_hostname,
             'timestamp': time.time() * 1000,
