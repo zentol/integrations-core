@@ -341,13 +341,13 @@ class SqlserverStatementMetrics(DBMAsyncJob):
 
     def _to_metrics_payload(self, rows):
         for r in rows:
-            if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
+            if 'query_signature' in r and (r['query_signature'] == "9ea892fefefd1197"):
                 for key, value in r:
                     if key == 'execution_count':
                         dbname = ""
                         if 'database_name' in r:
                             dbname = r['database_name']
-                        self.log.warning("execution_count row value: %d, for database_name: %s", value, dbname)
+                        self.log.warning("execution_count row value: %d, for database_name: %s, query_signature: %s", value, dbname, r['query_signature'])
         return {
             'host': self.check.resolved_hostname,
             'timestamp': time.time() * 1000,
