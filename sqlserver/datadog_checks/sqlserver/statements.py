@@ -344,7 +344,10 @@ class SqlserverStatementMetrics(DBMAsyncJob):
             if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
                 for key, value in r:
                     if key == 'execution_count':
-                        self.log.warning("execution_count row value: %d", value)
+                        dbname = ""
+                        if 'database_name' in r:
+                            dbname = r['database_name']
+                        self.log.warning("execution_count row value: %d, for database_name: %s", value, dbname)
         return {
             'host': self.check.resolved_hostname,
             'timestamp': time.time() * 1000,
