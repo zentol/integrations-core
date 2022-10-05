@@ -340,7 +340,8 @@ class SqlserverStatementMetrics(DBMAsyncJob):
         return row
 
     def _to_metrics_payload(self, rows):
-        for r in rows:
+        joelrows = [self._to_metrics_payload_row(r) for r in rows]
+        for r in joelrows:
             if 'query_signature' in r and (r['query_signature'] == "9ea892fefefd1197"):
                 for key, value in r:
                     if key == 'execution_count':
