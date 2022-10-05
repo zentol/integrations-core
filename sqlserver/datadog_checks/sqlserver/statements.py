@@ -349,6 +349,7 @@ class SqlserverStatementMetrics(DBMAsyncJob):
                         float(r['execution_count']),
                         **self.check.debug_stats_kwargs(tags=["query_signature:{}".format(r['query_signature']), "database:{}".format(r['database_name'])])
                     )
+                    self.log.warn("agent.sqlserver.queries.count exe_count: {}, query_signature:{}, database:{}".format(r['execution_count'], r['query_signature'], r['database_name']))
         return {
             'host': self.check.resolved_hostname,
             'timestamp': time.time() * 1000,
