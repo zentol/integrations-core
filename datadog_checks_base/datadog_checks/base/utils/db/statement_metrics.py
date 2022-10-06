@@ -46,6 +46,13 @@ class StatementMetrics:
         new_cache = {}
         metrics = set(metrics)
 
+        # log rows
+        joelrows = [_gimme_dat_joel_row(r) for r in rows]
+        for r in joelrows:
+            if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
+                if 'execution_count' in r and 'database_name' in r:
+                    logger.warning("before row merge exe_count:{}, query_signature:{}, database:{}".format(r['execution_count'], r['query_signature'], r['database_name']))
+                    
         rows = _merge_duplicate_rows(rows, metrics, key)
         if len(rows) > 0:
             dropped_metrics = metrics - set(rows[0].keys())
@@ -53,6 +60,13 @@ class StatementMetrics:
                 logger.warning(
                     'Some statement metrics are not available from the table: %s', ','.join(m for m in dropped_metrics)
                 )
+
+        # log rows
+        joelrows = [_gimme_dat_joel_row(r) for r in rows]
+        for r in joelrows:
+            if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
+                if 'execution_count' in r and 'database_name' in r:
+                    logger.warning("after row merge exe_count:{}, query_signature:{}, database:{}".format(r['execution_count'], r['query_signature'], r['database_name']))
 
         for row in rows:
             row_key = key(row)
@@ -63,6 +77,10 @@ class StatementMetrics:
                     row,
                     new_cache[row_key],
                 )
+
+            if 'query_signature' in row and row['query_signature'] == "dc28cb5b35888af5":
+                if 'execution_count' in row and 'database_name' in row:
+                    logger.warning("updating cache exe_count:{}, query_signature:{}, database:{}".format(row['execution_count'], row['query_signature'], row['database_name']))
 
             # Set the row on the new cache to be checked the next run. This should happen for every row, regardless of
             # whether a metric is submitted for the row during this run or not.
@@ -103,6 +121,11 @@ class StatementMetrics:
         self._previous_statements = new_cache
 
         return result
+
+
+def _gimme_dat_joel_row(row):
+    row = {k: v for k, v in row.items()}
+    return row
 
 
 def _merge_duplicate_rows(rows, metrics, key):
