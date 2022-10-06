@@ -52,7 +52,7 @@ class StatementMetrics:
             if 'query_signature' in r and r['query_signature'] == "dc28cb5b35888af5":
                 if 'execution_count' in r and 'database_name' in r:
                     logger.warning("before row merge exe_count:{}, query_signature:{}, database:{}".format(r['execution_count'], r['query_signature'], r['database_name']))
-                    
+
         rows = _merge_duplicate_rows(rows, metrics, key)
         if len(rows) > 0:
             dropped_metrics = metrics - set(rows[0].keys())
