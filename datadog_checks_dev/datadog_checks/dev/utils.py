@@ -32,10 +32,6 @@ def get_active_env():
 def get_hatch_env():
     return os.environ['HATCH_ENV_ACTIVE']
 
-def using_legacy_docker_compose():
-    return os.environ.get('LEGACY_DOCKER_COMPOSE', 'false') == 'true'
-
-
 def ensure_bytes(s):
     if not isinstance(s, bytes):
         s = s.encode('utf-8')
