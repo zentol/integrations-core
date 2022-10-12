@@ -2,6 +2,13 @@
 # All rights reserved
 # Licensed under a 3-clause BSD style license (see LICENSE)
 from __future__ import division
+import os
+
+from ddtrace.profiling import Profiler
+from datadog_checks.base.config import is_affirmative
+if is_affirmative(os.environ.get('DD_PROFILING_ENABLED')):
+    prof = Profiler(service='739_sqlserver_check')
+    prof.start()
 
 import re
 import time
@@ -12,7 +19,6 @@ import six
 from cachetools import TTLCache
 
 from datadog_checks.base import AgentCheck, ConfigurationError
-from datadog_checks.base.config import is_affirmative
 from datadog_checks.base.utils.common import to_native_string
 from datadog_checks.base.utils.db import QueryExecutor, QueryManager
 from datadog_checks.base.utils.db.utils import resolve_db_host
