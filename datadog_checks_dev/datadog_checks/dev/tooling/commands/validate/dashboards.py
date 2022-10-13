@@ -8,7 +8,7 @@ import click
 
 from ....fs import write_file
 from ....utils import read_file
-from ...manifest_utils import Manifest
+from ...manifest_utils import Manifest, ManifestError
 from ...testing import process_checks_option
 from ...utils import complete_valid_checks, get_assets_from_manifest, get_manifest_file
 from ..console import (
@@ -88,6 +88,15 @@ def dashboards(check, fix):
         display_queue = []
         file_failed = False
         file_fixed = False
+
+        try:
+            manifest = Manifest.load_manifest(check)
+        except ManifestError as e:
+            echo_failure(e)
+            manifest = None
+        if not manifest:
+            echo_debug(f"Skipping validation for check: {check}; can't process manifest")
+            continue
 
         manifest = Manifest.load_manifest(check_name)
         manifest_file = get_manifest_file(check_name)

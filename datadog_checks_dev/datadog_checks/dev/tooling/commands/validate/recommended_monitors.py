@@ -8,7 +8,7 @@ import os
 import click
 
 from ....utils import read_file
-from ...manifest_utils import Manifest
+from ...manifest_utils import Manifest, ManifestError
 from ...testing import process_checks_option
 from ...utils import complete_valid_checks, get_assets_from_manifest, get_manifest_file
 from ..console import (
@@ -16,6 +16,7 @@ from ..console import (
     abort,
     annotate_display_queue,
     annotate_error,
+    echo_debug,
     echo_failure,
     echo_info,
     echo_success,
@@ -57,7 +58,14 @@ def recommended_monitors(check):
     for check_name in checks:
         display_queue = []
         file_failed = False
-        manifest = Manifest.load_manifest(check_name)
+        try:
+            manifest = Manifest.load_manifest(check)
+        except ManifestError as e:
+            echo_failure(e)
+            manifest = None
+        if not manifest:
+            echo_debug(f"Skipping validation for check: {check}; can't process manifest")
+            continue
         monitors_relative_locations, invalid_files = get_assets_from_manifest(check_name, 'monitors')
         manifest_file = get_manifest_file(check_name)
         for file in invalid_files:

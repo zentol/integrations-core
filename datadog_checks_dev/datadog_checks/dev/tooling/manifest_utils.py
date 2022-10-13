@@ -4,7 +4,6 @@
 import os
 
 from ..fs import file_exists, path_join
-from .commands.console import abort
 from .constants import get_root
 from .datastructures import JSONDict
 from .manifest_validator.constants import V1, V2
@@ -49,7 +48,7 @@ class Manifest:
         elif manifest_version == "2.0.0":
             return ManifestV2(check, raw_manifest_json)
         else:
-            abort(f"Unsupported check: {check} or manifest_version: {manifest_version}")
+            raise ManifestError(f"Unsupported check: {check} or manifest_version: {manifest_version}")
 
 
 class Agent:
@@ -169,3 +168,7 @@ class ManifestV2:
 
     def has_integration(self):
         return self._manifest_json.get_path("/assets/integration") is not None
+
+
+class ManifestError(Exception):
+    pass

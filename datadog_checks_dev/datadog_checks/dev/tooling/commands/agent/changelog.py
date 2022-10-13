@@ -8,8 +8,8 @@ import click
 
 from ....fs import write_file
 from ...constants import get_agent_changelog
-from ...manifest_utils import Manifest
-from ..console import CONTEXT_SETTINGS, abort, echo_info
+from ...manifest_utils import Manifest, ManifestError
+from ..console import CONTEXT_SETTINGS, abort, echo_failure, echo_info
 from .common import get_changes_per_agent
 
 # Extra entries in the agent changelog
@@ -66,7 +66,11 @@ def changelog(since, to, write, force):
             for entry in CHANGELOG_MANUAL_ENTRIES.get(agent, []):
                 changelog_contents.write(f'{entry}\n')
             for name, ver in version_changes.items():
-                manifest = Manifest.load_manifest(name)
+                try:
+                    manifest = Manifest.load_manifest(name)
+                except ManifestError as e:
+                    echo_failure(e)
+                    manifest = None
                 if manifest is None:
                     display_name = name
                 else:

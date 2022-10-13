@@ -16,7 +16,7 @@ from ....fs import (
 from ...configuration import ConfigSpec
 from ...configuration.consumers import ModelConsumer
 from ...constants import get_root
-from ...manifest_utils import Manifest
+from ...manifest_utils import Manifest, ManifestError
 from ...testing import process_checks_option
 from ...utils import (
     CUSTOM_FILES,
@@ -98,7 +98,11 @@ def models(ctx, check, sync, verbose):
             source = 'test'
             version = '0.0.1'
         else:
-            manifest = Manifest.load_manifest(check)
+            try:
+                manifest = Manifest.load_manifest(check)
+            except ManifestError as e:
+                echo_failure(e)
+                manifest = None
             if not manifest:
                 echo_debug(f"Skipping validation for check: {check}; can't process manifest")
                 continue

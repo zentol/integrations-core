@@ -3,7 +3,7 @@
 # Licensed under a 3-clause BSD style license (see LICENSE)
 import click
 
-from ...manifest_utils import Manifest
+from ...manifest_utils import Manifest, ManifestError
 from ...testing import process_checks_option
 from ...utils import complete_valid_checks, get_manifest_file
 from ..console import CONTEXT_SETTINGS, abort, annotate_error, echo_debug, echo_failure, echo_info, echo_success
@@ -25,7 +25,12 @@ def eula(check):
     echo_info(f"Validating EULA files for {len(checks)} checks...")
 
     for check_name in checks:
-        manifest = Manifest.load_manifest(check_name)
+        try:
+            manifest = Manifest.load_manifest(check)
+        except ManifestError as e:
+            echo_failure(e)
+            manifest = None
+
         if not manifest:
             echo_debug(f"Skipping validation for check: {check}; can't process manifest")
             continue

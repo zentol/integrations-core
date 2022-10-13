@@ -11,7 +11,7 @@ from ...config_validator.validator import validate_config
 from ...config_validator.validator_errors import SEVERITY_ERROR, SEVERITY_WARNING
 from ...configuration import ConfigSpec
 from ...configuration.consumers import ExampleConsumer
-from ...manifest_utils import Manifest
+from ...manifest_utils import Manifest, ManifestError
 from ...testing import process_checks_option
 from ...utils import complete_valid_checks, get_config_files, get_data_directory, get_version_string
 from ..console import (
@@ -59,7 +59,11 @@ def config(ctx, check, sync, verbose):
     for check in checks:
         check_display_queue = []
 
-        manifest = Manifest.load_manifest(check)
+        try:
+            manifest = Manifest.load_manifest(check)
+        except ManifestError as e:
+            echo_failure(e)
+            manifest = None
         if not manifest:
             echo_debug(f"Skipping validation for check: {check}; can't process manifest")
             continue
