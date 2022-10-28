@@ -39,6 +39,9 @@ text = "BSD-3-Clause"
 
 [project.optional-dependencies]
 deps = [
+    # If you update this dependency, you'll also need to update the one in the agent
+    # https://github.com/DataDog/datadog-agent/blob/main/omnibus/config/software/snowflake-connector-python-py3.rb
+    # Otherwise, the agent will still use the version defined in omnibus and not this one.
     "snowflake-connector-python==2.7.12; python_version > '3.0'",
 ]
 
