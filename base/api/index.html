@@ -1045,11 +1045,11 @@ AgentCheck.check()                          # no more instance argument for chec
                 <span class=k>else</span><span class=p>:</span>
                     <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
 
-            <span class=n>result</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
+            <span class=n>error_report</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
         <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
             <span class=n>message</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=nb>str</span><span class=p>(</span><span class=n>e</span><span class=p>))</span>
             <span class=n>tb</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=n>traceback</span><span class=o>.</span><span class=n>format_exc</span><span class=p>())</span>
-            <span class=n>result</span> <span class=o>=</span> <span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>([{</span><span class=s1>&#39;message&#39;</span><span class=p>:</span> <span class=n>message</span><span class=p>,</span> <span class=s1>&#39;traceback&#39;</span><span class=p>:</span> <span class=n>tb</span><span class=p>}])</span>
+            <span class=n>error_report</span> <span class=o>=</span> <span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>([{</span><span class=s1>&#39;message&#39;</span><span class=p>:</span> <span class=n>message</span><span class=p>,</span> <span class=s1>&#39;traceback&#39;</span><span class=p>:</span> <span class=n>tb</span><span class=p>}])</span>
         <span class=k>finally</span><span class=p>:</span>
             <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=p>:</span>
                 <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>debug_metrics</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;metric_contexts&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
@@ -1064,7 +1064,7 @@ AgentCheck.check()                          # no more instance argument for chec
 
                 <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>reset</span><span class=p>()</span>
 
-        <span class=k>return</span> <span class=n>result</span>
+        <span class=k>return</span> <span class=n>error_report</span>
 
     <span class=k>def</span> <span class=nf>event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>event</span><span class=p>):</span>
         <span class=c1># type: (Event) -&gt; None</span>
