@@ -364,8 +364,9 @@ class PostgresStatementSamples(DBMAsyncJob):
             c_list = comment.strip('/*\'').split(",")
             for c in c_list:
                 if "traceparent" in c:
-                    val = c.split("=")[1][-2:]
-                    return int(val) == 1
+                    return True
+                    # val = c.split("=")[1][-2:]
+                    # return int(val) == 1
 
     def _get_extra_filters_and_params(self, filter_stale_idle_conn=False):
         extra_filters = ""
