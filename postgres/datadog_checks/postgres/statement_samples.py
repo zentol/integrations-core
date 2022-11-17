@@ -359,7 +359,7 @@ class PostgresStatementSamples(DBMAsyncJob):
     # is set in the traceparent part of the trace propagation
     def extract_sampled_flag(self, comment_arr):
         if not comment_arr:
-            return 0
+            return False
         for comment in comment_arr:
             c_list = comment.strip('/*\'').split(",")
             for c in c_list:
