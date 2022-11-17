@@ -338,7 +338,9 @@ class PostgresStatementSamples(DBMAsyncJob):
             normalized_row['query_signature'] = compute_sql_signature(obfuscated_query)
             normalized_row['dd_tables'] = metadata.get('tables', None)
             normalized_row['dd_commands'] = metadata.get('commands', None)
-            normalized_row['dd_comments'] = metadata.get('comments', None)
+            comments = metadata.get('comments', None)
+            normalized_row['dd_comments'] = comments
+            normalized_row['is_sampled'] = self.extract_sampled_flag(comments)
         except Exception as e:
             if self._config.log_unobfuscated_queries:
                 self._log.warning("Failed to obfuscate query=[%s] | err=[%s]", row['query'], e)
@@ -352,6 +354,18 @@ class PostgresStatementSamples(DBMAsyncJob):
             )
         normalized_row['statement'] = obfuscated_query
         return normalized_row
+
+    # extract_sampled_flag returns True or False based on the sampled flag, which
+    # is set in the traceparent part of the trace propagation
+    def extract_sampled_flag(self, comment_arr):
+        if not comment_arr:
+            return 0
+        for comment in comment_arr:
+            c_list = comment.strip('/*\'').split(",")
+            for c in c_list:
+                if "traceparent" in c:
+                    val = c.split("=")[1][-2:]
+                    return int(val) == 1
 
     def _get_extra_filters_and_params(self, filter_stale_idle_conn=False):
         extra_filters = ""
@@ -628,7 +642,8 @@ class PostgresStatementSamples(DBMAsyncJob):
     def _collect_plan_for_statement(self, row):
         # limit the rate of explains done to the database
         cache_key = (row['datname'], row['query_signature'])
-        if not self._explained_statements_ratelimiter.acquire(cache_key):
+        # do not explain a query IIF it's not in the RL cache AND it's not from a sampled trace
+        if not self._explained_statements_ratelimiter.acquire(cache_key) and not row['is_sampled']:
             return None
 
         # Plans have several important signatures to tag events with. Note that for postgres, the
@@ -659,7 +674,8 @@ class PostgresStatementSamples(DBMAsyncJob):
             plan_signature = compute_exec_plan_signature(normalized_plan)
 
         statement_plan_sig = (row['query_signature'], plan_signature)
-        if self._seen_samples_ratelimiter.acquire(statement_plan_sig):
+        # if it's time to send a sampled plan OR the query row was from a sampled trace, send an event
+        if self._seen_samples_ratelimiter.acquire(statement_plan_sig) or row['is_sampled']:
             event = {
                 "host": self._check.resolved_hostname,
                 "ddagentversion": datadog_agent.get_version(),
@@ -689,6 +705,7 @@ class PostgresStatementSamples(DBMAsyncJob):
                         "tables": row['dd_tables'],
                         "commands": row['dd_commands'],
                         "comments": row['dd_comments'],
+                        "sampled": row['is_sampled'],
                     },
                     "query_truncated": self._get_truncation_state(
                         self._get_track_activity_query_size(), row['query']

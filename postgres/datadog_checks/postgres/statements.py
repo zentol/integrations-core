@@ -9,7 +9,6 @@ import time
 import psycopg2
 import psycopg2.extras
 from cachetools import TTLCache
-
 from datadog_checks.base import is_affirmative
 from datadog_checks.base.utils.common import to_native_string
 from datadog_checks.base.utils.db.sql import compute_sql_signature
@@ -55,25 +54,25 @@ PG_STAT_STATEMENTS_TIMING_COLUMNS = frozenset(
 )
 
 PG_STAT_STATEMENTS_METRICS_COLUMNS = (
-    frozenset(
-        {
-            'calls',
-            'rows',
-            'total_time',
-            'total_exec_time',
-            'shared_blks_hit',
-            'shared_blks_read',
-            'shared_blks_dirtied',
-            'shared_blks_written',
-            'local_blks_hit',
-            'local_blks_read',
-            'local_blks_dirtied',
-            'local_blks_written',
-            'temp_blks_read',
-            'temp_blks_written',
-        }
-    )
-    | PG_STAT_STATEMENTS_TIMING_COLUMNS
+        frozenset(
+            {
+                'calls',
+                'rows',
+                'total_time',
+                'total_exec_time',
+                'shared_blks_hit',
+                'shared_blks_read',
+                'shared_blks_dirtied',
+                'shared_blks_written',
+                'local_blks_hit',
+                'local_blks_read',
+                'local_blks_dirtied',
+                'local_blks_written',
+                'temp_blks_read',
+                'temp_blks_written',
+            }
+        )
+        | PG_STAT_STATEMENTS_TIMING_COLUMNS
 )
 
 PG_STAT_STATEMENTS_TAG_COLUMNS = frozenset(
@@ -87,7 +86,7 @@ PG_STAT_STATEMENTS_TAG_COLUMNS = frozenset(
 PG_STAT_STATEMENTS_OPTIONAL_COLUMNS = frozenset({'queryid'})
 
 PG_STAT_ALL_DESIRED_COLUMNS = (
-    PG_STAT_STATEMENTS_METRICS_COLUMNS | PG_STAT_STATEMENTS_TAG_COLUMNS | PG_STAT_STATEMENTS_OPTIONAL_COLUMNS
+        PG_STAT_STATEMENTS_METRICS_COLUMNS | PG_STAT_STATEMENTS_TAG_COLUMNS | PG_STAT_STATEMENTS_OPTIONAL_COLUMNS
 )
 
 
@@ -217,10 +216,10 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     "dd.postgres.statement_metrics.error",
                     1,
                     tags=self._tags
-                    + [
-                        "error:database-missing_pg_stat_statements_required_columns",
-                    ]
-                    + self._check._get_debug_tags(),
+                         + [
+                             "error:database-missing_pg_stat_statements_required_columns",
+                         ]
+                         + self._check._get_debug_tags(),
                     hostname=self._check.resolved_hostname,
                 )
                 return []
@@ -255,7 +254,7 @@ class PostgresStatementMetrics(DBMAsyncJob):
             error_tag = "error:database-{}".format(type(e).__name__)
 
             if (
-                isinstance(e, psycopg2.errors.ObjectNotInPrerequisiteState)
+                    isinstance(e, psycopg2.errors.ObjectNotInPrerequisiteState)
             ) and 'pg_stat_statements must be loaded' in str(e.pgerror):
                 error_tag = "error:database-{}-pg_stat_statements_not_loaded".format(type(e).__name__)
                 self._check.record_warning(
