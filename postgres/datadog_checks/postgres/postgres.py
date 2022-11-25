@@ -580,6 +580,7 @@ class PostgreSql(AgentCheck):
         try:
             # Check version
             self._connect()
+            tags.extend(["postgres_version:{}".format(self.version)])
             if self._config.tag_replication_role:
                 tags.extend(["replication_role:{}".format(self._get_replication_role())])
             self.log.debug("Running check against version %s: is_aurora: %s", str(self.version), str(self.is_aurora))
