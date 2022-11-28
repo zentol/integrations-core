@@ -33,10 +33,10 @@ dynamic = [
 
 [project.optional-dependencies]
 deps = [
-    "in-toto==1.0.1",
-    "packaging==21.3",
-    "securesystemslib[crypto,pynacl]==0.25.0",
-    "tuf==2.0.0",
+    "in-toto==1.0.1; python_version > '3.0'",
+    "packaging==21.3; python_version > '3.0'",
+    "securesystemslib[crypto,pynacl]==0.25.0; python_version > '3.0'",
+    "tuf==2.0.0; python_version > '3.0'",
 ]
 
 [project.urls]
