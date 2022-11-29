@@ -17,7 +17,7 @@ from datadog_checks.base.utils.db.statement_metrics import StatementMetrics
 from datadog_checks.base.utils.db.utils import DBMAsyncJob, default_json_event_encoding, obfuscate_sql_with_metadata
 from datadog_checks.base.utils.serialization import json
 
-from .util import DatabaseConfigurationError, warning_with_tags
+from .util import DatabaseConfigurationError, compute_estimated_row_bytes, warning_with_tags
 from .version_utils import V9_4
 
 try:
@@ -138,7 +138,8 @@ class PostgresStatementMetrics(DBMAsyncJob):
         try:
             self._log.debug("Running query [%s] %s", query, params)
             cursor.execute(query, params)
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+            return rows
         except (psycopg2.ProgrammingError, psycopg2.errors.QueryCanceled) as e:
             # A failed query could've derived from incorrect columns within the cache. It's a rare edge case,
             # but the next time the query is run, it will retrieve the correct columns.
@@ -241,16 +242,28 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     "pg_database.datname NOT ILIKE %s" for _ in self._config.ignore_databases
                 )
                 params = params + tuple(self._config.ignore_databases)
-            return self._execute_query(
+
+            query = STATEMENTS_QUERY.format(
+                cols=', '.join(query_columns),
+                pg_stat_statements_view=self._config.pg_stat_statements_view,
+                filters=filters,
+                limit=DEFAULT_STATEMENTS_LIMIT,
+            )
+            rows = self._execute_query(
                 self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                STATEMENTS_QUERY.format(
-                    cols=', '.join(query_columns),
-                    pg_stat_statements_view=self._config.pg_stat_statements_view,
-                    filters=filters,
-                    limit=DEFAULT_STATEMENTS_LIMIT,
-                ),
+                query,
                 params=params,
             )
+            estimated_bytes = 0
+            for row in rows:
+                estimated_bytes += compute_estimated_row_bytes(row)
+            self._check.count(
+                "dd.agent_integration.db.estimated_bytes_transferred",
+                estimated_bytes,
+                tags=self._tags + self._check._get_debug_tags() + ['query:{}'.format(query)],
+                hostname=self._check.resolved_hostname,
+            )
+            return rows
         except psycopg2.Error as e:
             error_tag = "error:database-{}".format(type(e).__name__)
 

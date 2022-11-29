@@ -83,7 +83,7 @@ class PostgreSql(AgentCheck):
         self.metrics_cache.clean_state()
 
     def _get_debug_tags(self):
-        return ['agent_hostname:{}'.format(self.agent_hostname)]
+        return ['agent_hostname:{}'.format(self.agent_hostname), 'integration:postgres']
 
     def _get_service_check_tags(self):
         service_check_tags = []

@@ -56,6 +56,20 @@ def get_schema_field(descriptors):
     raise CheckException("The descriptors are missing a schema field")
 
 
+def compute_estimated_row_bytes(row):
+    """
+    Computes an estimate for the number of bytes of a given row returned from the database. Row result
+    can be in the form of a dict or a tuple.
+    """
+    if isinstance(row, dict):
+        row = row.values()
+
+    estimated_bytes = 0
+    for column_val in row:
+        estimated_bytes += len(str(column_val))
+    return estimated_bytes
+
+
 fmt = PartialFormatter()
 
 DBM_MIGRATED_METRICS = {
