@@ -4,7 +4,6 @@ from cm_client.rest import ApiException
 from datadog_checks.base import AgentCheck
 from datadog_checks.cloudera.api_client import ApiClient
 from datadog_checks.cloudera.entity_status import ENTITY_STATUS
-from datadog_checks.cloudera.health_summary import HEALTH_SUMMARY
 from datadog_checks.cloudera.metrics import METRICS
 
 
@@ -41,7 +40,7 @@ class ApiClientV7(ApiClient):
         if cluster_tags:
             for cluster_tag in cluster_tags:
                 tags.append(f"{cluster_tag.name}:{cluster_tag.value}")
-        self._check.service_check("cluster_status", cluster_entity_status, tags=tags)
+        self._check.service_check("cluster.health", cluster_entity_status, tags=tags)
         if cluster_name:
             self._collect_cluster_metrics(cluster_name, tags)
             self._collect_cluster_hosts(cluster_name)
@@ -53,15 +52,7 @@ class ApiClientV7(ApiClient):
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
         self._log.debug('query_time_series_response: %s', query_time_series_response)
-        index = 0
-        while index < len(query_time_series_response.items[0].time_series):
-            metric_name = METRICS['cluster'][index]
-            value = query_time_series_response.items[0].time_series[index].data[0].value
-            self._log.debug('metric_name: %s', f'cluster.{metric_name}')
-            self._log.debug('value: %s', value)
-            self._log.debug('tags: %s', tags)
-            self._check.gauge(f'cluster.{metric_name}', value, tags=tags)
-            index += 1
+        self._collect_query_time_series(query_time_series_response, 'cluster')
 
     def _collect_cluster_hosts(self, cluster_name):
         clusters_resource_api = cm_client.ClustersResourceApi(self._api_client)
@@ -72,27 +63,16 @@ class ApiClientV7(ApiClient):
 
     def _collect_cluster_host(self, host):
         self._log.debug('host: %s', host)
-        host_health_summary = HEALTH_SUMMARY[host.health_summary] if host.health_summary else None
+        host_entity_status = ENTITY_STATUS[host.entity_status] if host.entity_status else None
         host_id = host.host_id
-        host_name = host.hostname
-        host_ip_address = host.ip_address
-        host_tags = host.tags
-        self._log.debug('host_status: %s', host_health_summary)
+        self._log.debug('host_entity_status: %s', host_entity_status)
         self._log.debug('host_id: %s', host_id)
-        self._log.debug('host_tags: %s', host_tags)
-        tags = []
         if host_id:
-            tags.append(f'cloudera_host_id:{host_id}')
-        if host_name:
-            tags.append(f'cloudera_host_id:{host_name}')
-        if host_ip_address:
-            tags.append(f'cloudera_host_id:{host_ip_address}')
-        if host_tags:
-            tags.extend([f"{host_tag.name}:{host_tag.value}" for host_tag in host_tags])
-        self._log.debug('host_tags: %s', tags)
-        self._check.service_check("host_status", host_health_summary, tags=tags)
-        if host_id:
+            tags = [f"{tag.name}:{tag.value}" for tag in host.tags]
             self._collect_host_metrics(host_id, tags)
+            self._collect_host_roles(host_id)
+            self._log.debug('host.health tags: %s', tags)
+            self._check.service_check("host.health", host_entity_status, tags=tags)
 
     def _collect_host_metrics(self, host_id, tags):
         time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
@@ -101,12 +81,36 @@ class ApiClientV7(ApiClient):
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
         self._log.debug('query_time_series_response: %s', query_time_series_response)
-        index = 0
-        while index < len(query_time_series_response.items[0].time_series):
-            metric_name = METRICS['host'][index]
-            value = query_time_series_response.items[0].time_series[index].data[0].value
-            self._log.debug('metric_name: %s', f'host.{metric_name}')
-            self._log.debug('value: %s', value)
-            self._log.debug('tags: %s', tags)
-            self._check.gauge(f'host.{metric_name}', value, tags=tags)
-            index += 1
+        self._collect_query_time_series(query_time_series_response, 'host', tags)
+
+    def _collect_host_roles(self, host_id):
+        time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
+        metric_names = ','.join(f'last({metric})' for metric in METRICS['role'])
+        query = f'SELECT {metric_names} WHERE hostId="{host_id}" AND category=ROLE'
+        self._log.debug('query: %s', query)
+        query_time_series_response = time_series_resource_api.query_time_series(query=query)
+        self._log.debug('query_time_series_response: %s', query_time_series_response)
+        self._collect_query_time_series(query_time_series_response, 'role')
+
+    def _collect_query_time_series(self, query_time_series_response, category, tags=[]):
+        for item in query_time_series_response.items:
+            last_metadata_metric_name = None
+            for ts in item.time_series:
+                self._log.debug('ts: %s', ts)
+                if last_metadata_metric_name is None:
+                    index = 0
+                elif last_metadata_metric_name != ts.metadata.metric_name:
+                    index += 1
+                last_metadata_metric_name = ts.metadata.metric_name
+                metric_name = METRICS[category][index]
+                full_metric_name = f'{category}.{metric_name}'
+                new_tag = f'cloudera_{category}:{ts.metadata.entity_name}'
+                if new_tag not in tags:
+                    tags.append(new_tag)
+                for d in ts.data:
+                    value = d.value
+                    self._log.debug('full_metric_name: %s', full_metric_name)
+                    self._log.debug('value: %s', value)
+                    self._log.debug('tags: %s', tags)
+                    self._check.gauge(full_metric_name, value, tags=tags)
+

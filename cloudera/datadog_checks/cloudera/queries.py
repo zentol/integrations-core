@@ -14,18 +14,19 @@ TIMESERIES_QUERIES = [
             ('rack_id', 'rackId'),
         ],
         'metric_name': 'cpu_soft_irq_rate',
+        'categories': ['host'],
     },
-    {
-        'query_string': 'select last(cpu_system_rate)',
-        'tags': [
-            ('cloudera_hostname', 'hostname'),
-            ('entity_name', 'entityName'),
-            ('host_id', 'hostId'),
-            ('rack_id', 'rackId'),
-            ('cluster_display_name', 'clusterDisplayName'),
-        ],
-        'metric_name': 'cpu_system_rate',
-    },
+    # {
+    #     'query_string': 'select last(cpu_system_rate)',
+    #     'tags': [
+    #         ('cloudera_hostname', 'hostname'),
+    #         ('entity_name', 'entityName'),
+    #         ('host_id', 'hostId'),
+    #         ('rack_id', 'rackId'),
+    #         ('cluster_display_name', 'clusterDisplayName'),
+    #     ],
+    #     'metric_name': 'cpu_system_rate',
+    # },
     # {
     #     'query_string': 'select last(load_1)',
     #     'tags': [

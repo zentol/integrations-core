@@ -21,7 +21,7 @@ def test_given_bad_url_when_check_runs_then_service_check_critical(
     aggregator.assert_service_check('cloudera.can_connect', ClouderaCheck.CRITICAL)
 
 
-# @pytest.mark.usefixtures('dd_environment')
+@pytest.mark.usefixtures('dd_environment')
 @pytest.mark.integration
 def test_given_api_v12_endpoint_when_check_runs_then_service_check_ok_and_metrics(
     aggregator,
@@ -65,3 +65,4 @@ def test_given_api_v48_endpoint_when_check_runs_then_service_check_ok_and_metric
         for metric in metrics:
             aggregator.assert_metric(f'cloudera.{category}.{metric}')
     aggregator.assert_service_check('cloudera.can_connect', ClouderaCheck.OK)
+    assert False

@@ -19,6 +19,7 @@ from cm_client.rest import ApiException
 
 from datadog_checks.base import AgentCheck, ConfigurationError
 from datadog_checks.cloudera.metrics import METRICS
+from datadog_checks.cloudera.queries import TIMESERIES_QUERIES
 
 pytestmark = [pytest.mark.unit]
 
@@ -549,3 +550,7 @@ def test_run_timeseries_checks(
     # When
     dd_run_check(check)
     # Then
+    for metric in TIMESERIES_QUERIES:
+        metric_name = metric['metric_name']
+        for category in metric['categories']:
+            aggregator.assert_metric(f'cloudera.{category}.{metric_name}')

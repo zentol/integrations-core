@@ -4,7 +4,6 @@ from cm_client.rest import ApiException
 from datadog_checks.base import AgentCheck
 from datadog_checks.cloudera.api_client import ApiClient
 from datadog_checks.cloudera.entity_status import ENTITY_STATUS
-from datadog_checks.cloudera.health_summary import HEALTH_SUMMARY
 from datadog_checks.cloudera.metrics import METRICS
 
 
@@ -41,7 +40,7 @@ class ApiClientV5(ApiClient):
         if cluster_tags:
             for cluster_tag in cluster_tags:
                 tags.append(f"{cluster_tag.name}:{cluster_tag.value}")
-        self._check.service_check("cluster_status", cluster_entity_status, tags=tags)
+        self._check.service_check("cluster.health", cluster_entity_status, tags=tags)
         if cluster_name:
             self._collect_cluster_metrics(cluster_name, tags)
             self._collect_cluster_hosts(cluster_name)
@@ -72,12 +71,12 @@ class ApiClientV5(ApiClient):
 
     def _collect_cluster_host(self, host):
         self._log.debug('host: %s', host)
-        host_health_summary = HEALTH_SUMMARY[host.health_summary] if host.health_summary else None
+        host_entity_status = ENTITY_STATUS[host.entity_status] if host.entity_status else None
         host_id = host.host_id
         host_name = host.hostname
         host_ip_address = host.ip_address
         host_tags = host.tags
-        self._log.debug('host_status: %s', host_health_summary)
+        self._log.debug('host_entity_status: %s', host_entity_status)
         self._log.debug('host_id: %s', host_id)
         self._log.debug('host_tags: %s', host_tags)
         tags = []
@@ -90,7 +89,7 @@ class ApiClientV5(ApiClient):
         if host_tags:
             tags.extend([f"{host_tag.name}:{host_tag.value}" for host_tag in host_tags])
         self._log.debug('host_tags: %s', tags)
-        self._check.service_check("host_status", host_health_summary, tags=tags)
+        self._check.service_check("host.health", host_entity_status, tags=tags)
         if host_id:
             self._collect_host_metrics(host_id, tags)
 
