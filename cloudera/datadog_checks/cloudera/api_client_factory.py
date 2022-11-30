@@ -2,7 +2,7 @@ import cm_client
 import packaging.version
 from cm_client.rest import ApiException
 
-from datadog_checks.cloudera.api_client_v5 import ApiClientV5
+# from datadog_checks.cloudera.api_client_v5 import ApiClientV5
 from datadog_checks.cloudera.api_client_v7 import ApiClientV7
 
 
@@ -28,9 +28,9 @@ def make_api_client(check, instance):
         check.log.debug('Cloudera Manager Version: %s', cloudera_version)
         if cloudera_version is not None:
             cloudera_version = packaging.version.parse(str(cloudera_version))
-            if cloudera_version.major == 5:
-                return ApiClientV5(check, instance, api_client), None
-            elif cloudera_version.major == 7:
+            # if cloudera_version.major == 5:
+            #     return ApiClientV5(check, instance, api_client), None
+            if cloudera_version.major == 7:
                 return ApiClientV7(check, instance, api_client), None
         return None, f"Cloudera Manager Version not supported: {cloudera_version}"
     except (ApiException, Exception) as e:

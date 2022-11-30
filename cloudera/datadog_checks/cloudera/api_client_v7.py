@@ -68,7 +68,7 @@ class ApiClientV7(ApiClient):
         self._log.debug('host_entity_status: %s', host_entity_status)
         self._log.debug('host_id: %s', host_id)
         if host_id:
-            tags = [f"{tag.name}:{tag.value}" for tag in host.tags]
+            tags = [f"{tag.name}:{tag.value}" for tag in host.tags] if host.tags else []
             self._collect_host_metrics(host_id, tags)
             self._collect_host_roles(host_id)
             self._log.debug('host.health tags: %s', tags)
