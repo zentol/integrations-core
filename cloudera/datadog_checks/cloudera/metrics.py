@@ -29,6 +29,12 @@ TIMESERIES_METRICS = {
         'cpu_user_rate',
         'cpu_system_rate',
     ],
+    'disk': [
+        'service_time',
+        'await_time',
+        'await_read_time',
+        'await_write_time',
+    ],
 }
 
 NATIVE_METRICS = {}

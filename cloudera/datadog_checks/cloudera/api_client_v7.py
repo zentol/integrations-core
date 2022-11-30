@@ -4,7 +4,7 @@ from cm_client.rest import ApiException
 from datadog_checks.base import AgentCheck
 from datadog_checks.cloudera.api_client import ApiClient
 from datadog_checks.cloudera.entity_status import ENTITY_STATUS
-from datadog_checks.cloudera.metrics import METRICS
+from datadog_checks.cloudera.metrics import TIMESERIES_METRICS
 
 
 class ApiClientV7(ApiClient):
@@ -47,7 +47,7 @@ class ApiClientV7(ApiClient):
 
     def _collect_cluster_metrics(self, cluster_name, tags):
         time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
-        metric_names = ','.join(f'last({metric})' for metric in METRICS['cluster'])
+        metric_names = ','.join(f'last({metric})' for metric in TIMESERIES_METRICS['cluster'])
         query = f'SELECT {metric_names} WHERE clusterName="{cluster_name}" AND category=CLUSTER'
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
@@ -71,12 +71,13 @@ class ApiClientV7(ApiClient):
             tags = [f"{tag.name}:{tag.value}" for tag in host.tags] if host.tags else []
             self._collect_host_metrics(host_id, tags)
             self._collect_host_roles(host_id)
+            self._collect_host_disks(host_id)
             self._log.debug('host.health tags: %s', tags)
             self._check.service_check("host.health", host_entity_status, tags=tags)
 
     def _collect_host_metrics(self, host_id, tags):
         time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
-        metric_names = ','.join(f'last({metric})' for metric in METRICS['host'])
+        metric_names = ','.join(f'last({metric})' for metric in TIMESERIES_METRICS['host'])
         query = f'SELECT {metric_names} WHERE hostId="{host_id}" AND category=HOST'
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
@@ -85,12 +86,21 @@ class ApiClientV7(ApiClient):
 
     def _collect_host_roles(self, host_id):
         time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
-        metric_names = ','.join(f'last({metric})' for metric in METRICS['role'])
+        metric_names = ','.join(f'last({metric})' for metric in TIMESERIES_METRICS['role'])
         query = f'SELECT {metric_names} WHERE hostId="{host_id}" AND category=ROLE'
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
         self._log.debug('query_time_series_response: %s', query_time_series_response)
         self._collect_query_time_series(query_time_series_response, 'role', [])
+
+    def _collect_host_disks(self, host_id):
+        time_series_resource_api = cm_client.TimeSeriesResourceApi(self._api_client)
+        metric_names = ','.join(f'last({metric})' for metric in TIMESERIES_METRICS['disk'])
+        query = f'SELECT {metric_names} WHERE hostId="{host_id}" AND category=DISK'
+        self._log.debug('query: %s', query)
+        query_time_series_response = time_series_resource_api.query_time_series(query=query)
+        self._log.debug('query_time_series_response: %s', query_time_series_response)
+        self._collect_query_time_series(query_time_series_response, 'disk', [])
 
     def _collect_query_time_series(self, query_time_series_response, category, tags):
         for item in query_time_series_response.items:
@@ -102,7 +112,7 @@ class ApiClientV7(ApiClient):
                 elif last_metadata_metric_name != ts.metadata.metric_name:
                     index += 1
                 last_metadata_metric_name = ts.metadata.metric_name
-                metric_name = METRICS[category][index]
+                metric_name = TIMESERIES_METRICS[category][index]
                 metric_tags = tags + [f'cloudera_{category}:{ts.metadata.entity_name}']
                 full_metric_name = f'{category}.{metric_name}'
                 for d in ts.data:
