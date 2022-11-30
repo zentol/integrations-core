@@ -130,43 +130,14 @@ def test_given_cloudera_check_when_supported_version_then_emits_ok_service(
                                 data=[
                                     ApiTimeSeriesData(value=49.7),
                                 ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='cluster'),
+                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name=category),
                             )
-                            for metric in METRICS['cluster']
+                            for metric in metrics
                         ]
                     ),
                 ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='host'),
-                            )
-                            for metric in METRICS['host']
-                        ]
-                    ),
-                ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='role'),
-                            )
-                            for metric in METRICS['role']
-                        ]
-                    ),
-                ],
-            ),
+            )
+            for category, metrics in METRICS.items()
         ],
     ), mock.patch(
         'cm_client.ClustersResourceApi.list_hosts',
@@ -262,43 +233,14 @@ def test_given_cloudera_check_when_bad_health_cluster_then_emits_cluster_health_
                                 data=[
                                     ApiTimeSeriesData(value=49.7),
                                 ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='cluster'),
+                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name=category),
                             )
-                            for metric in METRICS['cluster']
+                            for metric in metrics
                         ]
                     ),
                 ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='host'),
-                            )
-                            for metric in METRICS['host']
-                        ]
-                    ),
-                ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='role'),
-                            )
-                            for metric in METRICS['role']
-                        ]
-                    ),
-                ],
-            ),
+            )
+            for category, metrics in METRICS.items()
         ],
     ), mock.patch(
         'cm_client.ClustersResourceApi.list_hosts',
@@ -354,43 +296,14 @@ def test_given_cloudera_check_when_good_health_cluster_then_emits_cluster_health
                                 data=[
                                     ApiTimeSeriesData(value=49.7),
                                 ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='cluster'),
+                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name=category),
                             )
-                            for metric in METRICS['cluster']
+                            for metric in metrics
                         ]
                     ),
                 ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='host'),
-                            )
-                            for metric in METRICS['host']
-                        ]
-                    ),
-                ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='role'),
-                            )
-                            for metric in METRICS['role']
-                        ]
-                    ),
-                ],
-            ),
+            )
+            for category, metrics in METRICS.items()
         ],
     ), mock.patch(
         'cm_client.ClustersResourceApi.list_hosts',
@@ -446,43 +359,14 @@ def test_given_cloudera_check_when_good_health_cluster_then_emits_cluster_metric
                                 data=[
                                     ApiTimeSeriesData(value=49.7),
                                 ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='cluster'),
+                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name=category),
                             )
-                            for metric in METRICS['cluster']
+                            for metric in metrics
                         ]
                     ),
                 ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='host'),
-                            )
-                            for metric in METRICS['host']
-                        ]
-                    ),
-                ],
-            ),
-            ApiTimeSeriesResponseList(
-                items=[
-                    ApiTimeSeriesResponse(
-                        time_series=[
-                            ApiTimeSeries(
-                                data=[
-                                    ApiTimeSeriesData(value=49.7),
-                                ],
-                                metadata=ApiTimeSeriesMetadata(metric_name=metric, entity_name='role'),
-                            )
-                            for metric in METRICS['role']
-                        ]
-                    ),
-                ],
-            ),
+            )
+            for category, metrics in METRICS.items()
         ],
     ), mock.patch(
         'cm_client.ClustersResourceApi.list_hosts',
