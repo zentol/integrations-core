@@ -66,7 +66,10 @@ def compute_estimated_row_bytes(row):
 
     estimated_bytes = 0
     for column_val in row:
-        estimated_bytes += len(str(column_val))
+        if isinstance(column_val, int, float):
+            estimated_bytes += 8
+        else:
+            estimated_bytes += len(str(column_val))
     return estimated_bytes
 
 
