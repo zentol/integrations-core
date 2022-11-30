@@ -52,7 +52,7 @@ class ApiClientV7(ApiClient):
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
         self._log.debug('query_time_series_response: %s', query_time_series_response)
-        self._collect_query_time_series(query_time_series_response, 'cluster')
+        self._collect_query_time_series(query_time_series_response, 'cluster', [])
 
     def _collect_cluster_hosts(self, cluster_name):
         clusters_resource_api = cm_client.ClustersResourceApi(self._api_client)
@@ -90,9 +90,9 @@ class ApiClientV7(ApiClient):
         self._log.debug('query: %s', query)
         query_time_series_response = time_series_resource_api.query_time_series(query=query)
         self._log.debug('query_time_series_response: %s', query_time_series_response)
-        self._collect_query_time_series(query_time_series_response, 'role')
+        self._collect_query_time_series(query_time_series_response, 'role', [])
 
-    def _collect_query_time_series(self, query_time_series_response, category, tags=[]):
+    def _collect_query_time_series(self, query_time_series_response, category, tags):
         for item in query_time_series_response.items:
             last_metadata_metric_name = None
             for ts in item.time_series:
@@ -103,14 +103,11 @@ class ApiClientV7(ApiClient):
                     index += 1
                 last_metadata_metric_name = ts.metadata.metric_name
                 metric_name = METRICS[category][index]
+                metric_tags = tags + [f'cloudera_{category}:{ts.metadata.entity_name}']
                 full_metric_name = f'{category}.{metric_name}'
-                new_tag = f'cloudera_{category}:{ts.metadata.entity_name}'
-                if new_tag not in tags:
-                    tags.append(new_tag)
                 for d in ts.data:
                     value = d.value
                     self._log.debug('full_metric_name: %s', full_metric_name)
                     self._log.debug('value: %s', value)
-                    self._log.debug('tags: %s', tags)
-                    self._check.gauge(full_metric_name, value, tags=tags)
-
+                    self._log.debug('metric_tags: %s', metric_tags)
+                    self._check.gauge(full_metric_name, value, tags=metric_tags)

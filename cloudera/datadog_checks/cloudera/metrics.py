@@ -26,6 +26,8 @@ TIMESERIES_METRICS = {
     ],
     'role': [
         'mem_rss',
+        'cpu_user_rate',
+        'cpu_system_rate',
     ],
 }
 
