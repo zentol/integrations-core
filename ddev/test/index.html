@@ -55,7 +55,7 @@
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    Returns a `bool` indicating whether or not a compose file has any active services.</span>
 <span class=sd>    &quot;&quot;&quot;</span>
-    <span class=n>command</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;docker&#39;</span><span class=p>,</span> <span class=s1>&#39;compose&#39;</span><span class=p>,</span> <span class=s1>&#39;--compatibility&#39;</span><span class=p>,</span> <span class=s1>&#39;-f&#39;</span><span class=p>,</span> <span class=n>compose_file</span><span class=p>,</span> <span class=s1>&#39;ps&#39;</span><span class=p>]</span>
+    <span class=n>command</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;docker&#39;</span><span class=p>,</span> <span class=s1>&#39;compose&#39;</span><span class=p>,</span> <span class=s1>&#39;-f&#39;</span><span class=p>,</span> <span class=n>compose_file</span><span class=p>,</span> <span class=s1>&#39;ps&#39;</span><span class=p>]</span>
     <span class=n>lines</span> <span class=o>=</span> <span class=n>run_command</span><span class=p>(</span><span class=n>command</span><span class=p>,</span> <span class=n>capture</span><span class=o>=</span><span class=s1>&#39;out&#39;</span><span class=p>,</span> <span class=n>check</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span><span class=o>.</span><span class=n>stdout</span><span class=o>.</span><span class=n>strip</span><span class=p>()</span><span class=o>.</span><span class=n>splitlines</span><span class=p>()</span>
 
     <span class=k>return</span> <span class=nb>len</span><span class=p>(</span><span class=n>lines</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>1</span>
